@@ -1,0 +1,4 @@
+sfsimodels>=0.5.6
+numpy
+signalpy
+geofound

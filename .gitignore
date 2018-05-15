@@ -1,0 +1,5 @@
+.idea/
+*.pyc
+liquepy/__pycache__/
+dist/
+liquepy.egg-info/
