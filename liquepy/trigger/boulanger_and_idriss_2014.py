@@ -226,20 +226,11 @@ def calculate_msf(magnitude, q_c1ncs):
     :param q_c1ncs: clean sand-corrected normalised cone tip resistance
     :return:
     """
-    n = len(q_c1ncs)
-    msf_max = np.ones(n)
-    msf_m = np.ones(n)
-    msf = np.ones(n)
     if magnitude == 7.5:
-        return msf
-    else:
-        for i in range(0, n):
-            msf_m[i] = 1.09 + (q_c1ncs[i] / 180) ** 3
-            if msf_m[i] > 2.2:
-                msf_max[i] = 2.2
-            else:
-                msf_max[i] = msf_m[i]
-            msf[i] = 1 + (msf_max[i] - 1) * (8.64 * np.exp(-magnitude / 4) - 1.325)
+        return np.ones_like(q_c1ncs)
+    msf_m = 1.09 + (q_c1ncs / 180) ** 3
+    msf_max = np.where(msf_m > 2.2, 2.2, msf_m)
+    msf = 1. + (msf_max - 1) * (8.64 * np.exp(-magnitude / 4) - 1.325)
     return msf
 
 
