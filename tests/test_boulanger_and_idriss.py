@@ -52,8 +52,6 @@ def test_calculate_fc():
     # expected_fc = 97.31
     expected_fc = 97.4
     fc = bim14.calculate_fc(ic, cfc)
-    print(fc)
-
     assert fc == expected_fc
 
 
@@ -61,22 +59,20 @@ def test_calculate_rd():
     depth = 5.32
     magnitude = 7.5
     rd = bim14.calculate_rd(depth, magnitude)
-    expected_rd = 0.957178376538626
-    print(rd)
+    expected_rd = 0.95717837
+    assert np.isclose(rd, expected_rd)
 
-    assert rd == expected_rd
 
 def test_calculate_csr():
-    sigma_veff= 42.6
+    sigma_veff = 42.6
     sigma_v = 79.1
     pga = 0.25
     rd = 0.96
     gwl = 1.6
     depth = 5.32
     csr = bim14.calculate_csr(sigma_veff, sigma_v, pga, rd, gwl, depth)
-    expected_csr = 0.2896619718309859
-    print(csr)
-    assert csr == expected_csr
+    expected_csr = 0.28966
+    assert np.isclose(csr, expected_csr)
 
 
 def test_calculate_cn_values():
@@ -84,33 +80,32 @@ def test_calculate_cn_values():
     sigma_veff = 42.6
     cn = bim14.calculate_cn_values(m, sigma_veff)
     expected_cn = 1.7
-    assert ct.isclose(cn, expected_cn, rel_tol=0.04)
+    assert np.isclose(cn, expected_cn, rtol=0.04)
 
 
 def test_calculate_m():
     q_c1ncs = 62.1
     m = bim14.calculate_m(q_c1ncs)
     expected_m = 0.6
-    assert ct.isclose(m, expected_m, rel_tol=0.01)
+    assert np.isclose(m, expected_m, rtol=0.01)
 
 
 def test_calculate_q_c1n():
     qc = 0.58
-    CN = 1.7
-    qc1n = bim14.calculate_q_c1n(qc, CN)
+    c_n = 1.7
+    qc1n = bim14.calculate_q_c1n(qc, c_n)
     # expected_qc1n = 9.73
     expected_qc1n = 9.8
-    assert ct.isclose(qc1n, expected_qc1n, rel_tol=0.1)
+    assert np.isclose(qc1n, expected_qc1n, rtol=0.1)
 
 
 def test_crr_7p5_from_cpt():
     q_c1n_cs = 62.1
     gwl = 1.6
     depth = 5.35
-    expected_crr_7p5 = 0.1
+    expected_crr_7p5 = 0.101
     crr = bim14.crr_7p5_from_cpt(q_c1n_cs, gwl, depth, i_c=1.8)
-    assert ct.isclose(crr, expected_crr_7p5, rel_tol=0.011)
-    # that is not important, because it is modified in crr_m function
+    assert np.isclose(crr.astype(float), expected_crr_7p5, rtol=0.011)
 
 
 def test_crr_m():
@@ -144,34 +139,33 @@ def test_calculate_q_c1ncs():
 
 def test_calculate_msf():
     magnitude = 7.5
-    q_c1ns = 9.73*np.ones(1)
+    q_c1ns = 9.73 * np.ones(1)
     msf = bim14.calculate_msf(magnitude, q_c1ns)
-    expected_msf = 1.*np.ones(1)
+    expected_msf = 1. * np.ones(1)
     assert msf == expected_msf
 
 
 def test_calculate_big_q_values():
     qt = 20.
-    sigmav = 15.
-    CN = 0.8
-    qq = bim14.calculate_big_q_values(CN, qt, sigmav)
-    print(qq)
+    sigma_v = 15.
+    c_n = 0.8
+    qq = bim14.calculate_big_q_values(c_n, qt, sigma_v)
     assert ct.isclose(qq, 0.04, rel_tol=0.011)
+
 
 def test_calculate_big_f_values():
     qt = 20.
     sigmav = 15.
     fs = 15
-    F = bim14.calculate_f_ic_values(fs, qt, sigmav)
-    expected_F = 300.
-    assert F == expected_F
+    f_value = bim14.calculate_f_ic_values(fs, qt, sigmav)
+    expected_f = 300.
+    assert f_value == expected_f
 
 
 def test_calculate_k_sigma():
-    sigma_eff = 42.6*np.ones(1)
-    qc1ncs = 9.73*np.ones(1)
+    sigma_eff = 42.6 * np.ones(1)
+    qc1ncs = 9.73 * np.ones(1)
     expected_ksigma = bim14.calculate_k_sigma(sigma_eff, qc1ncs)
-    ksigma = 1.07 * np.ones(1)
     ksigma = 1.038 * np.ones(1)
     assert ct.isclose(expected_ksigma, ksigma, rel_tol=0.001)
 
@@ -180,11 +174,4 @@ def test_calculate_ic():
     big_q = 0.04
     big_f = 300.
     expected_ic = bim14.calculate_ic(big_q, big_f)
-    assert ct.isclose(expected_ic , 5.07, rel_tol=0.09)
-
-
-
-
-
-if __name__ == '__main__':
-    test_can_calculate_fos()
+    assert ct.isclose(expected_ic, 5.07, rel_tol=0.09)
