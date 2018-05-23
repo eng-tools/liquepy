@@ -235,6 +235,15 @@ def calculate_msf(magnitude, q_c1ncs):
 
 
 def calculate_k_sigma(sigma_eff, qc1ncs):
+    """
+    Overburden correction factor, K_sigma
+
+    Equation 2.16a
+
+    :param sigma_eff: vertical effective stress
+    :param qc1ncs: clean sand-corrected normalised cone tip resistance
+    :return:
+    """
     n = len(qc1ncs)
     q = np.where(qc1ncs > 211, 211, qc1ncs)
 

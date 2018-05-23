@@ -195,9 +195,39 @@ def test_calculate_big_f_values():
 def test_calculate_k_sigma():
     sigma_eff = 42.6 * np.ones(1)
     qc1ncs = 9.73 * np.ones(1)
-    expected_ksigma = bim14.calculate_k_sigma(sigma_eff, qc1ncs)
-    ksigma = 1.038 * np.ones(1)
-    assert ct.isclose(expected_ksigma, ksigma, rel_tol=0.001)
+    k_sigma = bim14.calculate_k_sigma(sigma_eff, qc1ncs)
+    expected_k_sigma = 1.038
+    assert np.isclose(expected_k_sigma, k_sigma[0], rtol=0.001)
+
+    sigma_eff = 42.6 * np.ones(1)
+    qc1ncs = 84. * np.ones(1)
+    k_sigma = bim14.calculate_k_sigma(sigma_eff, qc1ncs)
+    expected_k_sigma = 1.080
+    assert np.isclose(expected_k_sigma, k_sigma[0], rtol=0.001)
+
+    sigma_eff = 142.6 * np.ones(1)
+    qc1ncs = 84. * np.ones(1)
+    k_sigma = bim14.calculate_k_sigma(sigma_eff, qc1ncs)
+    expected_k_sigma = 0.9667
+    assert np.isclose(expected_k_sigma, k_sigma[0], rtol=0.001)
+
+    sigma_eff = 142.6 * np.ones(1)
+    qc1ncs = 130 * np.ones(1)
+    k_sigma = bim14.calculate_k_sigma(sigma_eff, qc1ncs)
+    expected_k_sigma = 0.9521
+    assert np.isclose(expected_k_sigma, k_sigma[0], rtol=0.001)
+
+    sigma_eff = 142.6 * np.ones(1)
+    qc1ncs = 212 * np.ones(1)  # Should hit maximum limit
+    k_sigma = bim14.calculate_k_sigma(sigma_eff, qc1ncs)
+    expected_k_sigma = 0.8934
+    assert np.isclose(expected_k_sigma, k_sigma[0], rtol=0.001)
+
+    sigma_eff = 142.6 * np.ones(1)
+    qc1ncs = 220 * np.ones(1)  # Should hit maximum limit
+    k_sigma = bim14.calculate_k_sigma(sigma_eff, qc1ncs)
+    expected_k_sigma = 0.8934
+    assert np.isclose(expected_k_sigma, k_sigma[0], rtol=0.001)
 
 
 def test_calculate_ic():
