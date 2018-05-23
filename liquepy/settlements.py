@@ -1,7 +1,7 @@
 import numpy as np
 
 from scipy.integrate import trapz
-from signalpy import single
+from eqsig import single
 
 import liquepy as lq
 

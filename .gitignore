@@ -3,3 +3,5 @@
 liquepy/__pycache__/
 dist/
 liquepy.egg-info/
+.pytest_cache/
+venv/

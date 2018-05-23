@@ -1,7 +1,11 @@
 from setuptools import setup, find_packages
 
+about = {}
+with open("liquepy/__about__.py") as fp:
+    exec(fp.read(), about)
+
 setup(name='liquepy',
-      version='0.1.0',
+      version=about['__version__'],
       description='Tools for soil liquefaction analysis',
       url='https://github.com/eng-tools/liquepy',
       author='Julieth Quintero and Maxim Millen',
@@ -16,7 +20,7 @@ setup(name='liquepy',
           'Programming Language :: Python :: 3',
       ],
       packages=find_packages(exclude=['contrib', 'docs', 'tests']),
-      install_requires=['sfsimodels>=0.5.6', 'geofound', 'numpy'],
+      install_requires=['sfsimodels>=0.5.6', 'geofound', 'numpy', 'eqsig'],
       # List additional groups of dependencies here (e.g. development
       # dependencies). You can install these using the following syntax,
       # for example:
