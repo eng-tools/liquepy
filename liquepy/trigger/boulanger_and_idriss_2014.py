@@ -234,7 +234,7 @@ def calculate_msf(magnitude, q_c1ncs):
     return msf
 
 
-def calculate_k_sigma(sigma_eff, qc1ncs):
+def calculate_k_sigma(sigma_eff, qc1ncs, pa=100):
     """
     Overburden correction factor, K_sigma
 
@@ -242,23 +242,14 @@ def calculate_k_sigma(sigma_eff, qc1ncs):
 
     :param sigma_eff: vertical effective stress
     :param qc1ncs: clean sand-corrected normalised cone tip resistance
+    :param pa: atmospheric pressure in kPa
     :return:
     """
-    n = len(qc1ncs)
-    q = np.where(qc1ncs > 211, 211, qc1ncs)
-
-    pa = 100  # kPa
-    k = np.ones(n)
-    k1 = np.ones(n)
-    cs = np.ones(n)
-    for i in range(0, n):
-        cs[i] = (37.3 - 8.27 * (q[i] ** 0.264)) ** -1
-        k1[i] = 1 - cs[i] * np.log(sigma_eff[i] / pa)
-        if k1[i] > 1.1:
-            k[i] = 1.1
-        else:
-            k[i] = k1[i]
-    return k
+    c_sigma_unrestricted = 1. / (37.3 - 8.27 * (qc1ncs ** 0.264))
+    c_sigma = np.where(c_sigma_unrestricted <= 0.3, c_sigma_unrestricted, 0.3)
+    k_sigma_unrestricted = 1 - c_sigma * np.log(sigma_eff / pa)
+    k_sigma = np.where(k_sigma_unrestricted <= 1.1, k_sigma_unrestricted, 1.1)
+    return k_sigma
 
 
 def calculate_dependent_variables(sigma_v, sigma_veff, q_c, f_s, p_a, q_t, cfc):
