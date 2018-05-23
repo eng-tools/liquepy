@@ -216,8 +216,17 @@ def calculate_q_c1ncs(q_c1n, delta_q_c1n):
     return q_c1ncs
 
 
-def calculate_msf(magnitude, q_c1ns):
-    n = len(q_c1ns)
+def calculate_msf(magnitude, q_c1ncs):
+    """
+    Magnitude scaling factor to correct the cyclic resistance ratio
+
+    Eq. 2.19
+
+    :param magnitude: earthquake magnitude
+    :param q_c1ncs: clean sand-corrected normalised cone tip resistance
+    :return:
+    """
+    n = len(q_c1ncs)
     msf_max = np.ones(n)
     msf_m = np.ones(n)
     msf = np.ones(n)
@@ -225,7 +234,7 @@ def calculate_msf(magnitude, q_c1ns):
         return msf
     else:
         for i in range(0, n):
-            msf_m[i] = 1.09 + (q_c1ns[i] / 180) ** 3
+            msf_m[i] = 1.09 + (q_c1ncs[i] / 180) ** 3
             if msf_m[i] > 2.2:
                 msf_max[i] = 2.2
             else:

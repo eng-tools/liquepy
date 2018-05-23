@@ -139,10 +139,40 @@ def test_calculate_q_c1ncs():
 
 def test_calculate_msf():
     magnitude = 7.5
-    q_c1ns = 9.73 * np.ones(1)
+    q_c1ns = 84. * np.ones(1)
     msf = bim14.calculate_msf(magnitude, q_c1ns)
-    expected_msf = 1. * np.ones(1)
-    assert msf == expected_msf
+    expected_msf = 1.
+    assert np.isclose(expected_msf, msf[0], rtol=0.001)
+
+    magnitude = 6.5
+    q_c1ns = 84. * np.ones(1)
+    msf = bim14.calculate_msf(magnitude, q_c1ns)
+    expected_msf = 1.072
+    assert np.isclose(expected_msf, msf[0], rtol=0.001)
+
+    magnitude = 8.5
+    q_c1ns = 84. * np.ones(1)
+    msf = bim14.calculate_msf(magnitude, q_c1ns)
+    expected_msf = 0.944
+    assert np.isclose(expected_msf, msf[0], rtol=0.001)
+
+    magnitude = 7.5
+    q_c1ns = 175. * np.ones(1)
+    msf = bim14.calculate_msf(magnitude, q_c1ns)
+    expected_msf = 1.
+    assert np.isclose(expected_msf, msf[0])
+
+    magnitude = 6.2
+    q_c1ns = 175. * np.ones(1)
+    msf = bim14.calculate_msf(magnitude, q_c1ns)
+    expected_msf = 1.514
+    assert np.isclose(expected_msf, msf[0], rtol=0.001)
+
+    magnitude = 5.1
+    q_c1ns = 175. * np.ones(1)
+    msf = bim14.calculate_msf(magnitude, q_c1ns)
+    expected_msf = 2.1
+    assert np.isclose(expected_msf, msf[0], rtol=0.01)
 
 
 def test_calculate_big_q_values():
