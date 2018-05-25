@@ -252,6 +252,49 @@ def calculate_k_sigma(sigma_eff, qc1ncs, pa=100):
     return k_sigma
 
 
+# def slow_calculate_dependent_variables(sigma_v, sigma_veff, q_c, f_s, p_a, q_t, cfc):
+#     """
+#     Iteratively calculate_volumetric_strain parameters as they are interdependent
+#
+#     :param sigma_v: array, kPa, Total vertical stress
+#     :param sigma_veff: array, kPa, Effective vertical stress
+#     :param q_c: array, kPa, Cone tip resistance
+#     :param f_s: array, kPa, Skin friction
+#     :param p_a: array, kPa, Atmospheric pressure
+#     :param q_t:
+#     :param cfc: float, -, correction factor
+#     :return:
+#     """
+#     num_depth = len(sigma_v)
+#     m_values = np.ones(num_depth)  # create an array of ones
+#     cn_values = np.zeros(num_depth)
+#     q_c1n = np.zeros(num_depth)
+#     delta_q_c1n = np.zeros(num_depth)
+#     q_c1n_cs = np.zeros(num_depth)
+#
+#     big_q = np.ones(num_depth)
+#     ft_values = np.ones(num_depth)
+#     i_c = np.ones(num_depth)
+#     fines_content = np.ones(num_depth)
+#
+#     for dd in range(0, num_depth):
+#         for j in range(100):
+#             cn_values[dd] = min((p_a / sigma_veff[dd]) ** m_values[dd], 1.7)  # Eq 2.15a
+#             temp_cn = cn_values[dd]
+#             q_c1n[dd] = (cn_values[dd] * q_c[dd] / p_a)  # Eq. 2.4
+#             big_q[dd] = calculate_big_q_values(cn_values[dd], q_t[dd], sigma_v[dd])
+#             ft_values[dd] = calculate_f_ic_values(f_s[dd], q_t[dd], sigma_v[dd])
+#             i_c[dd] = calculate_ic(big_q[dd], ft_values[dd])
+#             fines_content[dd] = calculate_fc(i_c[dd], cfc)
+#
+#             delta_q_c1n[dd] = calculate_delta_q_c1n(q_c1n=q_c1n[dd], fc=fines_content[dd])  # Eq. 2.22
+#             q_c1n_cs[dd] = q_c1n[dd] + delta_q_c1n[dd]
+#             m_values[dd] = calculate_m(q_c1n_cs[dd])
+#             if abs(q_c1n[dd] - temp_cn) < 0.00001:
+#                 break
+#     return q_c1n_cs, fines_content, i_c
+
+
 def calculate_dependent_variables(sigma_v, sigma_veff, q_c, f_s, p_a, q_t, cfc):
     """
     Iteratively calculate_volumetric_strain parameters as they are interdependent
@@ -278,9 +321,9 @@ def calculate_dependent_variables(sigma_v, sigma_veff, q_c, f_s, p_a, q_t, cfc):
     fines_content = np.ones(num_depth)
 
     for dd in range(0, num_depth):
+        temp_q_c1n = 1e6
         for j in range(100):
             cn_values[dd] = min((p_a / sigma_veff[dd]) ** m_values[dd], 1.7)  # Eq 2.15a
-            temp_cn = cn_values[dd]
             q_c1n[dd] = (cn_values[dd] * q_c[dd] / p_a)  # Eq. 2.4
             big_q[dd] = calculate_big_q_values(cn_values[dd], q_t[dd], sigma_v[dd])
             ft_values[dd] = calculate_f_ic_values(f_s[dd], q_t[dd], sigma_v[dd])
@@ -290,8 +333,9 @@ def calculate_dependent_variables(sigma_v, sigma_veff, q_c, f_s, p_a, q_t, cfc):
             delta_q_c1n[dd] = calculate_delta_q_c1n(q_c1n=q_c1n[dd], fc=fines_content[dd])  # Eq. 2.22
             q_c1n_cs[dd] = q_c1n[dd] + delta_q_c1n[dd]
             m_values[dd] = calculate_m(q_c1n_cs[dd])
-            if abs(q_c1n[dd] - temp_cn) < 0.00001:
+            if abs(q_c1n[dd] - temp_q_c1n) < 0.00001:
                 break
+            temp_q_c1n = q_c1n[dd]
     return q_c1n_cs, fines_content, i_c
 
 

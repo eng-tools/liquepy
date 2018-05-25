@@ -17,6 +17,15 @@ def test_can_calculate_fos():
     assert ct.isclose(factor_safety_values[500], expected_fos_at_500, rel_tol=0.0001)
 
 
+def test_compare_fos_to_previous_version():
+    depths, q_c, f_s, u_2, gwl = trigger.load_cpt_data(TEST_DATA_DIR + "standard_1.csv")
+    bi2014 = trigger.BoulangerIdriss2014(depths, q_c, f_s, u_2, gwl=gwl, pga=0.25, magnitude=7.5, ar=0.8)
+    factor_safety_values = bi2014.factor_of_safety
+
+    fos_expected = np.loadtxt(TEST_DATA_DIR + "standard_1_fos.csv")  # from liquepy=0.1.6
+    assert np.isclose(fos_expected, factor_safety_values).all()
+
+
 def test_calculate_unit_weight():
     fs = np.array([10.])
     q_t = np.array([10.])
