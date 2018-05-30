@@ -71,7 +71,7 @@ def cal_z_c(fd, z_liq, h0):
     if fd.width > z_liq:
         z_c = h0 + z_liq
     else:
-        z_c = h0 + fd.b
+        z_c = h0 + fd.width
     return z_c
 
 
