@@ -244,3 +244,11 @@ def test_calculate_ic():
     big_f = 300.
     expected_ic = bim14.calculate_ic(big_q, big_f)
     assert ct.isclose(expected_ic, 5.07, rel_tol=0.09)
+
+
+def test_calculate_qc_1ncs_from_crr_7p5():
+    q_c1n_cs_values = np.linspace(50, 220, 100)
+    crr_values = bim14.crr_7p5_from_cpt(q_c1n_cs_values, depth=10, gwl=0, i_c=1.8)
+    q_c1n_cs_back = bim14.calculate_qc_1ncs_from_crr_7p5(crr_values)
+    error = np.sum(abs(q_c1n_cs_values - q_c1n_cs_back))
+    assert error < 0.01, error

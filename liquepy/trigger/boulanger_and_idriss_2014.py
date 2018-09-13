@@ -392,3 +392,48 @@ class BoulangerIdriss2014(object):
 def run_standard_bi2014(cpt_file_path):
     depths, q_c, f_s, u_2, gwl = load_cpt_file.load_cpt_data(cpt_file_path)
     return BoulangerIdriss2014(depths, q_c, f_s, u_2, gwl=gwl, pga=0.25, magnitude=7.5, ar=0.8)
+
+
+def calculate_qc_1ncs_from_crr_7p5(crr_7p5):
+    """
+    Solves the closed form solution to a quartic to invert the CRR_7p5-vs-q_c1n_cs relationship
+
+    :param crr_7p5: float or array, values of cyclic resistance ratio at magnitude 7.5
+    :return: float or array, value of normalised cone tip resistance corrected to clean sand behaviour
+    """
+    x = 5
+    a = (1 / 137) ** 4
+    b = - (1 / 140) ** 3
+    c = (1 / 1000) ** 2
+    d = (1 / 113)
+    e = - (np.log(crr_7p5) + 2.8)
+
+    # discriminant is unused
+    discriminant = 256 * (a ** 3) * (e ** 3) - 192 * ((a * e) ** 2) * b * d - 128 * (a * c * e) **2 + 144 *\
+                   ((a * d) ** 2) * c * e - 27 * (a * d) ** 4 + 144 * a * c * ((b * e) ** 2) - 6 * a * e * \
+                   ((b * d) ** 2) - 80 * a * b * d * e * (c ** 2) + 18 * a * b * c * (d ** 3) + 16 * a * e * \
+                   (c ** 4) - 4 * a * (c ** 3) * (d ** 2) - 27 * (b ** 4) * (e ** 2) + 18 * (b ** 3) * c * d * e - 4 * \
+                   (b ** 3) * (d ** 3) - 4 * (b ** 2) * (c ** 3) * e + (b * c * d) ** 2
+
+    p = (8 * a * c - 3 * b ** 2) / (8 * a ** 2)
+    q = (b ** 3 - 4 * a *b *c + 8 * d * (a ** 2)) / (8 * a ** 3)
+    delta_zero = c ** 2 - 3 * b * d + 12 * a * e
+    delta_one = 2 * c ** 3 - 9 * b * c * d + 27 * e * (b ** 2) + 27 * a * (d ** 2) - 72 * a * c * e
+    big_q = ((delta_one + (delta_one ** 2 - 4 * delta_zero ** 3) ** 0.5) / 2) ** (1/3)
+    big_s = 0.5 * (- 2/3 * p + 1/(3 * a) * (big_q + (delta_zero / big_q))) ** 0.5
+    big_a = (- 4 * big_s ** 2 - 2 * p + q/big_s)
+    big_b = (- 4 * big_s ** 2 - 2 * p - q/big_s)
+    C = - b/(4 * a)
+
+    # Solutions
+    x1 = C - big_s + 0.5 * big_a ** 0.5
+    # x2 = C - big_s - 0.5 * big_a ** 0.5
+    x2 = -1  # q_c1ncs would be less than zero
+
+    import warnings  # These solutions are complex for negative
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        x3 = C + big_s + 0.5 * big_b ** 0.5
+        x4 = C + big_s - 0.5 * big_b ** 0.5
+
+    return np.where(big_b < 0, np.where(x1 < 0, x2, x1), np.where(x3 < 0, x4, x3))
