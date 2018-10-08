@@ -184,7 +184,7 @@ def calculate_q_c1n(qc, CN):
     return q_c1n
 
 
-def crr_7p5_from_cpt(q_c1n_cs, gwl, depth, i_c):
+def crr_7p5_from_cpt(q_c1n_cs, gwl, depth, i_c, i_c_limit=2.6):
     """
     cyclic resistance from CPT, Eq. 2.24
     it's not possible to have liquefaction up water table
@@ -192,7 +192,7 @@ def crr_7p5_from_cpt(q_c1n_cs, gwl, depth, i_c):
     crr_values = np.exp((q_c1n_cs / 113) + ((q_c1n_cs / 1000) ** 2) -
                         ((q_c1n_cs / 140) ** 3) + ((q_c1n_cs / 137) ** 4) - 2.8)
     crr_tent = np.where(depth < gwl, 4, crr_values)
-    return np.where(i_c <= 2.6, crr_tent, 4.)
+    return np.where(i_c <= i_c_limit, crr_tent, 4.)
 
 
 def crr_m(ksigma, msf, crr_m7p5):
@@ -340,7 +340,7 @@ def calculate_dependent_variables(sigma_v, sigma_veff, q_c, f_s, p_a, q_t, cfc):
 
 
 class BoulangerIdriss2014(object):
-    def __init__(self, depth, q_c, f_s, u_2, gwl=2.3, pga=0.25, magnitude=7.5, ar=0.8):
+    def __init__(self, depth, q_c, f_s, u_2, gwl=2.3, pga=0.25, magnitude=7.5, ar=0.8, i_c_limit=2.6):
         """
         Performs the Boulanger and Idriss triggering procedure for a CPT profile
 
@@ -365,6 +365,7 @@ class BoulangerIdriss2014(object):
         self.pga = pga
         self.magnitude = magnitude
         self.ar = ar
+        self.i_c_limit = i_c_limit
 
         self.cfc = 0  # parameter of fines content, eq 2.29
         self.q_t = calculate_qt(self.q_c, self.ar, self.u_2)  # kPa
@@ -382,7 +383,7 @@ class BoulangerIdriss2014(object):
         self.k_sigma = calculate_k_sigma(self.sigma_veff, self.q_c1n_cs)
         self.msf = calculate_msf(magnitude, self.q_c1n_cs)
         self.csr = calculate_csr(self.sigma_veff, self.sigma_v, pga, self.rd, gwl, depth)
-        self.crr_m7p5 = crr_7p5_from_cpt(self.q_c1n_cs, gwl, depth, self.i_c)
+        self.crr_m7p5 = crr_7p5_from_cpt(self.q_c1n_cs, gwl, depth, self.i_c, self.i_c_limit)
         self.crr = crr_m(self.k_sigma, self.msf, self.crr_m7p5)  # CRR a magnitudo M
         fs_unlimited = self.crr / self.csr
         fs_fines_limited = np.where(self.fines_content > 71, 2.0, fs_unlimited)
