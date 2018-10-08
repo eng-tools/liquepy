@@ -51,8 +51,7 @@ def test_karamitros():
     dt = 0.005
 
     sett_dyn = lqs.karamitros_settlement(fd, z_liq=4, q=80000, q_ult=q_ult, acc=acc, dt=dt)
-    print(sett_dyn)
-    assert ct.isclose(sett_dyn, 0.0324293738, rel_tol=0.001), sett_dyn  # 0.034615 Not validated, liquepy 0.1.0
+    assert ct.isclose(sett_dyn, 0.034615, rel_tol=0.001)  # 0.034615 Not validated, liquepy 0.1.0
 
 
 def test_calc_degraded_phi():
