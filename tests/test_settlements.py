@@ -46,12 +46,14 @@ def test_karamitros():
     z_c = lqs.cal_z_c(fd, z_liq=4, h0=2)
     vertical_effective_stress = soil_profile.vertical_effective_stress(z_c)
     phi_deg = lqs.calc_degraded_phi(sl_1.phi, vertical_effective_stress, q=q)
+    assert np.isclose(phi_deg, 9.9275389), phi_deg  # Not validated
     sl_1.phi = phi_deg
     q_ult = gf.capacity_meyerhof_and_hanna_1978(sl_0, sl_1, h0=2, fd=fd, verbose=0)
+    assert np.isclose(q_ult, 105041.12640579), q_ult  # Not validated
     dt = 0.005
 
     sett_dyn = lqs.karamitros_settlement(fd, z_liq=4, q=80000, q_ult=q_ult, acc=acc, dt=dt)
-    assert ct.isclose(sett_dyn, 0.034615, rel_tol=0.001)  # 0.034615 Not validated, liquepy 0.1.0
+    assert ct.isclose(sett_dyn, 0.034615, rel_tol=0.001), sett_dyn  # 0.034615 Not validated, liquepy 0.1.0
 
 
 def test_calc_degraded_phi():
@@ -82,7 +84,7 @@ def test_bray_and_macedo_settlement():
 
     zliq = soil_profile.layer_depth(2) - soil_profile.layer_depth(1)
     sett_dyn_bray = lqs.bray_and_macedo_settlement(acc=acc, dt=dt, z_liq=zliq, q=(float(building.mass_eff)/1000), fd=fd, soil_profile=soil_profile,)
-    assert ct.isclose(sett_dyn_bray, 70.537, rel_tol=0.001)  # 70.537 Not validated, liquepy 0.1.0
+    assert ct.isclose(sett_dyn_bray, 70.537, rel_tol=0.001), sett_dyn_bray  # 70.537 Not validated, liquepy 0.1.0
 
 
 def test_lu_settlement():

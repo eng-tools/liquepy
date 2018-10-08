@@ -96,7 +96,7 @@ def karamitros_settlement_time_series(fd, z_liq, q, q_ult, acc, dt):  # units: m
     c_factor = min(c_dash * (1.0 + 1.65 * fd.length / fd.width), 11.65 * c_dash)  # Karamitros 2013 sett
     int_vel = integral_of_velocity(acc, dt)
     amax_t2_n = (np.pi ** 2) * int_vel
-    fs_deg = (q_ult) / q
+    fs_deg = q_ult / q
     sett_dyn_ts = c_factor * amax_t2_n * (z_liq / fd.width) ** 1.5 * (1.0 / fs_deg) ** 3
     return sett_dyn_ts
 
