@@ -388,8 +388,8 @@ class BoulangerIdriss2014(object):
         self.crr_m7p5 = crr_7p5_from_cpt(self.q_c1n_cs, gwl, depth, self.i_c, self.i_c_limit)
         self.crr = crr_m(self.k_sigma, self.msf, self.crr_m7p5)  # CRR a magnitudo M
         fs_unlimited = self.crr / self.csr
-        fs_fines_limited = np.where(self.fines_content > 71, 2.0, fs_unlimited)  # TODO: find equation in B&I
-        self.factor_of_safety = np.where(fs_fines_limited > 2, 2, fs_fines_limited)
+        # fs_fines_limited = np.where(self.fines_content > 71, 2.0, fs_unlimited)  # based on I_c=2.6
+        self.factor_of_safety = np.where(fs_unlimited > 2, 2, fs_unlimited)
 
 
 def run_standard_bi2014(cpt_file_path):
