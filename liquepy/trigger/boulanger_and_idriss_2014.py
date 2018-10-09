@@ -340,7 +340,7 @@ def calculate_dependent_variables(sigma_v, sigma_veff, q_c, f_s, p_a, q_t, cfc):
 
 
 class BoulangerIdriss2014(object):
-    def __init__(self, depth, q_c, f_s, u_2, gwl=2.3, pga=0.25, magnitude=7.5, ar=0.8, i_c_limit=2.6):
+    def __init__(self, depth, q_c, f_s, u_2, gwl=2.3, pga=0.25, magnitude=7.5, ar=0.8, cfc=0.0, i_c_limit=2.6):
         """
         Performs the Boulanger and Idriss triggering procedure for a CPT profile
 
@@ -354,6 +354,8 @@ class BoulangerIdriss2014(object):
         :param pga: float, g, peak ground acceleration
         :param magnitude: float, -, Earthquake magnitude
         :param ar: float, -, Area ratio
+        :param cfc: float, -, Fines content correction factor for Eq 2.29
+        :param i_c_limit: float, -, limit of liquefiable material
         :return:
         """
         p_a = 100.  # kPa
@@ -367,7 +369,7 @@ class BoulangerIdriss2014(object):
         self.ar = ar
         self.i_c_limit = i_c_limit
 
-        self.cfc = 0  # parameter of fines content, eq 2.29
+        self.cfc = cfc  # parameter of fines content, eq 2.29
         self.q_t = calculate_qt(self.q_c, self.ar, self.u_2)  # kPa
         self.gammas = calculate_unit_weight(self.f_s, self.q_t, gwl, self.depth)
         self.sigma_v = calculate_sigma_v(self.depth, self.gammas)
@@ -386,7 +388,7 @@ class BoulangerIdriss2014(object):
         self.crr_m7p5 = crr_7p5_from_cpt(self.q_c1n_cs, gwl, depth, self.i_c, self.i_c_limit)
         self.crr = crr_m(self.k_sigma, self.msf, self.crr_m7p5)  # CRR a magnitudo M
         fs_unlimited = self.crr / self.csr
-        fs_fines_limited = np.where(self.fines_content > 71, 2.0, fs_unlimited)
+        fs_fines_limited = np.where(self.fines_content > 71, 2.0, fs_unlimited)  # TODO: find equation in B&I
         self.factor_of_safety = np.where(fs_fines_limited > 2, 2, fs_fines_limited)
 
 
