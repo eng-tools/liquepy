@@ -1,1 +1,2 @@
 from liquepy.shear_strain import calculate_shear_strain
+from liquepy import trigger

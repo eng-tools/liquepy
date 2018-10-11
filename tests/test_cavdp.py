@@ -1,7 +1,6 @@
 from liquepy import settlements
 
 import numpy as np
-from liquepy import checking_tools as ct
 from tests.conftest import TEST_DATA_DIR
 
 
@@ -17,4 +16,4 @@ def test_cavdp():
     cav_dp = settlements.calculate_cav_dp(acc, dt)
 
     # 1.4598176 from liquepy 0.1.0  tested with several motions
-    assert ct.isclose(cav_dp, 1.4598176, rel_tol=0.001), cav_dp
+    assert np.isclose(cav_dp, 1.4598176, rtol=0.001), cav_dp

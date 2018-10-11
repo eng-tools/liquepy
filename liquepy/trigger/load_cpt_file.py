@@ -41,7 +41,17 @@ def load_cpt_from_file(fname):
 
 
 class CPT(object):
-    def __init__(self, depth, q_c, f_s, u_2, gwl, a_ratio):
+    def __init__(self, depth, q_c, f_s, u_2, gwl, a_ratio=None):
+        """
+        A cone penetration resistance test
+
+        :param depth: array
+        :param q_c: array, kPa,
+        :param f_s: array, kPa,
+        :param u_2: array, kPa,
+        :param gwl: float, m, ground water level
+        :param a_ratio: float, -, area ratio
+        """
         self.depth = depth
         self.q_c = q_c
         self.f_s = f_s

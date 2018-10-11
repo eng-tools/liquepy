@@ -395,7 +395,7 @@ class BoulangerIdriss2014(object):
 
 
 def run_bi2014(cpt, pga, magnitude):
-    return BoulangerIdriss2014(cpt.depths, cpt.q_c, cpt.f_s, cpt.u_2, gwl=cpt.gwl, pga=pga, magnitude=magnitude,
+    return BoulangerIdriss2014(cpt.depth, cpt.q_c, cpt.f_s, cpt.u_2, gwl=cpt.gwl, pga=pga, magnitude=magnitude,
                                a_ratio=cpt.a_ratio)
 
 

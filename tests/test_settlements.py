@@ -4,7 +4,6 @@ import sfsimodels.files as sfsi_files
 import geofound as gf
 
 from liquepy import settlements as lqs
-from liquepy import checking_tools as ct
 
 from tests.conftest import TEST_DATA_DIR
 
@@ -53,7 +52,7 @@ def test_karamitros():
     dt = 0.005
 
     sett_dyn = lqs.karamitros_settlement(fd, z_liq=4, q=80000, q_ult=q_ult, acc=acc, dt=dt)
-    assert ct.isclose(sett_dyn, 0.03242937, rel_tol=0.001), sett_dyn  # 0.03242937 Not validated, liquepy 0.1.11
+    assert np.isclose(sett_dyn, 0.03242937, rtol=0.001), sett_dyn  # 0.03242937 Not validated, liquepy 0.1.11
 
 
 def test_calc_degraded_phi():
