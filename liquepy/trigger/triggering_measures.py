@@ -29,8 +29,11 @@ def calculate_lsn_increments(e, depth):
     :return: array, lsn increment at depth
     """
     ds = depth[1:] - depth[:-1]
-    ds = np.insert(ds, 0, depth[0])
-    lsn = (e * ds) / depth
+    depth_av = (depth[1:] + depth[:-1]) / 2
+    av_e = (e[1:] + e[:-1]) / 2
+    # depth_av = np.insert(depth_av, len(depth_av), depth[-1])
+    lsn = (av_e * ds) / depth_av
+    lsn = np.insert(lsn, len(lsn), 0)
     return lsn * 10
 
 

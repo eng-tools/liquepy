@@ -36,7 +36,10 @@ def load_cpt_from_file(fname):
         if "Assumed GWL:" in line:
             gwl = float(line.split(";")[1])
         if "aratio" in line:
-            a_ratio = float(line.split(";")[1])
+            try:
+                a_ratio = float(line.split(";")[1])
+            except ValueError:
+                pass
     return CPT(depth, q_c, f_s, u_2, gwl, a_ratio)
 
 
