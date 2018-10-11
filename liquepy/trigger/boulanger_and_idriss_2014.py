@@ -393,9 +393,9 @@ class BoulangerIdriss2014(object):
         self.factor_of_safety = np.where(fs_unlimited > 2, 2, fs_unlimited)
 
 
-def run_bi2014(cpt, pga, magnitude):
+def run_bi2014(cpt, pga, magnitude, cfc=0.0, i_c_limit=2.6):
     return BoulangerIdriss2014(cpt.depth, cpt.q_c, cpt.f_s, cpt.u_2, gwl=cpt.gwl, pga=pga, magnitude=magnitude,
-                               a_ratio=cpt.a_ratio)
+                               a_ratio=cpt.a_ratio, cfc=cfc, i_c_limit=i_c_limit)
 
 
 def calculate_qc_1ncs_from_crr_7p5(crr_7p5):
