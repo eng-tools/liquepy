@@ -7,7 +7,8 @@ from tests.conftest import TEST_DATA_DIR
 
 def calculate_fos():
     depths, q_c, f_s, u_2, gwl = trigger.load_cpt_data(TEST_DATA_DIR + "standard_1.csv")
-    bi2014 = trigger.BoulangerIdriss2014(depths, q_c, f_s, u_2, gwl=gwl, pga=0.25, magnitude=7.5, ar=0.8)
+
+    bi2014 = trigger.BoulangerIdriss2014(depths, q_c, f_s, u_2, gwl=gwl, pga=0.25, magnitude=7.5, a_ratio=0.8)
     factor_safety_values = bi2014.factor_of_safety
 
     expected_fos_at_40 = 2.0
@@ -18,8 +19,8 @@ def calculate_fos():
 
 
 def compare_fos():
-    depths, q_c, f_s, u_2, gwl = trigger.load_cpt_data(TEST_DATA_DIR + "standard_1.csv")
-    bi2014 = trigger.BoulangerIdriss2014(depths, q_c, f_s, u_2, gwl=gwl, pga=0.25, magnitude=7.5, ar=0.8)
+    depth, q_c, f_s, u_2, gwl = trigger.load_cpt_data(TEST_DATA_DIR + "standard_1.csv")
+    bi2014 = trigger.BoulangerIdriss2014(depth, q_c, f_s, u_2, gwl=gwl, pga=0.25, magnitude=7.5, a_ratio=0.8)
     factor_safety_values = bi2014.factor_of_safety
 
     fos_expected = np.loadtxt("standard_1_fos.csv")

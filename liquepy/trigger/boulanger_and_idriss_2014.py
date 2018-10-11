@@ -340,7 +340,7 @@ def calculate_dependent_variables(sigma_v, sigma_veff, q_c, f_s, p_a, q_t, cfc):
 
 
 class BoulangerIdriss2014(object):
-    def __init__(self, depth, q_c, f_s, u_2, gwl=2.3, pga=0.25, magnitude=7.5, ar=0.8, cfc=0.0, i_c_limit=2.6):
+    def __init__(self, depth, q_c, f_s, u_2, gwl=2.3, pga=0.25, magnitude=7.5, a_ratio=0.8, cfc=0.0, i_c_limit=2.6):
         """
         Performs the Boulanger and Idriss triggering procedure for a CPT profile
 
@@ -353,7 +353,7 @@ class BoulangerIdriss2014(object):
         :param gwl: float, m, ground water level below the surface
         :param pga: float, g, peak ground acceleration
         :param magnitude: float, -, Earthquake magnitude
-        :param ar: float, -, Area ratio
+        :param a_ratio: float, -, Area ratio
         :param cfc: float, -, Fines content correction factor for Eq 2.29
         :param i_c_limit: float, -, limit of liquefiable material
         :return:
@@ -366,11 +366,13 @@ class BoulangerIdriss2014(object):
         self.gwl = gwl
         self.pga = pga
         self.magnitude = magnitude
-        self.ar = ar
+        self.a_ratio = a_ratio
+        if a_ratio is None:
+            self.a_ratio = 0.8
         self.i_c_limit = i_c_limit
 
         self.cfc = cfc  # parameter of fines content, eq 2.29
-        self.q_t = calculate_qt(self.q_c, self.ar, self.u_2)  # kPa
+        self.q_t = calculate_qt(self.q_c, self.a_ratio, self.u_2)  # kPa
         self.gammas = calculate_unit_weight(self.f_s, self.q_t, gwl, self.depth)
         self.sigma_v = calculate_sigma_v(self.depth, self.gammas)
         self.pore_pressure = calculate_pore_pressure(self.depth, self.gwl)
@@ -392,9 +394,9 @@ class BoulangerIdriss2014(object):
         self.factor_of_safety = np.where(fs_unlimited > 2, 2, fs_unlimited)
 
 
-def run_standard_bi2014(cpt_file_path):
-    depths, q_c, f_s, u_2, gwl = load_cpt_file.load_cpt_data(cpt_file_path)
-    return BoulangerIdriss2014(depths, q_c, f_s, u_2, gwl=gwl, pga=0.25, magnitude=7.5, ar=0.8)
+def run_bi2014(cpt, pga, magnitude):
+    return BoulangerIdriss2014(cpt.depths, cpt.q_c, cpt.f_s, cpt.u_2, gwl=cpt.gwl, pga=pga, magnitude=magnitude,
+                               a_ratio=cpt.a_ratio)
 
 
 def calculate_qc_1ncs_from_crr_7p5(crr_7p5):
