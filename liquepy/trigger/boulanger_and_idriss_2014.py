@@ -1,5 +1,4 @@
 import numpy as np
-from liquepy.trigger import load_cpt_file
 
 
 def calculate_unit_weight(fs, q_t, gwl, depth):

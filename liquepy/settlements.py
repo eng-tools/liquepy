@@ -250,7 +250,7 @@ def bray_and_macedo_settlement_time_series(acc, dt, z_liq, q, fd, soil_profile):
 
         fs = calculate_factor_safety(q_c1ncs=106, p_a=101, magnitude=6.6, pga=pga_max, depth=item, soil_profile=soil_profile)
         d_r = soil_profile.layer(2).relative_density
-        e_shear = lq.calculate_shear_strain(fs=fs, d_r=d_r)
+        e_shear = lq.trigger.calculate_shear_strain(fs=fs, d_r=d_r)
         w = 1
         lbs1 = w * e_shear/item
         lbs.append(lbs1)

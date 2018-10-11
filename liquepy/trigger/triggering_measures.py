@@ -1,32 +1,21 @@
 import numpy as np
 
 
-def calculate_lpi_weighting_factor(depth):
-    w_unlimited = (10 - depth / 2) / 100
-    w = np.where(depth < 20, w_unlimited, 0)
-    return w
-
-
-def calculate_f_values(factor_safety):
-    f_tent = 0
-    f = np.where(factor_safety < 1, 1 - factor_safety, f_tent)
-    return f
-
-
-def calculate_lpi_increments(depths, liq_factor_of_safety):
+def calculate_lpi_increments(depth, liq_factor_of_safety):
     """
     formulation from 'Soil Dynamics and earthquake engineering', eq. page 317
     """
-    w = calculate_lpi_weighting_factor(depths)
-    f = calculate_f_values(liq_factor_of_safety)
+    w_unlimited = (10 - depth / 2) / 100
+    w = np.where(depth < 20, w_unlimited, 0)
+    f = np.where(liq_factor_of_safety < 1, 1 - liq_factor_of_safety, 0)
     return w * f
 
 
 def calculate_lpi(depths, liq_factor_of_safety):
     """
-    formulation from 'Soil Dynamics and earthquake engineering', eq. page 317
+    Formulation from 'Soil Dynamics and earthquake engineering', eq. page 317
     """
-    return sum(calculate_lpi_increments(depths, liq_factor_of_safety))
+    return np.sum(calculate_lpi_increments(depths, liq_factor_of_safety))
 
 
 def calculate_lsn_increments(e, depth):

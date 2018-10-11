@@ -57,7 +57,7 @@ def test_karamitros():
 
 def test_calc_degraded_phi():
     phi_deg = lqs.calc_degraded_phi(33., 800, q=800)
-    assert ct.isclose(phi_deg, 10.12554, rel_tol=0.001)
+    assert np.isclose(phi_deg, 10.12554, rtol=0.001)
 
 
 def test_bray_and_macedo_settlement():
@@ -83,7 +83,7 @@ def test_bray_and_macedo_settlement():
 
     zliq = soil_profile.layer_depth(2) - soil_profile.layer_depth(1)
     sett_dyn_bray = lqs.bray_and_macedo_settlement(acc=acc, dt=dt, z_liq=zliq, q=(float(building.mass_eff)/1000), fd=fd, soil_profile=soil_profile,)
-    assert ct.isclose(sett_dyn_bray, 70.537, rel_tol=0.001), sett_dyn_bray  # 70.537 Not validated, liquepy 0.1.0
+    assert np.isclose(sett_dyn_bray, 70.537, rtol=0.001), sett_dyn_bray  # 70.537 Not validated, liquepy 0.1.0
 
 
 def test_lu_settlement():
@@ -102,7 +102,7 @@ def test_lu_settlement():
     fd.depth = 0.0
 
     sett_dyn = lqs.lu_settlements(q=80, fd=fd, Dr=55, acc=acc)
-    assert ct.isclose(sett_dyn, 0.366247, rel_tol=0.001)  # 0.366247 Not validated, liquepy 0.1.0
+    assert np.isclose(sett_dyn, 0.366247, rtol=0.001)  # 0.366247 Not validated, liquepy 0.1.0
 
 
 # if __name__ == '__main__':

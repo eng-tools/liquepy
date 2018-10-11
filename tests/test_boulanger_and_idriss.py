@@ -1,13 +1,14 @@
 import numpy as np
-from liquepy import trigger
+import liquepy
+
 from liquepy.trigger import boulanger_and_idriss_2014 as bim14
 
 from tests.conftest import TEST_DATA_DIR
 
 
 def test_can_calculate_fos():
-    cpt = trigger.load_cpt_from_file(TEST_DATA_DIR + "standard_1.csv")
-    bi2014 = trigger.run_bi2014(cpt, pga=0.25, magnitude=7.5)
+    cpt = liquepy.load_cpt_from_file(TEST_DATA_DIR + "standard_1.csv")
+    bi2014 = liquepy.trigger.run_bi2014(cpt, pga=0.25, magnitude=7.5)
     factor_safety_values = bi2014.factor_of_safety
 
     expected_fos_at_40 = 2.0
@@ -17,8 +18,8 @@ def test_can_calculate_fos():
 
 
 def test_compare_fos_to_previous_version():
-    depths, q_c, f_s, u_2, gwl = trigger.load_cpt_data(TEST_DATA_DIR + "standard_1.csv")
-    bi2014 = trigger.BoulangerIdriss2014(depths, q_c, f_s, u_2, gwl=gwl, pga=0.25, magnitude=7.5, a_ratio=0.8)
+    depths, q_c, f_s, u_2, gwl = liquepy.load_cpt_data(TEST_DATA_DIR + "standard_1.csv")
+    bi2014 = liquepy.trigger.BoulangerIdriss2014(depths, q_c, f_s, u_2, gwl=gwl, pga=0.25, magnitude=7.5, a_ratio=0.8)
     factor_safety_values = bi2014.factor_of_safety
 
     fos_expected = np.loadtxt(TEST_DATA_DIR + "standard_1_fos.csv")  # from liquepy=0.1.6
@@ -134,15 +135,15 @@ def test_calculate_delta_q_c1n():
     fc = 64.21
     delta_q = bim14.calculate_delta_q_c1n(q_c1n, fc)
     expected_delta_q = 52.37
-    assert ct.isclose(delta_q, expected_delta_q, rel_tol=0.02)
+    assert np.isclose(delta_q, expected_delta_q, rtol=0.02)
 
 
 def test_calculate_q_c1ncs():
     q_c1n = 9.73
     delta_q_c1n = 63.26
-    expected_qc1ncs = 9.73
+    expected_qc1ncs = 72.99
     qc1ncs = bim14.calculate_q_c1ncs(q_c1n, delta_q_c1n)
-    assert ct.isclose(qc1ncs, expected_qc1ncs, rel_tol=0.9)
+    assert np.isclose(qc1ncs, expected_qc1ncs, rtol=0.001)
 
 
 def test_calculate_msf():
@@ -188,7 +189,7 @@ def test_calculate_big_q_values():
     sigma_v = 15.
     c_n = 0.8
     qq = bim14.calculate_big_q_values(c_n, qt, sigma_v)
-    assert ct.isclose(qq, 0.04, rel_tol=0.011)
+    assert np.isclose(qq, 0.04, rtol=0.011)
 
 
 def test_calculate_big_f_values():
@@ -242,7 +243,7 @@ def test_calculate_ic():
     big_q = 0.04
     big_f = 300.
     expected_ic = bim14.calculate_ic(big_q, big_f)
-    assert ct.isclose(expected_ic, 5.07, rel_tol=0.09)
+    assert np.isclose(expected_ic, 5.07, rtol=0.09)
 
 
 def test_calculate_qc_1ncs_from_crr_7p5():
