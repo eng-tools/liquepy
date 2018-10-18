@@ -6,6 +6,7 @@ from eqsig import single
 import liquepy as lq
 
 
+
 def calculate_factor_safety(q_c1ncs, p_a, magnitude, pga, depth, soil_profile):
     """
     Calculate the liquefaction factor of safety at a given depth.
@@ -205,7 +206,9 @@ def calculate_cav_dp_time_series(acc, dt):
     return CAVdp_time_series
 
 
-def bray_and_macedo_settlement(acc, dt, z_liq, q, fd, soil_profile):
+
+
+def bray_and_macedo_settlement(acc, dt, z_liq, q, fd, soil_profile, q_c1ncs, magnitude):
     """
     Calculates foundation settlement using Bray and Macedo (2017)
 
@@ -218,11 +221,11 @@ def bray_and_macedo_settlement(acc, dt, z_liq, q, fd, soil_profile):
     :return:
     """
 
-    sett_dyn_ts = bray_and_macedo_settlement_time_series(acc, dt, z_liq, q, fd, soil_profile)
+    sett_dyn_ts = bray_and_macedo_settlement_time_series(acc, dt, z_liq, q, fd, soil_profile, q_c1ncs, magnitude)
     return sett_dyn_ts[-1]
 
 
-def bray_and_macedo_settlement_time_series(acc, dt, z_liq, q, fd, soil_profile):
+def bray_and_macedo_settlement_time_series(acc, dt, z_liq, q, fd, soil_profile, q_c1ncs, magnitude, verbose=False):
     """
     Calculates foundation settlement using Bray and Macedo (2017)
 
@@ -241,19 +244,21 @@ def bray_and_macedo_settlement_time_series(acc, dt, z_liq, q, fd, soil_profile):
     # calculation of LBS
 
     # calculation of Maximum Cyclic Shear Strains
-    z = np.arange((soil_profile.layer_depth(1)) + 1, (soil_profile.layer_depth(2) + 1), 1)
-    xmax = len(z) - 1
 
-    lbs = []
+    z = np.arange((soil_profile.layer_depth(2)) + 1, (soil_profile.layer_depth(3) + 1), 1)
+    xmax=len(z)-1
+    eshear=[]
+    lbs =[]
 
     for item in z:
 
-        fs = calculate_factor_safety(q_c1ncs=106, p_a=101, magnitude=6.6, pga=pga_max, depth=item, soil_profile=soil_profile)
+        fs = calculate_factor_safety(q_c1ncs=q_c1ncs, p_a=101, magnitude=magnitude, pga=pga_max, depth=item, soil_profile = soil_profile)
         d_r = soil_profile.layer(2).relative_density
         e_shear = lq.trigger.calculate_shear_strain(fs=fs, d_r=d_r)
         w = 1
-        lbs1 = w * e_shear/item
+        lbs1 = w * e_shear / item
         lbs.append(lbs1)
+
 
     x_lower = z[0]  # the lower limit of x
     x_upper = z[xmax]  # the upper limit of x
@@ -270,7 +275,7 @@ def bray_and_macedo_settlement_time_series(acc, dt, z_liq, q, fd, soil_profile):
         c_2 = 0.014
 
     acc_signal = single.AccSignal(acc, dt)
-    acc_signal.generate_response_spectrum(response_times=np.array([1.]), xi=0.01)
+    acc_signal.generate_response_spectrum(response_times=np.array([1.]), xi=0.05)
 
     sa1 = acc_signal.s_a
 
