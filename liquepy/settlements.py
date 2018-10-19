@@ -249,10 +249,10 @@ def bray_and_macedo_settlement_time_series(soil_profile, fd, asig, liq_layers):
     # calculation of CAVdp
     cavdp_time_series = calculate_cav_dp_series(asig)
     pga_max = max(abs(asig.values)) / gravity
-    z_liq = 0
+    hl = 0
     q_c1ncs_values = []
     for layer_id in liq_layers:
-        z_liq += soil_profile.layer_height(layer_id)
+        hl += soil_profile.layer_height(layer_id)
         q_c1ncs_values.append(soil_profile.layer(layer_id).q_c1ncs)
     q_c1ncs = np.mean(q_c1ncs_values)
     # calculation of LBS
@@ -280,6 +280,13 @@ def bray_and_macedo_settlement_time_series(soil_profile, fd, asig, liq_layers):
     y_int = np.abs(np.array(lbs)[np.where((x_lower <= z) * (z <= x_upper))])
     int_lbs = trapz(y_int, x_int)  # lbs value
 
+    asig.generate_response_spectrum(response_times=np.array([1.]), xi=0.05)
+    sa1 = asig.s_a[0] / gravity
+    qf = fd.vertical_load / fd.width / fd.length
+    return bray_and_macedo_eq(fd.width, qf, hl, sa1, cavdp_time_series, int_lbs)
+
+
+def bray_and_macedo_eq(width, qf, hl, sa1, cavdp_time_series, int_lbs, epsilon=0.0):
     # calculation of c_1 and c_2
     if int_lbs <= 16:
         c_1 = -8.35
@@ -288,11 +295,9 @@ def bray_and_macedo_settlement_time_series(soil_profile, fd, asig, liq_layers):
         c_1 = -7.48
         c_2 = 0.014
 
-    asig.generate_response_spectrum(response_times=np.array([1.]), xi=0.05)
+    q = qf / 1000
 
-    sa1 = asig.s_a / gravity
-    q = fd.vertical_load / 1000
-    sett_dyn_ts = np.exp(c_1 + (4.59 * np.log(q)) - (0.42 * ((np.log(q)) ** 2)) + (c_2 * int_lbs) + (0.58 * np.log(np.tanh(z_liq / 6))) - (0.02 * fd.width) + (0.84 * np.log(cavdp_time_series)) + (0.41 * np.log(sa1)))
+    sett_dyn_ts = np.exp(c_1 + (4.59 * np.log(q)) - (0.42 * ((np.log(q)) ** 2)) + (c_2 * int_lbs) + (0.58 * np.log(np.tanh(hl / 6))) - (0.02 * width) + (0.84 * np.log(cavdp_time_series)) + (0.41 * np.log(sa1)) + epsilon)
 
     sett_dyn_ts = sett_dyn_ts/1000
 

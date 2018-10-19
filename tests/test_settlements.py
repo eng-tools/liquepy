@@ -75,14 +75,45 @@ def test_bray_and_macedo_settlement():
     building = models["buildings"][0]
     building.mass_ratio = 1.
     fd = models["foundations"][0]
-    fd.vertical_load = building.mass_eff * 10 / (fd.width * fd.length)
+    fd.vertical_load = building.mass_eff * 9.8
     q_c1ncs = 106
     soil_profile.layer(2).q_c1ncs = q_c1ncs
     asig.magnitude = 6.6
 
     liq_layers = [2]
     sett_dyn_bray = lqs.bray_and_macedo_settlement_time_series(soil_profile, fd, asig, liq_layers)[-1]
-    assert np.isclose(sett_dyn_bray, 0.0843246, rtol=0.001), sett_dyn_bray  # 0.0843246 Not validated, liquepy 0.2.3
+    assert np.isclose(sett_dyn_bray, 0.0828104, rtol=0.001), sett_dyn_bray  # 0.0828104 Not validated, liquepy 0.3.1+
+
+
+# class FakeSignal(object):
+#     fake_sa = None
+#
+#     def __init__(self, values, dt):
+#         self.values = values
+#         self.dt = dt
+#
+#     def generate_response_spectrum(self, **kwargs):
+#         pass
+#
+
+
+
+def test_bray_and_macedo_settlement_paper_values():
+
+    width = 29.0
+    qf = 100.0e3
+    hl = 12.0
+    int_lbs = 71.0
+    sa1 = 0.9
+    cavdp = 1.0
+    # asig = FakeSignal()
+    epsilon = -0.5
+    expected = 0.1
+
+    pred_sett = lqs.bray_and_macedo_eq(width, qf, hl, sa1, cavdp, int_lbs, epsilon)
+    assert np.isclose(pred_sett, expected, rtol=0.02)
+    print(pred_sett)
+    pass
 
 
 def test_lu_settlement():
@@ -105,7 +136,7 @@ def test_lu_settlement():
 
 
 if __name__ == '__main__':
-    test_bray_and_macedo_settlement()
+    test_bray_and_macedo_settlement_paper_values()
 
 # if __name__ == '__main__':
 #     test_karamitros()
