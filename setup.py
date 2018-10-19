@@ -4,9 +4,13 @@ about = {}
 with open("liquepy/__about__.py") as fp:
     exec(fp.read(), about)
 
+with open('README.rst') as readme_file:
+    readme = readme_file.read()
+
 setup(name='liquepy',
       version=about['__version__'],
       description='Tools for soil liquefaction analysis',
+      long_description=readme,
       url='https://github.com/eng-tools/liquepy',
       author='Julieth Quintero and Maxim Millen',
       author_email='mmi46@uclive.ac.nz',
