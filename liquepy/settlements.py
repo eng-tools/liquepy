@@ -237,6 +237,8 @@ def bray_and_macedo_settlement_time_series(acc, dt, z_liq, q, fd, soil_profile, 
     :param soil_profile: SoilProfile, soil profile object
     """
 
+    q=q/1000
+
     # calculation of CAVdp
     cavdp_time_series = calculate_cav_dp_time_series(acc, dt)
     pga_max = max(abs(acc))
@@ -245,7 +247,7 @@ def bray_and_macedo_settlement_time_series(acc, dt, z_liq, q, fd, soil_profile, 
 
     # calculation of Maximum Cyclic Shear Strains
 
-    z = np.arange((soil_profile.layer_depth(2)) + 1, (soil_profile.layer_depth(3) + 1), 1)
+    z = np.arange((soil_profile.layer_depth(2)) + 0.5, (soil_profile.layer_depth(3) + 0.5), 0.5)
     xmax=len(z)-1
     eshear=[]
     lbs =[]
@@ -280,6 +282,8 @@ def bray_and_macedo_settlement_time_series(acc, dt, z_liq, q, fd, soil_profile, 
     sa1 = acc_signal.s_a
 
     sett_dyn_ts = np.exp(c_1 + (4.59 * np.log(q)) - (0.42 * ((np.log(q)) ** 2)) + (c_2 * int_lbs) + (0.58 * np.log(np.tanh(z_liq / 6))) - (0.02 * fd.width) + (0.84 * np.log(cavdp_time_series)) + (0.41 * np.log(sa1)))
+
+    sett_dyn_ts = sett_dyn_ts/1000
 
     return sett_dyn_ts  # TODO: Should return metres not millimetres
 
