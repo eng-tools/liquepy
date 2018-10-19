@@ -78,10 +78,10 @@ def test_bray_and_macedo_settlement():
     fd.vertical_load = building.mass_eff * 10 / (fd.width * fd.length)
     q_c1ncs = 106
     soil_profile.layer(2).q_c1ncs = q_c1ncs
-    magnitude = 6.6
+    asig.magnitude = 6.6
 
     liq_layers = [2]
-    sett_dyn_bray = lqs.bray_and_macedo_settlement_time_series(soil_profile, fd, asig, liq_layers, magnitude)[-1]
+    sett_dyn_bray = lqs.bray_and_macedo_settlement_time_series(soil_profile, fd, asig, liq_layers)[-1]
     assert np.isclose(sett_dyn_bray, 0.0843246, rtol=0.001), sett_dyn_bray  # 0.0843246 Not validated, liquepy 0.2.3
 
 

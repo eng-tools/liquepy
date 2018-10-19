@@ -217,7 +217,7 @@ def calculate_cav_dp_series(asig):
     return CAVdp_time_series
 
 
-def bray_and_macedo_settlement(acc, dt, z_liq, q, fd, soil_profile, q_c1ncs, magnitude):
+def bray_and_macedo_settlement(soil_profile, fd, asig, liq_layers):
     """
     Calculates foundation settlement using Bray and Macedo (2017)
 
@@ -230,11 +230,11 @@ def bray_and_macedo_settlement(acc, dt, z_liq, q, fd, soil_profile, q_c1ncs, mag
     :return:
     """
 
-    sett_dyn_ts = bray_and_macedo_settlement_time_series(acc, dt, z_liq, q, fd, soil_profile, q_c1ncs, magnitude)
+    sett_dyn_ts = bray_and_macedo_settlement_time_series(soil_profile, fd, asig, liq_layers)
     return sett_dyn_ts[-1]
 
 
-def bray_and_macedo_settlement_time_series(soil_profile, fd, asig, liq_layers, magnitude):
+def bray_and_macedo_settlement_time_series(soil_profile, fd, asig, liq_layers):
     """
     Calculates foundation settlement using Bray and Macedo (2017)
 
@@ -264,7 +264,7 @@ def bray_and_macedo_settlement_time_series(soil_profile, fd, asig, liq_layers, m
 
     for depth in z:
 
-        fs = calculate_factor_safety(q_c1ncs=q_c1ncs, p_a=101, magnitude=magnitude, pga=pga_max, depth=depth, soil_profile=soil_profile)
+        fs = calculate_factor_safety(q_c1ncs=q_c1ncs, p_a=101, magnitude=asig.magnitude, pga=pga_max, depth=depth, soil_profile=soil_profile)
         d_r = soil_profile.layer(2).relative_density
         e_shear = lq.trigger.calculate_shear_strain(fs=fs, d_r=d_r)
         if depth < fd.depth:
