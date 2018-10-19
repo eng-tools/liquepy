@@ -2,6 +2,7 @@ import numpy as np
 import sfsimodels.models as sm
 import sfsimodels.files as sfsi_files
 import geofound as gf
+import eqsig
 
 from liquepy import settlements as lqs
 
@@ -65,26 +66,22 @@ def test_bray_and_macedo_settlement():
     fpath = TEST_DATA_DIR + "input_acc.his"
     acc_file = np.loadtxt(fpath, skiprows=4)
     acc = acc_file[:, 1]
-    acc = acc / 9.81
-
     time = acc_file[:, 0]
     dt = time[1] - time[0]
+    asig = eqsig.AccSignal(acc, dt)
 
     models = sfsi_files.load_json(TEST_DATA_DIR + "test_ecp_models.json")
     soil_profile = models["soil_profiles"][0]
     building = models["buildings"][0]
-
-    q_f = 80000
-
-    # building.mass_eff = 10000 * length  # kg
     building.mass_ratio = 1.
     fd = models["foundations"][0]
+    fd.vertical_load = building.mass_eff * 10 / (fd.width * fd.length)
     q_c1ncs = 106
+    soil_profile.layer(2).q_c1ncs = q_c1ncs
     magnitude = 6.6
 
-    zliq = soil_profile.layer_depth(3) - soil_profile.layer_depth(2)
-    sett_dyn_bray = lqs.bray_and_macedo_settlement(acc=acc, dt=dt, z_liq=zliq, q=q_f, fd=fd, soil_profile=soil_profile,
-                                                   q_c1ncs=q_c1ncs, magnitude=magnitude)
+    liq_layers = [2]
+    sett_dyn_bray = lqs.bray_and_macedo_settlement_time_series(soil_profile, fd, asig, liq_layers, magnitude)[-1]
     assert np.isclose(sett_dyn_bray, 0.0843246, rtol=0.001), sett_dyn_bray  # 0.0843246 Not validated, liquepy 0.2.3
 
 

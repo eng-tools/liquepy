@@ -1,7 +1,7 @@
 import numpy as np
 
 from scipy.integrate import trapz
-from eqsig import single
+import eqsig
 
 import liquepy as lq
 
@@ -117,7 +117,7 @@ def integral_of_acceleration(acc, dt):
     return acc_int
 
 
-def calculate_cav_dp(acc, dt):
+def dep_calculate_cav_dp(acc, dt):
     start = 0
     pga_max = 0
     CAVdp = 0
@@ -162,29 +162,40 @@ def calculate_cav_dp(acc, dt):
 
 
 def calculate_cav_dp_time_series(acc, dt):
+    asig = eqsig.AccSignal(acc, dt)
+    return calculate_cav_dp_series(asig)
+
+
+def calculate_cav_dp(acc, dt):
+    asig = eqsig.AccSignal(acc, dt)
+    return calculate_cav_dp_series(asig)[-1]
+
+
+def calculate_cav_dp_series(asig):
     start = 0
     pga_max = 0
     CAVdp = 0
-    num_points = (int(1 / dt))
-    total_time = int(dt * (len(acc) - 1))
+    num_points = (int(1 / asig.dt))
+    total_time = int(asig.time[-1])
     CAVdp_time_series = []
+    acc_in_g = asig.values / 9.81
 
     for i in range(0, total_time):
 
         end = start + num_points
 
-        interval_total_time = (start * dt) + 1
-        interval_time = np.arange(start * dt, interval_total_time, dt)
+        interval_total_time = (start * asig.dt) + 1
+        interval_time = np.arange(start * asig.dt, interval_total_time, asig.dt)
 
         acc_interval = []
         for j in range(start, end + 1):
-            acc_interval.append(acc[j])
+            acc_interval.append(acc_in_g[j])
 
         acc_interval = np.array(acc_interval)
         abs_acc_interval = abs(acc_interval)
 
-        x_lower = start * dt  # the lower limit of x
-        x_upper = end * dt  # the upper limit of x
+        x_lower = start * asig.dt  # the lower limit of x
+        x_upper = end * asig.dt  # the upper limit of x
         x_int = interval_time[np.where((x_lower <= interval_time) * (interval_time <= x_upper))]
         y_int = np.abs(np.array(abs_acc_interval)[np.where((x_lower <= interval_time) * (interval_time <= x_upper))])
         int_acc = trapz(y_int, x_int)
@@ -195,17 +206,15 @@ def calculate_cav_dp_time_series(acc, dt):
         if pga > pga_max:
             pga_max = pga
         if (pga - 0.025) < 0:
-            H=0
+            h = 0
         if (pga - 0.025) >= 0:
-            H=1
+            h = 1
 
-        CAVdp = CAVdp + (H * int_acc)
+        CAVdp = CAVdp + (h * int_acc)
         CAVdp_time_series.append(CAVdp)
         start = end
 
     return CAVdp_time_series
-
-
 
 
 def bray_and_macedo_settlement(acc, dt, z_liq, q, fd, soil_profile, q_c1ncs, magnitude):
@@ -225,7 +234,7 @@ def bray_and_macedo_settlement(acc, dt, z_liq, q, fd, soil_profile, q_c1ncs, mag
     return sett_dyn_ts[-1]
 
 
-def bray_and_macedo_settlement_time_series(acc, dt, z_liq, q, fd, soil_profile, q_c1ncs, magnitude, verbose=False):
+def bray_and_macedo_settlement_time_series(soil_profile, fd, asig, liq_layers, magnitude):
     """
     Calculates foundation settlement using Bray and Macedo (2017)
 
@@ -236,28 +245,33 @@ def bray_and_macedo_settlement_time_series(acc, dt, z_liq, q, fd, soil_profile, 
     :param fd: Foundation, foundation object
     :param soil_profile: SoilProfile, soil profile object
     """
-
-    q = q/1000
-
+    gravity = 9.8
     # calculation of CAVdp
-    cavdp_time_series = calculate_cav_dp_time_series(acc, dt)
-    pga_max = max(abs(acc))
-
+    cavdp_time_series = calculate_cav_dp_series(asig)
+    pga_max = max(abs(asig.values)) / gravity
+    z_liq = 0
+    q_c1ncs_values = []
+    for layer_id in liq_layers:
+        z_liq += soil_profile.layer_height(layer_id)
+        q_c1ncs_values.append(soil_profile.layer(layer_id).q_c1ncs)
+    q_c1ncs = np.mean(q_c1ncs_values)
     # calculation of LBS
 
     # calculation of Maximum Cyclic Shear Strains
-
     z = np.arange((soil_profile.layer_depth(2)) + 0.5, (soil_profile.layer_depth(3) + 0.5), 0.5)
     xmax = len(z)-1
     lbs = []
 
-    for item in z:
+    for depth in z:
 
-        fs = calculate_factor_safety(q_c1ncs=q_c1ncs, p_a=101, magnitude=magnitude, pga=pga_max, depth=item, soil_profile=soil_profile)
+        fs = calculate_factor_safety(q_c1ncs=q_c1ncs, p_a=101, magnitude=magnitude, pga=pga_max, depth=depth, soil_profile=soil_profile)
         d_r = soil_profile.layer(2).relative_density
         e_shear = lq.trigger.calculate_shear_strain(fs=fs, d_r=d_r)
-        w = 1
-        lbs1 = w * e_shear / item
+        if depth < fd.depth:
+            w = 0
+        else:
+            w = 1
+        lbs1 = w * e_shear / depth
         lbs.append(lbs1)
 
     x_lower = z[0]  # the lower limit of x
@@ -274,11 +288,10 @@ def bray_and_macedo_settlement_time_series(acc, dt, z_liq, q, fd, soil_profile, 
         c_1 = -7.48
         c_2 = 0.014
 
-    acc_signal = single.AccSignal(acc, dt)
-    acc_signal.generate_response_spectrum(response_times=np.array([1.]), xi=0.05)
+    asig.generate_response_spectrum(response_times=np.array([1.]), xi=0.05)
 
-    sa1 = acc_signal.s_a
-
+    sa1 = asig.s_a / gravity
+    q = fd.vertical_load / 1000
     sett_dyn_ts = np.exp(c_1 + (4.59 * np.log(q)) - (0.42 * ((np.log(q)) ** 2)) + (c_2 * int_lbs) + (0.58 * np.log(np.tanh(z_liq / 6))) - (0.02 * fd.width) + (0.84 * np.log(cavdp_time_series)) + (0.41 * np.log(sa1)))
 
     sett_dyn_ts = sett_dyn_ts/1000
