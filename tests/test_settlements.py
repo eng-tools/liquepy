@@ -79,11 +79,13 @@ def test_bray_and_macedo_settlement():
     # building.mass_eff = 10000 * length  # kg
     building.mass_ratio = 1.
     fd = models["foundations"][0]
-    # fd = gm.create_foundation(length=length, width=foundations.width, depth=foundations.depth)
+    q_c1ncs = 106
+    magnitude = 6.6
 
-    zliq = soil_profile.layer_depth(2) - soil_profile.layer_depth(1)
-    sett_dyn_bray = lqs.bray_and_macedo_settlement(acc=acc, dt=dt, z_liq=zliq, q=(float(building.mass_eff)/1000), fd=fd, soil_profile=soil_profile,)
-    assert np.isclose(sett_dyn_bray, 70.537, rtol=0.001), sett_dyn_bray  # 70.537 Not validated, liquepy 0.1.0
+    zliq = soil_profile.layer_depth(3) - soil_profile.layer_depth(2)
+    sett_dyn_bray = lqs.bray_and_macedo_settlement(acc=acc, dt=dt, z_liq=zliq, q=q_f, fd=fd, soil_profile=soil_profile,
+                                                   q_c1ncs=q_c1ncs, magnitude=magnitude)
+    assert np.isclose(sett_dyn_bray, 0.0843246, rtol=0.001), sett_dyn_bray  # 0.0843246 Not validated, liquepy 0.2.3
 
 
 def test_lu_settlement():
@@ -105,8 +107,8 @@ def test_lu_settlement():
     assert np.isclose(sett_dyn, 0.366247, rtol=0.001)  # 0.366247 Not validated, liquepy 0.1.0
 
 
-# if __name__ == '__main__':
-#     test_bray_and_macedo_settlement()
-
 if __name__ == '__main__':
-    test_karamitros()
+    test_bray_and_macedo_settlement()
+
+# if __name__ == '__main__':
+#     test_karamitros()

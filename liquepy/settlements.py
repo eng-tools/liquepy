@@ -237,7 +237,7 @@ def bray_and_macedo_settlement_time_series(acc, dt, z_liq, q, fd, soil_profile, 
     :param soil_profile: SoilProfile, soil profile object
     """
 
-    q=q/1000
+    q = q/1000
 
     # calculation of CAVdp
     cavdp_time_series = calculate_cav_dp_time_series(acc, dt)
@@ -248,19 +248,17 @@ def bray_and_macedo_settlement_time_series(acc, dt, z_liq, q, fd, soil_profile, 
     # calculation of Maximum Cyclic Shear Strains
 
     z = np.arange((soil_profile.layer_depth(2)) + 0.5, (soil_profile.layer_depth(3) + 0.5), 0.5)
-    xmax=len(z)-1
-    eshear=[]
-    lbs =[]
+    xmax = len(z)-1
+    lbs = []
 
     for item in z:
 
-        fs = calculate_factor_safety(q_c1ncs=q_c1ncs, p_a=101, magnitude=magnitude, pga=pga_max, depth=item, soil_profile = soil_profile)
+        fs = calculate_factor_safety(q_c1ncs=q_c1ncs, p_a=101, magnitude=magnitude, pga=pga_max, depth=item, soil_profile=soil_profile)
         d_r = soil_profile.layer(2).relative_density
         e_shear = lq.trigger.calculate_shear_strain(fs=fs, d_r=d_r)
         w = 1
         lbs1 = w * e_shear / item
         lbs.append(lbs1)
-
 
     x_lower = z[0]  # the lower limit of x
     x_upper = z[xmax]  # the upper limit of x
