@@ -82,7 +82,7 @@ def test_bray_and_macedo_settlement():
 
     liq_layers = [2]
     sett_dyn_bray = lqs.bray_and_macedo_settlement_time_series(soil_profile, fd, asig, liq_layers)[-1]
-    assert np.isclose(sett_dyn_bray, 0.0828104, rtol=0.001), sett_dyn_bray  # 0.0828104 Not validated, liquepy 0.3.1+
+    assert np.isclose(sett_dyn_bray, 0.08243780383602352, rtol=0.001), sett_dyn_bray  # 0.08243780383602352 Not validated, liquepy 0.3.2+
 
 
 # class FakeSignal(object):
