@@ -96,23 +96,21 @@ def test_bray_and_macedo_settlement():
 #         pass
 #
 
-
-
 def test_bray_and_macedo_settlement_paper_values():
+    case = [1, 4, 11]
+    widths = [29.0, 15.0, 38.0]
+    qfs = [100.0e3, 60.0e3, 210.0e3]
+    sa1 = [0.9, 0.9, 0.9]
+    cavdp = [1.0, 1.0, 1.0]
+    hl = [12.0, 10.0, 6.0]
+    int_lbs = [71.0, 62.0, 14.0]
 
-    width = 29.0
-    qf = 100.0e3
-    hl = 12.0
-    int_lbs = 71.0
-    sa1 = 0.9
-    cavdp = 1.0
     # asig = FakeSignal()
     epsilon = -0.5
-    expected = 0.1
-
-    pred_sett = lqs.bray_and_macedo_eq(width, qf, hl, sa1, cavdp, int_lbs, epsilon)
-    assert np.isclose(pred_sett, expected, rtol=0.02)
-    print(pred_sett)
+    expected = [0.1, 0.07, 0.04]
+    for i in range(len(widths)):
+        pred_sett = lqs.bray_and_macedo_eq(widths[i], qfs[i], hl[i], sa1[i], cavdp[i], int_lbs[i], epsilon)
+        assert np.isclose(pred_sett, expected[i], rtol=0.05), pred_sett
     pass
 
 

@@ -264,7 +264,7 @@ def bray_and_macedo_settlement_time_series(soil_profile, fd, asig, liq_layers):
 
     for depth in z:
 
-        fs = calculate_factor_safety(q_c1ncs=q_c1ncs, p_a=101, magnitude=asig.magnitude, pga=pga_max, depth=depth, soil_profile=soil_profile)
+        fs = calculate_factor_safety(q_c1ncs=q_c1ncs, p_a=101000, magnitude=asig.magnitude, pga=pga_max, depth=depth, soil_profile=soil_profile)
         d_r = soil_profile.layer(2).relative_density
         e_shear = lq.trigger.calculate_shear_strain(fs=fs, d_r=d_r)
         if depth < fd.depth:
