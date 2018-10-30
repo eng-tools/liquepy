@@ -1,8 +1,9 @@
-sfsimodels>=0.5.6
+sfsimodels>=0.8.5
 numpy
 scipy
-eqsig
+eqsig>=0.5.27
 geofound
-pySRA===0.2.1p2)
+pyexcel
+pySRA===0.2.1p2
 
 pytest

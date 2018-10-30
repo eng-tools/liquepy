@@ -24,7 +24,12 @@ setup(name='liquepy',
           'Programming Language :: Python :: 3',
       ],
       packages=find_packages(exclude=['contrib', 'docs', 'tests']),
-      install_requires=['sfsimodels>=0.5.6', 'geofound', 'numpy', 'eqsig'],
+      install_requires=['sfsimodels>=0.8.5',
+                        'geofound',
+                        'numpy',
+                        'pyexcel',
+                        'pysra',
+                        'eqsig>=0.5.27'],
       # List additional groups of dependencies here (e.g. development
       # dependencies). You can install these using the following syntax,
       # for example:
