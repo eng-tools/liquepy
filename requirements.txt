@@ -4,6 +4,7 @@ scipy
 eqsig>=0.5.27
 geofound
 pyexcel
-pySRA===0.2.1p2
+# pySRA===0.2.1p2
+pySRA===0.2.1
 
 pytest
