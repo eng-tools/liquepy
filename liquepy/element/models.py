@@ -7,19 +7,20 @@ class ShearTest(object):
     _tau = None
     _gamma = None
     _pp = None
-    _init_vert_eff_stress = None
+    _esig_v0 = None
     _i_liq = None
     _n_points = 0
+    _n_cycles = None
 
-    def __init__(self, gamma, tau, init_vert_eff_stress=1, sl=None, pp=None):
+    def __init__(self, gamma, tau, esig_v0=1, sl=None, pp=None, n_cycles=None):
         self._gamma = np.array(gamma)
         self._tau = np.array(tau)
         self.sl = sl
         self._pp = pp
-        if init_vert_eff_stress is not None:
-            self._init_vert_eff_stress = init_vert_eff_stress
+        if esig_v0 is not None:
+            self._esig_v0 = esig_v0
         self._n_points = len(tau)
-
+        self._n_cycles = n_cycles
 
     @property
     def pp(self):
@@ -34,8 +35,8 @@ class ShearTest(object):
         return self._gamma
 
     @property
-    def init_vert_eff_stress(self):
-        return self._init_vert_eff_stress
+    def esig_v0(self):
+        return self._esig_v0
 
     @property
     def i_liq(self):
@@ -45,40 +46,44 @@ class ShearTest(object):
     def n_points(self):
         return self._n_points
 
-    @init_vert_eff_stress.setter
-    def init_vert_eff_stress(self, value):
-        self._init_vert_eff_stress = value
+    @property
+    def n_cycles(self):
+        return self._n_cycles
+
+    @esig_v0.setter
+    def esig_v0(self, value):
+        self._esig_v0 = value
 
     @property
     def csr(self):
         try:
-            return self.tau / self.init_vert_eff_stress
+            return self.tau / self.esig_v0
         except ValueError:
             return None
 
     @property
     def epp(self):
         try:
-            return self.pp - self.init_vert_eff_stress
+            return self.pp - self.pp[0]
         except ValueError:
             return None
 
     @property
     def ru(self):
         try:
-            return self.epp / self.init_vert_eff_stress
+            return self.epp / self.esig_v0
         except ValueError:
             return None
 
     def set_pp_via_ru(self, ru, hydrostatic):
-        epp = np.array(ru) * self.init_vert_eff_stress
+        epp = np.array(ru) * self.esig_v0
         self._pp = epp + hydrostatic
 
     def set_i_liq(self, ru_limit=None, vert_eff_stress_limit=None):
         if ru_limit is not None:
             self._i_liq = functions.determine_t_liq_index(self.ru, ru_limit)
         elif vert_eff_stress_limit is not None:
-            ru_limit = 1 - vert_eff_stress_limit / self.init_vert_eff_stress
+            ru_limit = 1 - vert_eff_stress_limit / self.esig_v0
             self._i_liq = functions.determine_t_liq_index(self.ru, ru_limit)
         else:
             print("No limit set for set_i_liq")
