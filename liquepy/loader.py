@@ -1,6 +1,7 @@
 import numpy as np
 from liquepy.element.models import ShearTest
 
+
 def load_flac_file_and_dt(fname):
     num_data_k = np.loadtxt(fname, skiprows=4)
     time = num_data_k[:, 0]  # This get the first column
@@ -38,3 +39,21 @@ def load_flac_element_test(ffp, esig_v0, hydrostatic=0):
     stest.set_pp_via_ru(ru_flac, hydrostatic=hydrostatic)
     stest.set_i_liq(vert_eff_stress_limit=5000)
     return stest
+
+
+def save_flac_input_motion(ffp, name, values, dt):
+    """
+    Exports acceleration values to the FLAC input format.
+
+    :param ffp: str, full file path to output file
+    :param name: str, name of records
+    :param values: array, acceleration values
+    :param dt: float, time step
+    :return: None
+    """
+    para = [name, "%i %.4f" % (len(values), dt)]
+    for i in range(len(values)):
+        para.append("%.6f" % values[i])
+    ofile = open(ffp, "w")
+    ofile.write("\n".join(para))
+    ofile.close()

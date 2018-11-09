@@ -71,7 +71,7 @@ class FlacSoil(sm.Soil):
             return None
 
 
-class PM4Sand(FlacSoil, sm.StressDependentSoil):
+class PM4Sand(FlacSoil, sm.SoilStressDependent):
     _hp0 = None
     _csr_n20 = None
 
@@ -95,7 +95,7 @@ class PM4Sand(FlacSoil, sm.StressDependentSoil):
 
     def __init__(self, pw=9800, p_atm=101000.0):
         FlacSoil.__init__(self, pw=pw)
-        sm.StressDependentSoil.__init__(self, pw=pw)
+        sm.SoilStressDependent.__init__(self, pw=pw)
         self._extra_class_inputs = [
             "hp0",
             "csr_n20",
@@ -179,6 +179,10 @@ class PM4Sand(FlacSoil, sm.StressDependentSoil):
     @h_o.setter
     def h_o(self, value):
         self._h_o = value
+
+    def g_mod_at_v_eff_stress(self, sigma_v_eff):  # Override base function since k0 is different
+        k0 = 1 - np.sin(self.phi_r)
+        return self.g0_mod * self.p_atm * (sigma_v_eff * (1 + k0) / 2 / self.p_atm) ** 0.5
 
     # def e_critical(self, p):
     #     p = float(p)

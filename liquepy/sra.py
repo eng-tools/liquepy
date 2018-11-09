@@ -68,23 +68,25 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0):
                 g_mod *= sl.g_mod_red
             vs = np.sqrt(g_mod / rho)
             if cum_thickness > sp.gwl:
-                unit_wt = sl.unit_sat_weight * PA_TO_KPA
+                unit_wt = sl.unit_sat_weight
             else:
-                unit_wt = sl.unit_dry_weight * PA_TO_KPA
+                unit_wt = sl.unit_dry_weight
             if hasattr(sl, "darendeli"):
                 assert isinstance(sp, sm.SoilProfile)
                 s_v_eff = sp.vertical_effective_stress(cum_thickness)
                 k0 = 1 - np.sin(np.radians(sl.phi))
-                darendeli_sigma_m_eff = (s_v_eff * (1 + 2 * k0) / 3) * PA_TO_KPA
+                darendeli_sigma_m_eff = (s_v_eff * (1 + 2 * k0) / 3) * PA_TO_KPA  # Needs to be in kPa
                 ip = sl.plasticity_index
                 if ip is None:
                     ip = 0.0
+                ip *= 100  # Input is in percentage
                 pysra_sl = pysra.site.DarendeliSoilType(unit_wt, plas_index=ip, ocr=1,
                                                         stress_mean=darendeli_sigma_m_eff, strains=strains)
             elif hasattr(sl, "darendeli_sigma_m_eff"):
                 ip = sl.plasticity_index
                 if ip is None:
                     ip = 0.0
+                ip *= 100  # Input is in percentage
                 pysra_sl = pysra.site.DarendeliSoilType(unit_wt, plas_index=ip, ocr=1,
                                                         stress_mean=sl.darendeli_sigma_m_eff, strains=strains)
             elif hasattr(sl, "plasticity_index") and getattr(sl, "plasticity_index") is not None:
@@ -93,7 +95,7 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0):
                 name = "vardanega (2013) I_p = %.2f" % i_p
                 pysra_sl = pysra.site.ModifiedHyperbolicSoilType(name, unit_wt, strain_ref=gamma_ref,
                                                                  curvature=curvature,
-                                                                 damping_min=0.03,
+                                                                 damping_min=0.02,
                                                                  strains=strains)
             else:
                 pysra_sl = pysra.site.SoilType(sl.name, unit_wt, None, sl.xi)
