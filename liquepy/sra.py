@@ -43,7 +43,7 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0):
     if d_inc is None:
         d_inc = np.ones(sp.n_layers) * target_height
 
-    strains = np.logspace(-6, -1.5, num=30)
+    strains = np.logspace(-6, -1.0, num=30)
 
     layers = []
     cum_thickness = 0
@@ -71,11 +71,17 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0):
                 unit_wt = sl.unit_sat_weight
             else:
                 unit_wt = sl.unit_dry_weight
-            if hasattr(sl, "darendeli"):
+            if hasattr(sl, "sra_type") and getattr(sl, "sra_type") == "hyperbolic":
+                pysra_sl = pysra.site.ModifiedHyperbolicSoilType(name, unit_wt, strain_ref=sl.strain_ref,
+                                                                 curvature=sl.strain_curvature,
+                                                                 damping_min=sl.xi_min,
+                                                                 strains=strains)
+            elif hasattr(sl, "darendeli"):
                 assert isinstance(sp, sm.SoilProfile)
                 s_v_eff = sp.vertical_effective_stress(cum_thickness)
                 k0 = 1 - np.sin(np.radians(sl.phi))
                 darendeli_sigma_m_eff = (s_v_eff * (1 + 2 * k0) / 3) * PA_TO_KPA  # Needs to be in kPa
+                print("darendeli_sigma_m_eff: ", darendeli_sigma_m_eff)
                 ip = sl.plasticity_index
                 if ip is None:
                     ip = 0.0
