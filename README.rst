@@ -23,6 +23,7 @@ Installation
 ============
 
 .. code:: bash
+
     pip install liquepy
 
 
@@ -54,5 +55,6 @@ To deploy the package to pypi.com you need to:
  2. Create a git tag and push to github, run: ``trigger_deploy.py`` or manually:
 
  .. code:: bash
+
     git tag 0.5.2 -m "version 0.5.2"
     git push --tags origin pypi

@@ -21,9 +21,9 @@ import numpy as np
 #     return depth, q_c, f_s, u_2, gwl
 
 
-def load_cpt_from_file(fname):
+def load_cpt_from_file(fname, delimiter=";"):
     # import data from csv file
-    data = np.loadtxt(fname, skiprows=24, delimiter=";")
+    data = np.loadtxt(fname, skiprows=24, delimiter=delimiter)
     depth = data[:, 0]
     q_c = data[:, 1] * 1e3  # should be in kPa
     f_s = data[:, 2]
