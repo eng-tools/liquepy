@@ -4,6 +4,7 @@ import numpy as np
 from collections import OrderedDict
 from sfsimodels.functions import clean_float
 from sfsimodels.build_model_descriptions import build_parameter_descriptions
+from liquepy.element.models import ShearTest
 
 
 class FlacSoil(sm.Soil):
@@ -197,3 +198,60 @@ class PM4Sand(FlacSoil, sm.SoilStressDependent):
     #         return (self.e_max - self.e_critical(p_mean)) / (self.e_max - self.e_min)
     #     except TypeError:
     #         return None
+
+
+def load_element_test(ffp, esig_v0, hydrostatic=0):
+    ele_data = np.loadtxt(ffp, delimiter="  ", skiprows=1, usecols=(0, 1, 2, 4))
+    n_count = ele_data[:, 0]
+    csr_vals = ele_data[:, 1]
+    tau = csr_vals * esig_v0
+    strs = ele_data[:, 2] / 100
+    ru_flac = ele_data[:, 3]
+    stest = ShearTest(strs, tau, esig_v0=esig_v0, n_cycles=n_count)
+    stest.set_pp_via_ru(ru_flac, hydrostatic=hydrostatic)
+    stest.set_i_liq(esig_v_limit=5000)
+    return stest
+
+
+def load_file_and_dt(fname):
+    num_data_k = np.loadtxt(fname, skiprows=4)
+    time = num_data_k[:, 0]  # This get the first column
+    dt = time[1] - time[0]
+    values = num_data_k[:, 1]
+    return values, dt
+
+
+def load_file_and_time(fname):
+    num_data_k = np.loadtxt(fname, skiprows=4)
+    time = num_data_k[:, 0]  # This get the first column
+    values = num_data_k[:, 1]
+    return values, time
+
+
+def load_input_motion_and_dt(ffp):
+    data = np.genfromtxt(ffp, skip_header=1, delimiter=",", names=True, usecols=0)
+    # print(ffp)
+    # print(data.dtype.names)
+    dt = data.dtype.names[0].split("_")[-1]
+    dt = "." + dt[1:]
+    dt = float(dt)
+    acc = data.astype(np.float)
+    return acc, dt
+
+
+def save_input_motion(ffp, name, values, dt):
+    """
+    Exports acceleration values to the FLAC input format.
+
+    :param ffp: str, full file path to output file
+    :param name: str, name of records
+    :param values: array, acceleration values
+    :param dt: float, time step
+    :return: None
+    """
+    para = [name, "%i %.4f" % (len(values), dt)]
+    for i in range(len(values)):
+        para.append("%.6f" % values[i])
+    ofile = open(ffp, "w")
+    ofile.write("\n".join(para))
+    ofile.close()

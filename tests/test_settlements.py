@@ -4,7 +4,7 @@ import sfsimodels.files as sfsi_files
 import geofound as gf
 import eqsig
 
-from liquepy import settlements as lqs
+from liquepy.settlement import methods as lqs
 
 from tests.conftest import TEST_DATA_DIR
 
