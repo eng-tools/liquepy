@@ -3,7 +3,7 @@ import numpy as np
 from scipy.integrate import trapz
 
 import liquepy as lq
-from liquepy.motions.measures import integral_of_velocity, calculate_cav_dp_series
+from liquepy.motion.measures import integral_of_velocity, calculate_cav_dp_series
 
 
 def calculate_factor_safety(q_c1ncs, p_a, magnitude, pga, depth, soil_profile):

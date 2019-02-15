@@ -74,7 +74,7 @@ class FlacSoil(sm.Soil):
 
 class PM4Sand(FlacSoil, sm.SoilStressDependent):
     _hp0 = None
-    _csr_n20 = None
+    _csr_n15 = None
 
     _h_o = None  # not required
     n_b = None
@@ -99,7 +99,7 @@ class PM4Sand(FlacSoil, sm.SoilStressDependent):
         sm.SoilStressDependent.__init__(self, pw=pw)
         self._extra_class_inputs = [
             "hp0",
-            "csr_n20",
+            "csr_n15",
             "p_atm"
         ]
         self.p_atm = p_atm
@@ -161,13 +161,13 @@ class PM4Sand(FlacSoil, sm.SoilStressDependent):
         self._hp0 = value
 
     @property
-    def csr_n20(self):
-        return self._csr_n20
+    def csr_n15(self):
+        return self._csr_n15
 
-    @csr_n20.setter
-    def csr_n20(self, value):
+    @csr_n15.setter
+    def csr_n15(self, value):
         value = clean_float(value)
-        self._csr_n20 = value
+        self._csr_n15 = value
 
     @property
     def h_o(self):

@@ -1,4 +1,4 @@
-import liquepy.motions.measures
+import liquepy.motion.measures
 from liquepy.settlement import methods
 
 import numpy as np
@@ -16,9 +16,9 @@ def test_cavdp():
     dt = time[1] - time[0]
     asig = eqsig.AccSignal(acc, dt)
 
-    cav_dp = liquepy.motions.measures.calculate_cav_dp_series(asig)[-1]
+    cav_dp = liquepy.motion.measures.calculate_cav_dp_series(asig)[-1]
 
-    # 1.4598176 from liquepy 0.1.0  tested with several motions
+    # 1.4598176 from liquepy 0.1.0  tested with several motion
     assert np.isclose(cav_dp, 1.4598176, rtol=0.001), cav_dp
 
 if __name__ == '__main__':
