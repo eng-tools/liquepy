@@ -112,11 +112,12 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0):
     return profile
 
 
-def compute_pysra_strain_compatible_profile(soil_profile, in_sig):
+def compute_pysra_strain_compatible_profile(soil_profile, in_sig, d_inc=None):
     m = pysra.motion.TimeSeriesMotion(filename=in_sig.label, description=None, time_step=in_sig.dt,
                                       accels=in_sig.values / 9.8)
-
-    profile = sm_profile_to_pysra(soil_profile, d_inc=1.0 * np.ones(soil_profile.n_layers))
+    if d_inc is None:
+        d_inc = 1.0 * np.ones(soil_profile.n_layers)
+    profile = sm_profile_to_pysra(soil_profile, d_inc=d_inc)
 
     layers = []
     calc = pysra.propagation.EquivalentLinearCalculator()
