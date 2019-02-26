@@ -12,7 +12,7 @@ def calculate_factor_safety(q_c1ncs, p_a, magnitude, pga, depth, soil_profile):
 
     :param q_c1ncs: float, normalised cone tip resistance corrected to equivalent clean sand
     :param p_a: float, atmospheric pressure
-    :param magnitude: float, earthquake magnitude
+    :param magnitude: float, earthquake m_w
     :param pga: float, peak ground acceleration
     :param depth: float, depth from surface
     :param soil_profile: SoilProfile, A soil profile object

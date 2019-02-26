@@ -8,7 +8,7 @@ from tests.conftest import TEST_DATA_DIR
 
 def test_can_calculate_fos():
     cpt = liquepy.field.load_cpt_from_file(TEST_DATA_DIR + "standard_1.csv")
-    bi2014 = liquepy.trigger.run_bi2014(cpt, pga=0.25, magnitude=7.5)
+    bi2014 = liquepy.trigger.run_bi2014(cpt, pga=0.25, magnitude=7.5, unit_wt_method='robertson2009')
     factor_safety_values = bi2014.factor_of_safety
 
     expected_fos_at_40 = 2.0
@@ -20,7 +20,7 @@ def test_can_calculate_fos():
 def test_compare_fos_to_previous_version():
     cpt = liquepy.field.load_cpt_from_file(TEST_DATA_DIR + "standard_1.csv")
     cpt.a_ratio = 0.8
-    bi2014 = liquepy.trigger.run_bi2014(cpt, pga=0.25, magnitude=7.5)
+    bi2014 = liquepy.trigger.run_bi2014(cpt, pga=0.25, magnitude=7.5, unit_wt_method='robertson2009')
     factor_safety_values = bi2014.factor_of_safety
 
     fos_expected = np.loadtxt(TEST_DATA_DIR + "standard_1_fos.csv")  # from liquepy=0.1.6
