@@ -385,21 +385,13 @@ class BoulangerIdriss2014(object):
         return self.m_w
 
 
-def run_bi2014(cpt, pga, magnitude, cfc=0.0, **kwargs):
+def run_bi2014(cpt, pga, m_w, cfc=0.0, **kwargs):
     """
     Runs the Boulanger and Idriss (2014) triggering method.
 
     Parameters
     ----------
-    depth: array, m,
-        depths measured downwards from surface
-    q_c: array, kPa,
-        cone tip resistance
-    f_s: array, kPa,
-        skin friction
-    u_2: array, kPa,
-        water pressure beneath cone tip
-    gwl: float, m,
+    cpt: liquepy.field.CPT,
         ground water level below the surface
     pga: float, g,
         peak ground acceleration
@@ -409,8 +401,6 @@ def run_bi2014(cpt, pga, magnitude, cfc=0.0, **kwargs):
         Area ratio
     cfc: float, -, default=0.0
         Fines content correction factor for Eq 2.29
-    magnitude: float, -,
-        Earthquake magnitude (deprecated)
     i_c_limit: float, -, default=2.6
         Limit of liquefiable material
     s_g: float or array_like, -, default=2.65
@@ -431,7 +421,7 @@ def run_bi2014(cpt, pga, magnitude, cfc=0.0, **kwargs):
     saturation = kwargs.get("saturation", None)
     unit_wt_method = kwargs.get("unit_wt_method", "robertson2009")
 
-    return BoulangerIdriss2014(cpt.depth, cpt.q_c, cpt.f_s, cpt.u_2, gwl=cpt.gwl, pga=pga, magnitude=magnitude,
+    return BoulangerIdriss2014(cpt.depth, cpt.q_c, cpt.f_s, cpt.u_2, gwl=cpt.gwl, pga=pga, m_w=m_w,
                                a_ratio=cpt.a_ratio, cfc=cfc, i_c_limit=i_c_limit, s_g=s_g, pw=pw, p_a=p_a,
                                saturation=saturation, unit_wt_method=unit_wt_method)
 
