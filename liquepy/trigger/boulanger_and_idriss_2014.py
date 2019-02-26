@@ -2,44 +2,53 @@ import numpy as np
 
 
 def calculate_unit_weight(fs, q_t, gwl, depth):
+    """
+    Estimate the unit weight of the soil.
+
+    Ref: https://www.cpt-robertson.com/PublicationsPDF/Unit%20Weight%20Rob%20%26%20Cabal%20CPT10.pdf
+
+    Limit has been
+    :param fs:
+    :param q_t:
+    :param gwl:
+    :param depth:
+    :return:
+    """
     # eq Robertson pag 37- CPT guide
 
     pa = 100  # kPa
-    n = len(fs)
-
-    gamma_soil = np.zeros(n)  # kN/m^3
-    for i in range(0, n):
-        if q_t[i] <= 0:
-            q_t[i] = zeros_search(q_t, q_t[i])
-        r_f = (fs[i] / q_t[i]) * 100
-        if r_f <= 0:
-            r_f = 0.1
-        if depth[i] <= gwl:
-            gamma_soil[i] = gamma_dry(q_t[i], r_f, pa)
-        else:
-            gamma_soil[i] = gamma_wet(q_t[i], r_f, pa)
+    gamma_water = 9.81
+    r_f = np.clip((fs / q_t) * 100, 0.1, None)
+    min_unit_weight = 15
+    gamma_soil = np.clip((0.27 * np.log10(r_f) + 0.36 * np.log10(q_t / pa) + 1.236) * gamma_water, min_unit_weight, None)
 
     return gamma_soil
 
 
-def gamma_dry(q_t, r_f, pa):
-    gamma_water = 9.81
-    g = (0.27 * np.log10(r_f) + 0.36 * np.log10(q_t / pa) + 1.236) * gamma_water
-    if g < 15:  # for void ratio is 12.985
-        gamma_dry = 15
-    else:
-        gamma_dry = g
-    return gamma_dry
 
-
-def gamma_wet(q_t, r_f, pa):
-    gamma_water = 9.81
-    g = (0.27 * np.log10(r_f) + 0.36 * np.log10(q_t / pa) + 1.236) * gamma_water
-    if g < 15:
-        gamma_wet = 15
-    else:
-        gamma_wet = g
-    return gamma_wet
+# def calculate_unit_weight1(fs, q_t, gwl, depth):
+#     """
+#     Estimate the unit weight of the soil.
+#
+#     Ref: https://www.cpt-robertson.com/PublicationsPDF/Unit%20Weight%20Rob%20%26%20Cabal%20CPT10.pdf
+#
+#     Limit has been
+#     :param fs:
+#     :param q_t:
+#     :param gwl:
+#     :param depth:
+#     :return:
+#     """
+#
+#     pa = 101  # kPa
+#
+#     r_f = np.clip((fs / q_t) * 100, 0.1, None)
+#     gamma_water = 9.81
+#     min_gamma = 15  # 1.5 * gamma_water  # minimum value obtained in presented results
+#     max_gamma = 4.0 * gamma_water  # maximum value obtained in presented results
+#     unit_dry_weight = np.clip((0.27 * np.log10(r_f) + 0.36 * np.log10(q_t / pa) + 1.236) * gamma_water, min_gamma, max_gamma)
+#
+#     return unit_dry_weight
 
 
 def zeros_search(qt, b):  # it needs to search zeros in qt and so it transorm in number minimum different by 0
@@ -335,7 +344,7 @@ def calculate_dependent_variables(sigma_v, sigma_veff, q_c, f_s, p_a, q_t, cfc):
             if abs(q_c1n[dd] - temp_q_c1n) < 0.00001:
                 break
             temp_q_c1n = q_c1n[dd]
-    return q_c1n_cs, fines_content, i_c
+    return q_c1n_cs, fines_content, i_c, big_q
 
 
 class BoulangerIdriss2014(object):
@@ -378,7 +387,7 @@ class BoulangerIdriss2014(object):
         self.sigma_veff = calculate_sigma_veff(self.sigma_v, self.pore_pressure)
         self.rd = calculate_rd(depth, magnitude)
 
-        self.q_c1n_cs, self.fines_content, self.i_c = calculate_dependent_variables(self.sigma_v, self.sigma_veff, q_c,
+        self.q_c1n_cs, self.fines_content, self.i_c, self.big_q = calculate_dependent_variables(self.sigma_v, self.sigma_veff, q_c,
                                                                                     f_s, p_a,
                                                                                     self.q_t,
                                                                                     self.cfc)

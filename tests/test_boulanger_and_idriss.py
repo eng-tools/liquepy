@@ -34,7 +34,7 @@ def test_calculate_unit_weight():
     depth = np.array([4.])
 
     gamma = bim14.calculate_unit_weight(fs, q_t, gwl, depth)
-    expected_gamma = 15.
+    expected_gamma = 15  # 14.715
     assert gamma[0] == expected_gamma
 
 
@@ -253,3 +253,7 @@ def test_calculate_qc_1ncs_from_crr_7p5():
     q_c1n_cs_back = bim14.calculate_qc_1ncs_from_crr_7p5(crr_values)
     error = np.sum(abs(q_c1n_cs_values - q_c1n_cs_back))
     assert error < 0.01, error
+
+
+if __name__ == '__main__':
+    test_compare_fos_to_previous_version()

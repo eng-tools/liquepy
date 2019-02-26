@@ -7,12 +7,15 @@ with open("liquepy/__about__.py") as fp:
 with open('README.rst') as readme_file:
     readme = readme_file.read()
 
+with open('HISTORY.rst') as history_file:
+    history = history_file.read()
+
 setup(name='liquepy',
       version=about['__version__'],
       description='Tools for soil liquefaction analysis',
-      long_description=readme,
+      long_description=readme + '\n\n' + history,
       url='https://github.com/eng-tools/liquepy',
-      author='Julieth Quintero and Maxim Millen',
+      author='Maxim Millen and Julieth Quintero',
       author_email='mmi46@uclive.ac.nz',
       keywords='geotechnical engineering foundations settlement',
       license='MIT',
