@@ -305,13 +305,20 @@ class BoulangerIdriss2014(object):
             Limit of liquefiable material
         s_g: float or array_like, -, default=2.65
             Specific gravity
-        p_w: float, -, default=9.8
-            Density of water
+        s_g_water: float, -, default=1.0
+            Specific gravity of water
         p_a: float, -, kPa, default=101
             Atmospheric pressure
         """
 
         magnitude = kwargs.get("m_w", None)
+        i_c_limit = kwargs.get("i_c_limit", 2.6)
+        s_g = kwargs.get("s_g", 2.65)
+        s_g_water = kwargs.get("s_g_water", 1.0)
+        p_a = kwargs.get("p_a", 101.)  # kPa
+        saturation = kwargs.get("saturation", None)
+        unit_wt_method = kwargs.get("unit_wt_method", "robertson2009")
+
         if m_w is None:
             if magnitude is None:
                 self.m_w = 7.5
@@ -321,13 +328,7 @@ class BoulangerIdriss2014(object):
         else:
             self.m_w = m_w
 
-        i_c_limit = kwargs.get("i_c_limit", 2.6)
-        s_g = kwargs.get("s_g", 2.65)
-        pw = kwargs.get("pw", 9.8)
-        p_a = kwargs.get("p_a", 101.)  # kPa
-        saturation = kwargs.get("saturation", None)
-        unit_wt_method = kwargs.get("unit_wt_method", "robertson2009")
-
+        unit_water_wt = s_g_water * 9.8
         self.depth = depth
         self.q_c = q_c
         self.f_s = f_s
@@ -350,8 +351,8 @@ class BoulangerIdriss2014(object):
             self.unit_wt = calc_unit_dry_weight(self.f_s, self.q_t)
         elif unit_wt_method == 'void_ratio':
             self.unit_dry_wt = calc_unit_dry_weight(self.f_s, self.q_t)
-            self.e_curr = calc_void_ratio(self.unit_dry_wt, s_g, pw=pw)
-            self.unit_wt = calc_unit_weight(self.e_curr, s_g, self.saturation, pw=pw)
+            self.e_curr = calc_void_ratio(self.unit_dry_wt, s_g, pw=unit_water_wt)
+            self.unit_wt = calc_unit_weight(self.e_curr, s_g, self.saturation, pw=unit_water_wt)
         else:
             raise ValueError("unit_wt_method should be either: 'robertson2009' or 'void_ratio' not: %s" % unit_wt_method)
 
@@ -405,8 +406,8 @@ def run_bi2014(cpt, pga, m_w, cfc=0.0, **kwargs):
         Limit of liquefiable material
     s_g: float or array_like, -, default=2.65
         Specific gravity
-    p_w: float, -, default=9.8
-        Density of water
+    s_g_water: float, -, default=1.0
+            Specific gravity of water
     p_a: float, -, kPa, default=101
         Atmospheric pressure
 
@@ -416,13 +417,13 @@ def run_bi2014(cpt, pga, m_w, cfc=0.0, **kwargs):
     """
     i_c_limit = kwargs.get("i_c_limit", 2.6)
     s_g = kwargs.get("s_g", 2.65)
-    pw = kwargs.get("pw", 9.8)
+    s_g_water = kwargs.get("s_g_water", 9.8)
     p_a = kwargs.get("p_a", 101.)  # kPa
     saturation = kwargs.get("saturation", None)
     unit_wt_method = kwargs.get("unit_wt_method", "robertson2009")
 
     return BoulangerIdriss2014(cpt.depth, cpt.q_c, cpt.f_s, cpt.u_2, gwl=cpt.gwl, pga=pga, m_w=m_w,
-                               a_ratio=cpt.a_ratio, cfc=cfc, i_c_limit=i_c_limit, s_g=s_g, pw=pw, p_a=p_a,
+                               a_ratio=cpt.a_ratio, cfc=cfc, i_c_limit=i_c_limit, s_g=s_g, s_g_water=s_g_water, p_a=p_a,
                                saturation=saturation, unit_wt_method=unit_wt_method)
 
 
