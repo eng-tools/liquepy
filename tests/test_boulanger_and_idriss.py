@@ -30,11 +30,9 @@ def test_compare_fos_to_previous_version():
 def test_calculate_unit_weight():
     fs = np.array([10.])
     q_t = np.array([10.])
-    gwl = 2.
-    depth = np.array([4.])
 
-    gamma = bim14.calculate_unit_weight(fs, q_t, gwl, depth)
-    expected_gamma = 15  # 14.715
+    gamma = bim14.calc_unit_dry_weight(fs, q_t)
+    expected_gamma = 14.715
     assert gamma[0] == expected_gamma
 
 

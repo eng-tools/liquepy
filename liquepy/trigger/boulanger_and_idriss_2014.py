@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def calculate_unit_weight(fs, q_t, gwl, depth):
+def calc_unit_dry_weight(fs, q_t):
     """
     Estimate the unit weight of the soil.
 
@@ -16,55 +16,18 @@ def calculate_unit_weight(fs, q_t, gwl, depth):
     """
     # eq Robertson pag 37- CPT guide
 
-    pa = 100  # kPa
+    pa = 101  # kPa
     gamma_water = 9.81
     r_f = np.clip((fs / q_t) * 100, 0.1, None)
-    min_unit_weight = 15
-    gamma_soil = np.clip((0.27 * np.log10(r_f) + 0.36 * np.log10(q_t / pa) + 1.236) * gamma_water, min_unit_weight, None)
+    min_unit_weight = 1.5 * gamma_water  # minimum value obtained in presented results
+    max_unit_weight = 4.0 * gamma_water  # maximum value obtained in presented results
+    gamma_soil = np.clip((0.27 * np.log10(r_f) + 0.36 * np.log10(q_t / pa) + 1.236) * gamma_water, min_unit_weight, max_unit_weight)
 
     return gamma_soil
 
 
-
-# def calculate_unit_weight1(fs, q_t, gwl, depth):
-#     """
-#     Estimate the unit weight of the soil.
-#
-#     Ref: https://www.cpt-robertson.com/PublicationsPDF/Unit%20Weight%20Rob%20%26%20Cabal%20CPT10.pdf
-#
-#     Limit has been
-#     :param fs:
-#     :param q_t:
-#     :param gwl:
-#     :param depth:
-#     :return:
-#     """
-#
-#     pa = 101  # kPa
-#
-#     r_f = np.clip((fs / q_t) * 100, 0.1, None)
-#     gamma_water = 9.81
-#     min_gamma = 15  # 1.5 * gamma_water  # minimum value obtained in presented results
-#     max_gamma = 4.0 * gamma_water  # maximum value obtained in presented results
-#     unit_dry_weight = np.clip((0.27 * np.log10(r_f) + 0.36 * np.log10(q_t / pa) + 1.236) * gamma_water, min_gamma, max_gamma)
-#
-#     return unit_dry_weight
-
-
-def zeros_search(qt, b):  # it needs to search zeros in qt and so it transorm in number minimum different by 0
-    n = len(qt)
-    a = np.zeros(n)
-    p = max(qt) + 10
-    for k in range(0, n):
-        if qt[k] == b:
-            for i in range(0, n):
-                a[i] = qt[i]
-                if a[i] <= 0:
-                    a[i] = p
-            for j in range(0, n):
-                if a[j] == p:
-                    a[j] = min(a)
-    return min(a)
+def calc_unit_weight(unit_dry_weight, specific_gravity, gwl, depth):
+    pass
 
 
 def calculate_sigma_v(depths, gammas):
@@ -108,16 +71,15 @@ def calculate_f_ic_values(fs, qt, sigmav):
     return F
 
 
-def calculate_big_q_values(CN, qt, sigmav):
+def calculate_big_q_values(c_n, qt, sigmav):
     """
     Eq. XXXXX
-    :param CN:
+    :param c_n: CN
     :param qt:
     :param sigmav:
     :return:
     """
-    Q = (qt - sigmav) / 100 * CN
-    return Q
+    return (qt - sigmav) / 100 * c_n
 
 
 def calculate_ic(big_q, big_f):
@@ -348,7 +310,7 @@ def calculate_dependent_variables(sigma_v, sigma_veff, q_c, f_s, p_a, q_t, cfc):
 
 
 class BoulangerIdriss2014(object):
-    def __init__(self, depth, q_c, f_s, u_2, gwl=2.3, pga=0.25, magnitude=7.5, a_ratio=0.8, cfc=0.0, i_c_limit=2.6):
+    def __init__(self, depth, q_c, f_s, u_2, gwl=2.3, pga=0.25, magnitude=7.5, a_ratio=0.8, cfc=0.0, i_c_limit=2.6, s_g=2.65):
         """
         Performs the Boulanger and Idriss triggering procedure for a CPT profile
 
@@ -381,7 +343,9 @@ class BoulangerIdriss2014(object):
 
         self.cfc = cfc  # parameter of fines content, eq 2.29
         self.q_t = calculate_qt(self.q_c, self.a_ratio, self.u_2)  # kPa
-        self.gammas = calculate_unit_weight(self.f_s, self.q_t, gwl, self.depth)
+        self.unit_dry_weight = calc_unit_dry_weight(self.f_s, self.q_t)
+        # self.gammas = calc_unit_weight(self.unit_dry_weight, s_g, gwl, self.depth)
+        self.gammas = self.unit_dry_weight
         self.sigma_v = calculate_sigma_v(self.depth, self.gammas)
         self.pore_pressure = calculate_pore_pressure(self.depth, self.gwl)
         self.sigma_veff = calculate_sigma_veff(self.sigma_v, self.pore_pressure)
