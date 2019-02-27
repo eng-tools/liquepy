@@ -6,27 +6,30 @@ def calc_void_ratio(unit_dry_weight, specific_gravity, pw):
     return specific_gravity * pw / unit_dry_weight - 1
 
 
-def calc_unit_dry_weight(fs, q_t):
+def calc_unit_dry_weight(fs, q_t, p_a, unit_water_wt):
     """
     Estimate the unit weight of the soil.
 
     Ref: https://www.cpt-robertson.com/PublicationsPDF/Unit%20Weight%20Rob%20%26%20Cabal%20CPT10.pdf
 
-    Limit has been
-    :param fs:
-    :param q_t:
-    :param gwl:
-    :param depth:
-    :return:
+    Parameters
+    ----------
+    fs
+    q_t
+    p_a
+    unit_water_wt
+
+    Returns
+    -------
+
     """
     # eq Robertson pag 37- CPT guide
+    # unit_water_wt = 9.81
 
-    pa = 101  # kPa
-    gamma_water = 9.81
     r_f = np.clip((fs / q_t) * 100, 0.1, None)
-    min_unit_weight = 1.5 * gamma_water  # minimum value obtained in presented results
-    max_unit_weight = 4.0 * gamma_water  # maximum value obtained in presented results
-    gamma_soil = np.clip((0.27 * np.log10(r_f) + 0.36 * np.log10(q_t / pa) + 1.236) * gamma_water, min_unit_weight, max_unit_weight)
+    min_unit_weight = 1.5 * unit_water_wt  # minimum value obtained in presented results
+    max_unit_weight = 4.0 * unit_water_wt  # maximum value obtained in presented results
+    gamma_soil = np.clip((0.27 * np.log10(r_f) + 0.36 * np.log10(q_t / p_a) + 1.236) * unit_water_wt, min_unit_weight, max_unit_weight)
 
     return gamma_soil
 
@@ -71,10 +74,9 @@ def calculate_qt(qc, ar, u2):
     return qc + ((1 - ar) * u2)
 
 
-def calculate_f_ic_values(fs, qt, sigmav):
-    # qt is in kPa, so it's not necessary measure unit transormation
-    return (fs / (qt - sigmav)) * 100
-
+def calculate_f_ic_values(fs, qt, sigma_v):
+    # qt is in kPa, so it's not necessary measure unit transformation
+    return (fs / (qt - sigma_v)) * 100
 
 
 def calculate_big_q_values(c_n, qt, sigmav):
@@ -152,18 +154,18 @@ def calculate_m(q_c1ncs):
     return m
 
 
-def calculate_q_c1n(qc, CN):
+def calculate_q_c1n(q_c, c_n):
     """
     qc1n from CPT, Eq 2.4
     """
-    q_c1n = CN * qc * 1000 / 100
+    q_c1n = c_n * q_c * 1000 / 100
     return q_c1n
 
 
 def crr_7p5_from_cpt(q_c1n_cs, gwl, depth, i_c, i_c_limit=2.6):
     """
     cyclic resistance from CPT, Eq. 2.24
-    it's not possible to have liquefaction up water table
+    it's not possible to have liquefaction above water table
     """
     crr_values = np.exp((q_c1n_cs / 113) + ((q_c1n_cs / 1000) ** 2) -
                         ((q_c1n_cs / 140) ** 3) + ((q_c1n_cs / 137) ** 4) - 2.8)
@@ -273,7 +275,7 @@ def calculate_dependent_variables(sigma_v, sigma_veff, q_c, f_s, p_a, q_t, cfc):
 
 
 class BoulangerIdriss2014(object):
-    def __init__(self, depth, q_c, f_s, u_2, gwl=2.3, pga=0.25, m_w=None, a_ratio=0.8, cfc=0.0, **kwargs):
+    def __init__(self, depth, q_c, f_s, u_2, cpt_gwl=None, gwl=None, pga=0.25, m_w=None, a_ratio=0.8, cfc=0.0, **kwargs):
         """
         Performs the Boulanger and Idriss triggering procedure for a CPT profile
 
@@ -318,6 +320,8 @@ class BoulangerIdriss2014(object):
         p_a = kwargs.get("p_a", 101.)  # kPa
         saturation = kwargs.get("saturation", None)
         unit_wt_method = kwargs.get("unit_wt_method", "robertson2009")
+        if gwl is None and cpt_gwl is not None:
+            gwl = cpt_gwl
 
         if m_w is None:
             if magnitude is None:
@@ -348,9 +352,9 @@ class BoulangerIdriss2014(object):
         else:
             self.saturation = saturation
         if unit_wt_method == "robertson2009":
-            self.unit_wt = calc_unit_dry_weight(self.f_s, self.q_t)
+            self.unit_wt = calc_unit_dry_weight(self.f_s, self.q_t, p_a, unit_water_wt)
         elif unit_wt_method == 'void_ratio':
-            self.unit_dry_wt = calc_unit_dry_weight(self.f_s, self.q_t)
+            self.unit_dry_wt = calc_unit_dry_weight(self.f_s, self.q_t, p_a, unit_water_wt)
             self.e_curr = calc_void_ratio(self.unit_dry_wt, s_g, pw=unit_water_wt)
             self.unit_wt = calc_unit_weight(self.e_curr, s_g, self.saturation, pw=unit_water_wt)
         else:
@@ -386,7 +390,17 @@ class BoulangerIdriss2014(object):
         return self.m_w
 
 
-def run_bi2014(cpt, pga, m_w, cfc=0.0, **kwargs):
+class BoulangerIdriss2014CPT(BoulangerIdriss2014):
+    def __init__(self, cpt, pga=0.25, m_w=None, gwl=None, a_ratio=0.8, cfc=0.0, **kwargs):
+        self.cpt = cpt
+        cpt_gwl = cpt.gwl
+        if gwl is None:
+            gwl = cpt_gwl
+        super(BoulangerIdriss2014CPT, self).__init__(cpt.depth, cpt.q_c, cpt.f_s, cpt.u_2, cpt_gwl, gwl=gwl, pga=pga, m_w=m_w,
+                                                     a_ratio=a_ratio, cfc=cfc, **kwargs)
+
+
+def run_bi2014(cpt, pga, m_w, gwl=None, cfc=0.0, **kwargs):
     """
     Runs the Boulanger and Idriss (2014) triggering method.
 
@@ -398,6 +412,8 @@ def run_bi2014(cpt, pga, m_w, cfc=0.0, **kwargs):
         peak ground acceleration
     m_w: float, -,
         Earthquake magnitude
+    gwl: float, m,
+        depth to ground water from surface at time of earthquake
     a_ratio: float, -, default=0.8
         Area ratio
     cfc: float, -, default=0.0
@@ -422,7 +438,7 @@ def run_bi2014(cpt, pga, m_w, cfc=0.0, **kwargs):
     saturation = kwargs.get("saturation", None)
     unit_wt_method = kwargs.get("unit_wt_method", "robertson2009")
 
-    return BoulangerIdriss2014(cpt.depth, cpt.q_c, cpt.f_s, cpt.u_2, gwl=cpt.gwl, pga=pga, m_w=m_w,
+    return BoulangerIdriss2014CPT(cpt, gwl=gwl, pga=pga, m_w=m_w,
                                a_ratio=cpt.a_ratio, cfc=cfc, i_c_limit=i_c_limit, s_g=s_g, s_g_water=s_g_water, p_a=p_a,
                                saturation=saturation, unit_wt_method=unit_wt_method)
 

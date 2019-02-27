@@ -8,11 +8,11 @@ from tests.conftest import TEST_DATA_DIR
 
 def test_can_calculate_fos():
     cpt = liquepy.field.load_cpt_from_file(TEST_DATA_DIR + "standard_1.csv")
-    bi2014 = liquepy.trigger.run_bi2014(cpt, pga=0.25, m_w=7.5, unit_wt_method='robertson2009')
+    bi2014 = liquepy.trigger.run_bi2014(cpt, pga=0.25, m_w=7.5, gwl=cpt.gwl, unit_wt_method='robertson2009')
     factor_safety_values = bi2014.factor_of_safety
 
     expected_fos_at_40 = 2.0
-    expected_fos_at_500 = 0.538382134
+    expected_fos_at_500 = 0.53896214
     assert factor_safety_values[40] == expected_fos_at_40
     assert np.isclose(factor_safety_values[500], expected_fos_at_500, rtol=0.0001)
 
@@ -20,12 +20,12 @@ def test_can_calculate_fos():
 def test_compare_fos_to_previous_version():
     cpt = liquepy.field.load_cpt_from_file(TEST_DATA_DIR + "standard_1.csv")
     cpt.a_ratio = 0.8
-    bi2014 = liquepy.trigger.run_bi2014(cpt, pga=0.25, m_w=7.5, unit_wt_method='robertson2009')
+    bi2014 = liquepy.trigger.run_bi2014(cpt, pga=0.25, m_w=7.5, gwl=cpt.gwl, unit_wt_method='robertson2009')
     factor_safety_values = bi2014.factor_of_safety
-    # new_version = "0p4p4"  # uncomment to generate new version if changed
+    # new_version = "0p4p5"  # uncomment to generate new version if changed
     # np.savetxt(TEST_DATA_DIR + "standard_1_fos_lq%s.csv" % new_version, factor_safety_values)
 
-    fos_expected = np.loadtxt(TEST_DATA_DIR + "standard_1_fos_lq0p4p4.csv")
+    fos_expected = np.loadtxt(TEST_DATA_DIR + "standard_1_fos_lq0p4p5.csv")
     assert np.isclose(fos_expected, factor_safety_values).all()
 
 
@@ -33,7 +33,7 @@ def test_calculate_unit_weight():
     fs = np.array([10.])
     q_t = np.array([10.])
 
-    gamma = bim14.calc_unit_dry_weight(fs, q_t)
+    gamma = bim14.calc_unit_dry_weight(fs, q_t, unit_water_wt=9.81, p_a=101)
     expected_gamma = 14.715
     assert gamma[0] == expected_gamma
 

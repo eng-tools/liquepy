@@ -2,7 +2,7 @@
 History
 =======
 
-0.0.1 (2018-02-26)
+0.4.4 (2018-02-27)
 ------------------
 
 * Changes to `BoulangerIdriss2014`:
@@ -17,3 +17,9 @@ History
     * Optional input `s_g_water` to override specific weight of water
 
 
+0.4.5 (2018-02-27)
+------------------
+
+* `BoulangerIdriss2014` unit weight calculation now uses the specific weight of water a gravity=9.8
+* `BoulangerIdriss2014` gwl now is the ground water level during the earthquake, while cpt_gwl is the gwl at cpt measure
+* Added `BoulangerIdriss2014CPT` which performs `BoulangerIdriss2014` but takes CPT as an input
