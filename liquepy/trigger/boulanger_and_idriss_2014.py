@@ -315,8 +315,8 @@ class BoulangerIdriss2014(object):
 
         magnitude = kwargs.get("m_w", None)
         i_c_limit = kwargs.get("i_c_limit", 2.6)
-        s_g = kwargs.get("s_g", 2.65)
-        s_g_water = kwargs.get("s_g_water", 1.0)
+        self.s_g = kwargs.get("s_g", 2.65)
+        self.s_g_water = kwargs.get("s_g_water", 1.0)
         p_a = kwargs.get("p_a", 101.)  # kPa
         saturation = kwargs.get("saturation", None)
         unit_wt_method = kwargs.get("unit_wt_method", "robertson2009")
@@ -332,7 +332,7 @@ class BoulangerIdriss2014(object):
         else:
             self.m_w = m_w
 
-        unit_water_wt = s_g_water * 9.8
+        unit_water_wt = self.s_g_water * 9.8
         self.depth = depth
         self.q_c = q_c
         self.f_s = f_s
@@ -355,8 +355,8 @@ class BoulangerIdriss2014(object):
             self.unit_wt = calc_unit_dry_weight(self.f_s, self.q_t, p_a, unit_water_wt)
         elif unit_wt_method == 'void_ratio':
             self.unit_dry_wt = calc_unit_dry_weight(self.f_s, self.q_t, p_a, unit_water_wt)
-            self.e_curr = calc_void_ratio(self.unit_dry_wt, s_g, pw=unit_water_wt)
-            self.unit_wt = calc_unit_weight(self.e_curr, s_g, self.saturation, pw=unit_water_wt)
+            self.e_curr = calc_void_ratio(self.unit_dry_wt, self.s_g, pw=unit_water_wt)
+            self.unit_wt = calc_unit_weight(self.e_curr, self.s_g, self.saturation, pw=unit_water_wt)
         else:
             raise ValueError("unit_wt_method should be either: 'robertson2009' or 'void_ratio' not: %s" % unit_wt_method)
 
@@ -374,7 +374,7 @@ class BoulangerIdriss2014(object):
         self.msf = calculate_msf(self.m_w, self.q_c1n_cs)
         self.csr = calculate_csr(self.sigma_veff, self.sigma_v, pga, self.rd, gwl, depth)
         self.crr_m7p5 = crr_7p5_from_cpt(self.q_c1n_cs, gwl, depth, self.i_c, self.i_c_limit)
-        self.crr = crr_m(self.k_sigma, self.msf, self.crr_m7p5)  # CRR a magnitudo M
+        self.crr = crr_m(self.k_sigma, self.msf, self.crr_m7p5)  # CRR at set magnitude
         fs_unlimited = self.crr / self.csr
         # fs_fines_limited = np.where(self.fines_content > 71, 2.0, fs_unlimited)  # based on I_c=2.6
         self.factor_of_safety = np.where(fs_unlimited > 2, 2, fs_unlimited)
@@ -433,7 +433,7 @@ def run_bi2014(cpt, pga, m_w, gwl=None, cfc=0.0, **kwargs):
     """
     i_c_limit = kwargs.get("i_c_limit", 2.6)
     s_g = kwargs.get("s_g", 2.65)
-    s_g_water = kwargs.get("s_g_water", 9.8)
+    s_g_water = kwargs.get("s_g_water", 1.0)
     p_a = kwargs.get("p_a", 101.)  # kPa
     saturation = kwargs.get("saturation", None)
     unit_wt_method = kwargs.get("unit_wt_method", "robertson2009")
