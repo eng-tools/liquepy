@@ -23,3 +23,8 @@ History
 * `BoulangerIdriss2014` unit weight calculation now uses the specific weight of water a gravity=9.8
 * `BoulangerIdriss2014` gwl now is the ground water level during the earthquake, while cpt_gwl is the gwl at cpt measure
 * Added `BoulangerIdriss2014CPT` which performs `BoulangerIdriss2014` but takes CPT as an input
+
+0.4.7 (2018-02-28)
+------------------
+
+* `run_bi2014` fixed bug where water unit weight was 10 times too big

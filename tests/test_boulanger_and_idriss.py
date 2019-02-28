@@ -12,7 +12,7 @@ def test_can_calculate_fos():
     factor_safety_values = bi2014.factor_of_safety
 
     expected_fos_at_40 = 2.0
-    expected_fos_at_500 = 0.53896214
+    expected_fos_at_500 = 0.53835973747
     assert factor_safety_values[40] == expected_fos_at_40
     assert np.isclose(factor_safety_values[500], expected_fos_at_500, rtol=0.0001)
 
@@ -22,10 +22,10 @@ def test_compare_fos_to_previous_version():
     cpt.a_ratio = 0.8
     bi2014 = liquepy.trigger.run_bi2014(cpt, pga=0.25, m_w=7.5, gwl=cpt.gwl, unit_wt_method='robertson2009')
     factor_safety_values = bi2014.factor_of_safety
-    # new_version = "0p4p5"  # uncomment to generate new version if changed
+    # new_version = "0p4p7"  # uncomment to generate new version if changed
     # np.savetxt(TEST_DATA_DIR + "standard_1_fos_lq%s.csv" % new_version, factor_safety_values)
 
-    fos_expected = np.loadtxt(TEST_DATA_DIR + "standard_1_fos_lq0p4p5.csv")
+    fos_expected = np.loadtxt(TEST_DATA_DIR + "standard_1_fos_lq0p4p7.csv")
     assert np.isclose(fos_expected, factor_safety_values).all()
 
 
