@@ -5,3 +5,4 @@ from liquepy import motion
 from liquepy import sra
 from liquepy import num
 from liquepy.functions import *
+from liquepy import __about__

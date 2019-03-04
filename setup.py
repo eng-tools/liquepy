@@ -10,12 +10,12 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-setup(name='liquepy',
+setup(name=about['__project__'],
       version=about['__version__'],
       description='Tools for soil liquefaction analysis',
       long_description=readme + '\n\n' + history,
       url='https://github.com/eng-tools/liquepy',
-      author='Maxim Millen and Julieth Quintero',
+      author=about['__author__'],
       author_email='mmi46@uclive.ac.nz',
       keywords='geotechnical engineering foundations settlement',
       license='MIT',

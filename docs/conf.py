@@ -12,21 +12,24 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
+from datetime import date
 
+file_loc = os.path.split(__file__)[0]
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(file_loc), '.')))
 
+import liquepy
 # -- Project information -----------------------------------------------------
 
-project = 'liquepy'
-copyright = '2019, Maxim Millen'
-author = 'Maxim Millen'
+project = liquepy.__about__.__project__
+author = liquepy.__about__.__author__
+copyright = u'Copyright 2016 - {0} {1}'.format(date.today().year, author)
 
 # The short X.Y version
-version = ''
+version = liquepy.__about__.__version__
 # The full version, including alpha/beta/rc tags
-release = '0.0.1'
+release = version
 
 
 # -- General configuration ---------------------------------------------------
