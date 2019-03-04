@@ -6,10 +6,12 @@
 Welcome to liquepy's documentation!
 ===================================
 
+Release v\ |version|
+
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
 
+   liquepy
 
 
 Indices and tables
