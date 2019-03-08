@@ -14,10 +14,14 @@ def calc_unit_dry_weight(fs, q_t, p_a, unit_water_wt):
 
     Parameters
     ----------
-    fs
-    q_t
-    p_a
-    unit_water_wt
+    fs: array_like
+        CPT skin friction (kPa)
+    q_t: array_like
+        CPT cone tip resistance (kPa)
+    p_a: float
+        Atmospheric pressure (kPa)
+    unit_water_wt: float
+        Unit weght of water
 
     Returns
     -------
@@ -25,13 +29,12 @@ def calc_unit_dry_weight(fs, q_t, p_a, unit_water_wt):
     """
     # eq Robertson pag 37- CPT guide
     # unit_water_wt = 9.81
-
+    q_t = np.clip(q_t, 1e-10, None)
     r_f = np.clip((fs / q_t) * 100, 0.1, None)
     min_unit_weight = 1.5 * unit_water_wt  # minimum value obtained in presented results
     max_unit_weight = 4.0 * unit_water_wt  # maximum value obtained in presented results
-    gamma_soil = np.clip((0.27 * np.log10(r_f) + 0.36 * np.log10(q_t / p_a) + 1.236) * unit_water_wt, min_unit_weight, max_unit_weight)
-
-    return gamma_soil
+    soil_unit_wt = np.clip((0.27 * np.log10(r_f) + 0.36 * np.log10(q_t / p_a) + 1.236) * unit_water_wt, min_unit_weight, max_unit_weight)
+    return soil_unit_wt
 
 
 def calc_unit_weight(e_curr, specific_gravity, saturation, pw):

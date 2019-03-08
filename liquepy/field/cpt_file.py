@@ -25,7 +25,7 @@ import ntpath
 def load_cpt_from_file(ffp, delimiter=";"):
     # import data from csv file
     folder_path, file_name = ntpath.split(ffp)
-    data = np.loadtxt(ffp, skiprows=24, delimiter=delimiter)
+    data = np.loadtxt(ffp, skiprows=24, delimiter=delimiter, usecols=(0, 1, 2, 3))
     depth = data[:, 0]
     q_c = data[:, 1] * 1e3  # should be in kPa
     f_s = data[:, 2]
