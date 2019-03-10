@@ -35,6 +35,23 @@ How do I get set up?
 
 1. Run ``pip install -r requirements.txt``
 
+
+Code suggestions
+----------------
+
+* Implementations of published liquefaction methods should be written as `calc_<first_author>[_et_al]_<date>()`
+
+* Plotting and visualisation should be not included in computation objects. Instead plotting functions or objects should receive computation objects as inputs.
+
+Formatting
+----------
+
+* Follow `pep8 formatting standard <https://www.python.org/dev/peps/pep-0008/>`_ (except for line character limit not strictly observed)
+
+* Docstrings written in `numpy format <https://numpydoc.readthedocs.io/en/latest/format.html>`_
+
+* Tabulated data stored as comma separated or semi-colon separated files (not xlsx or xls)
+
 Testing
 -------
 
@@ -43,6 +60,12 @@ Tests are run with pytest
 * Locally run: ``pytest`` on the command line.
 
 * Tests are run on every push using travis, see the ``.travis.yml`` file
+
+To test the docs:
+
+1. Install the check docs package: Run ``pip install collective.checkdocs``
+
+2. Run the check docs package and fix the errors: Run ``python setup.py checkdocs``
 
 
 Deployment
