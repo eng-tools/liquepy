@@ -4,8 +4,8 @@ from liquepy import functions
 
 
 class ShearTest(object):
-    _tau = None
-    _gamma = None
+    _stress = None
+    _strain = None
     _pp = None
     _esig_v0 = None
     _i_liq = None
@@ -13,14 +13,14 @@ class ShearTest(object):
     _n_cycles = None
     _ru_limit = None
 
-    def __init__(self, gamma, tau, esig_v0=1, sl=None, pp=None, n_cycles=None):
-        self._gamma = np.array(gamma)
-        self._tau = np.array(tau)
+    def __init__(self, stress, strain, esig_v0=1, sl=None, pp=None, n_cycles=None):
+        self._strain = np.array(strain)
+        self._stress = np.array(stress)
         self.sl = sl
         self._pp = pp
         if esig_v0 is not None:
             self._esig_v0 = esig_v0
-        self._n_points = len(tau)
+        self._n_points = len(stress)
         self._n_cycles = n_cycles
 
     @property
@@ -28,12 +28,12 @@ class ShearTest(object):
         return self._pp
 
     @property
-    def tau(self):
-        return self._tau
+    def stress(self):
+        return self._stress
 
     @property
-    def gamma(self):
-        return self._gamma
+    def strain(self):
+        return self._strain
 
     @property
     def esig_v0(self):
@@ -58,7 +58,7 @@ class ShearTest(object):
     @property
     def csr(self):
         try:
-            return self.tau / self.esig_v0
+            return self.stress / self.esig_v0
         except ValueError:
             return None
 
@@ -96,14 +96,14 @@ class ShearTest(object):
         return self._ru_limit
 
     @property
-    def av_tau(self):
-        average_tau = (self.tau[1:] + self.tau[:-1]) / 2
-        average_tau = np.insert(average_tau, 0, self.tau[0])  # Include first value
-        return average_tau
+    def av_stress(self):
+        average_stress = (self.stress[1:] + self.stress[:-1]) / 2
+        average_stress = np.insert(average_stress, 0, self.stress[0])  # Include first value
+        return average_stress
 
     @property
-    def delta_gamma(self):  # TODO: cache this parameter
-        delta_gamma = np.diff(self.gamma)
-        delta_gamma = np.insert(delta_gamma, 0, 0)
-        return delta_gamma
+    def delta_strain(self):  # TODO: cache this parameter
+        delta_strain = np.diff(self.strain)
+        delta_strain = np.insert(delta_strain, 0, 0)
+        return delta_strain
 

@@ -208,7 +208,7 @@ def load_element_test(ffp, esig_v0, hydrostatic=0):
     tau = csr_vals * esig_v0
     strs = ele_data[:, 2] / 100
     ru_flac = ele_data[:, 3]
-    stest = ShearTest(strs, tau, esig_v0=esig_v0, n_cycles=n_count)
+    stest = ShearTest(tau, strs, esig_v0=esig_v0, n_cycles=n_count)
     stest.set_pp_via_ru(ru_flac, hydrostatic=hydrostatic)
     stest.set_i_liq(esig_v_limit=5000)
     return stest

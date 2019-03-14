@@ -2,6 +2,12 @@
 History
 =======
 
+0.5.0 (2018-03-14)
+-------------------
+
+* Changed order of inputs in ElementTest object!
+* Changed ElementTest attributes (gamma -> strain, tau -> stress)
+
 0.4.12 (2018-03-14)
 -------------------
 

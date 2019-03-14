@@ -46,7 +46,7 @@ def calc_diss_energy_et(element_test, to_liq=False, norm=False):
     denom = 1
     if norm:
         denom = element_test.esig_v0
-    return np.cumsum(element_test.av_tau * element_test.delta_gamma)[:indy] / denom
+    return np.cumsum(element_test.av_stress * element_test.delta_strain)[:indy] / denom
 
 
 def calc_abs_delta_tau_fd(force):
@@ -92,7 +92,7 @@ def calc_abs_delta_tau_et(element_test, to_liq=False, norm=False):
     denom = 1
     if norm:
         denom = element_test.esig_v0
-    return calc_abs_delta_tau_fd(element_test.tau)[:indy] / denom
+    return calc_abs_delta_tau_fd(element_test.stress)[:indy] / denom
 
 
 def average_of_absolute_via_trapz(values):
