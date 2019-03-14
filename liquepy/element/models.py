@@ -97,7 +97,7 @@ class ShearTest(object):
 
     @property
     def av_tau(self):
-        average_tau = av_tau = (self.tau[1:] + self.tau[:-1]) / 2
+        average_tau = (self.tau[1:] + self.tau[:-1]) / 2
         average_tau = np.insert(average_tau, 0, self.tau[0])  # Include first value
         return average_tau
 
