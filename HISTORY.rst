@@ -27,3 +27,16 @@ History
 ------------------
 
 * `run_bi2014` fixed bug where water unit weight was 10 times too big
+
+0.4.8 - 0.4.10 (2018-03-08)
+---------------------------
+
+* Updated docstrings, readme file
+* Fixed number of columns to load on CPT to be 0-3
+
+
+0.4.11 (2018-03-14)
+-------------------
+
+* Added plotting functions for CPT
+* Cleaned up names of input motion saving functions, and order of args

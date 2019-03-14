@@ -5,6 +5,7 @@ from collections import OrderedDict
 from sfsimodels.functions import clean_float
 from sfsimodels.build_model_descriptions import build_parameter_descriptions
 from liquepy.element.models import ShearTest
+from liquepy.exceptions import deprecation
 
 
 class FlacSoil(sm.Soil):
@@ -229,14 +230,55 @@ def load_file_and_time(fname):
 
 
 def load_input_motion_and_dt(ffp):
+    """
+    Loads acceleration values and time step that were saved in FLAC input format.
+
+    Parameters
+    ----------
+    ffp: str
+        Full file path to output file
+
+    Returns
+    -------
+    values: array_like
+        An array of values
+    dt: float
+        Time step
+
+    """
     data = np.genfromtxt(ffp, skip_header=1, delimiter=",", names=True, usecols=0)
-    # print(ffp)
-    # print(data.dtype.names)
     dt = data.dtype.names[0].split("_")[-1]
     dt = "." + dt[1:]
     dt = float(dt)
     acc = data.astype(np.float)
     return acc, dt
+
+
+def save_input_motion_and_dt(ffp, values, dt, label="unlabelled"):
+    """
+    Exports acceleration values to the FLAC input format.
+
+    Parameters
+    ----------
+    ffp: str
+        Full file path to output file
+    values: array_like
+        An array of values
+    dt: float
+        Time step
+    label: str
+        A label of the data
+
+    Returns
+    -------
+
+    """
+    para = [label, "%i %.4f" % (len(values), dt)]
+    for i in range(len(values)):
+        para.append("%.6f" % values[i])
+    ofile = open(ffp, "w")
+    ofile.write("\n".join(para))
+    ofile.close()
 
 
 def save_input_motion(ffp, name, values, dt):
@@ -249,6 +291,7 @@ def save_input_motion(ffp, name, values, dt):
     :param dt: float, time step
     :return: None
     """
+    deprecation("liquepy.num.flac.save_input_motion is deprecated, use liquepy.num.flac.save_input_motion_and_dt")
     para = [name, "%i %.4f" % (len(values), dt)]
     for i in range(len(values)):
         para.append("%.6f" % values[i])
