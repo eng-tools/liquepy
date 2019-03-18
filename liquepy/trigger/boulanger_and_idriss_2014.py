@@ -237,13 +237,21 @@ def calculate_dependent_variables(sigma_v, sigma_veff, q_c, f_s, p_a, q_t, cfc):
     """
     Iteratively calculate_volumetric_strain parameters as they are interdependent
 
-    :param sigma_v: array, kPa, Total vertical stress
-    :param sigma_veff: array, kPa, Effective vertical stress
-    :param q_c: array, kPa, Cone tip resistance
-    :param f_s: array, kPa, Skin friction
-    :param p_a: array, kPa, Atmospheric pressure
-    :param q_t:
-    :param cfc: float, -, correction factor
+    Parameters
+    ----------
+    sigma_v: array_like [kPa]
+        Total vertical stress
+    sigma_veff: array_like [kPa]
+        Effective vertical stress
+    q_c: array_like [kPa]
+        Cone tip resistance
+    f_s: array_like [kPa]
+        Skin friction
+    p_a: array_like [kPa]
+        Atmospheric pressure
+    q_t:
+    cfc: float
+        correction factor
     :return:
     """
     num_depth = len(sigma_v)
@@ -286,13 +294,13 @@ class BoulangerIdriss2014(object):
 
         Parameters
         ----------
-        depth: array, m,
+        depth: array_like m,
             depths measured downwards from surface
-        q_c: array, kPa,
+        q_c: array_like kPa,
             cone tip resistance
-        f_s: array, kPa,
+        f_s: array_like kPa,
             skin friction
-        u_2: array, kPa,
+        u_2: array_like kPa,
             water pressure beneath cone tip
         gwl: float, m,
             ground water level below the surface
@@ -450,8 +458,14 @@ def calculate_qc_1ncs_from_crr_7p5(crr_7p5):
     """
     Solves the closed form solution to a quartic to invert the CRR_7p5-vs-q_c1n_cs relationship
 
-    :param crr_7p5: float or array, values of cyclic resistance ratio at m_w 7.5
-    :return: float or array, value of normalised cone tip resistance corrected to clean sand behaviour
+    Parameters
+    ----------
+    crr_7p5: float or array_like
+        values of cyclic resistance ratio at m_w 7.5
+    Returns
+    -------
+    float or array_like
+        value of normalised cone tip resistance corrected to clean sand behaviour
     """
     x = 5
     a = (1 / 137) ** 4

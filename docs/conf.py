@@ -48,6 +48,7 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
+    'sphinxcontrib.bibtex',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -79,6 +80,9 @@ pygments_style = None
 
 
 # -- Options for HTML output -------------------------------------------------
+
+# Natbib references file
+natbib = {"file": "references.bib"}
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.

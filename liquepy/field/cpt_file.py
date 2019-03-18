@@ -51,12 +51,17 @@ class CPT(object):
         """
         A cone penetration resistance test
 
-        :param depth: array
-        :param q_c: array, kPa,
-        :param f_s: array, kPa,
-        :param u_2: array, kPa,
-        :param gwl: float, m, ground water level
-        :param a_ratio: float, -, area ratio
+        Parameters
+        ----------
+        depth: array_like
+            depths from surface
+        q_c: array_like, [kPa]
+        f_s: array_like, [kPa]
+        u_2: array_like, [kPa]
+        gwl: float, [m]
+            ground water level
+        a_ratio: float,
+            Area ratio
         """
         self.depth = depth
         self.q_c = q_c
@@ -68,3 +73,12 @@ class CPT(object):
         self.file_name = file_name
         self.delimiter = delimiter
 
+
+    @property
+    def q_t(self):
+        """
+        Pore pressure corrected cone tip resistance
+
+        """
+        # qt the cone tip resistance corrected for unequal end area effects, eq 2.3
+        return qc + ((1 - ar) * u2)
