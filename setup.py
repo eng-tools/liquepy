@@ -32,7 +32,7 @@ setup(name=about['__project__'],
                         'numpy',
                         'pyexcel',
                         'pysra>=0.3.2',
-                        'eqsig>=0.5.27',
+                        'eqsig>=0.5.35',
                         'matplotlib'],
       # List additional groups of dependencies here (e.g. development
       # dependencies). You can install these using the following syntax,

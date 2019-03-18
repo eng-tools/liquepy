@@ -1,21 +1,7 @@
 import eqsig
 import numpy as np
 from numpy import trapz
-
-
-def integral_of_velocity(acc, dt):
-    delta_vel = acc * dt
-    vel = np.cumsum(delta_vel)
-    abs_vel = abs(vel)
-    vel_int = np.cumsum(abs_vel * dt)
-    return vel_int
-
-
-def integral_of_acceleration(acc, dt):
-
-    abs_acc = abs(acc)
-    acc_int = np.cumsum(abs_acc * dt)
-    return acc_int
+from liquepy.exceptions import deprecation
 
 
 def dep_calculate_cav_dp(acc, dt):
@@ -50,13 +36,15 @@ def dep_calculate_cav_dp(acc, dt):
         pga = (max(abs_acc_interval))
         if pga > pga_max:
             pga_max = pga
+
         if (pga - 0.025) < 0:
-            H=0
-        if (pga - 0.025) >= 0:
-            H=1
-        #H = 1  # what is x??
-        #CAVdp = CAVdp + (H * (pga - 0.025) * int_acc)
-        CAVdp = CAVdp + (H * int_acc)
+            h = 0
+        elif (pga - 0.025) >= 0:
+            h = 1
+        else:
+            raise ValueError("cannot evaluate pga: {0}".format(pga))
+
+        CAVdp = CAVdp + (h * int_acc)
         start = end
 
     return CAVdp
@@ -64,13 +52,18 @@ def dep_calculate_cav_dp(acc, dt):
 
 def calculate_cav_dp_time_series(acc, dt):
     asig = eqsig.AccSignal(acc, dt)
-    return calculate_cav_dp_series(asig)
+    return calc_cav_dp_series(asig)
 
 
 def calculate_cav_dp(acc, dt):
     asig = eqsig.AccSignal(acc, dt)
-    return calculate_cav_dp_series(asig)[-1]
+    return calc_cav_dp_series(asig)[-1]
+
+
+def calc_cav_dp_series(asig):
+    return eqsig.measures.calc_cav_dp(asig)
 
 
 def calculate_cav_dp_series(asig):
-    return eqsig.measures.calc_cav_dp(asig)
+    deprecation("calculate_cav_dp_series is deprecated - use calc_cav_dp_series")
+    return calc_cav_dp_series(asig)

@@ -1,9 +1,9 @@
 import numpy as np
 
 from scipy.integrate import trapz
+import eqsig
 
 import liquepy as lq
-from liquepy.motion.measures import integral_of_velocity, calculate_cav_dp_series
 
 
 def calculate_factor_safety(q_c1ncs, p_a, magnitude, pga, depth, soil_profile):
@@ -94,7 +94,7 @@ def karamitros_settlement_time_series(fd, z_liq, q, q_ult, acc, dt):  # units: m
     """
     c_dash = 0.003  # Karamitros 2013 sett
     c_factor = min(c_dash * (1.0 + 1.65 * fd.length / fd.width), 11.65 * c_dash)  # Karamitros 2013 sett
-    int_vel = integral_of_velocity(acc, dt)
+    int_vel = eqsig.im.calc_integral_of_abs_velocity(acc, dt)
     amax_t2_n = (np.pi ** 2) * int_vel
     fs_deg = q_ult / q
     sett_dyn_ts = c_factor * amax_t2_n * (z_liq / fd.width) ** 1.5 * (1.0 / fs_deg) ** 3
@@ -131,7 +131,7 @@ def bray_and_macedo_settlement_time_series(soil_profile, fd, asig, liq_layers):
     """
     gravity = 9.8
     # calculation of CAVdp
-    cavdp_time_series = calculate_cav_dp_series(asig)
+    cavdp_time_series = eqsig.im.calc_cav_dp(asig)
     pga_max = max(abs(asig.values)) / gravity
     hl = 0
     q_c1ncs_values = []
