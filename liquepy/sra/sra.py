@@ -112,7 +112,7 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0):
     return profile
 
 
-def compute_pysra_strain_compatible_profile(soil_profile, in_sig, d_inc=None):
+def compute_pysra_strain_compatible_profile(soil_profile, in_sig, d_inc=None, cut_time=None):
     m = pysra.motion.TimeSeriesMotion(filename=in_sig.label, description=None, time_step=in_sig.dt,
                                       accels=in_sig.values / 9.8)
     if d_inc is None:
@@ -122,12 +122,29 @@ def compute_pysra_strain_compatible_profile(soil_profile, in_sig, d_inc=None):
     layers = []
     calc = pysra.propagation.EquivalentLinearCalculator()
     calc(m, profile, profile.location('outcrop', depth=soil_profile.height))
+    if cut_time is not None:
+        i_cut = np.where(m.times > cut_time)[0][0]
+
+        outs = []
+        for i, depth in enumerate(profile.depth):
+            outs.append(pysra.output.StrainTSOutput(pysra.output.OutputLocation('within', depth=depth),
+                                                    in_percent=False))
+
+        outputs = pysra.output.OutputCollection(*outs)
+        outputs(calc)
+        for i, depth in enumerate(profile.depth):
+            max_strain = np.max(np.abs(outputs[i].values[:i_cut]))
+            # set new strain comp
+            org_layer = profile.location('outcrop', depth=depth).layer
+            org_layer.strain = calc.strain_ratio * max_strain
+
     for depth in profile.depth:
-        shear_vel0 = profile.location('outcrop', depth=depth).layer.initial_shear_vel
-        shear_vel = profile.location('outcrop', depth=depth).layer.shear_vel
-        unit_wt = profile.location('outcrop', depth=depth).layer.unit_wt
-        damping = profile.location('outcrop', depth=depth).layer.damping
-        slice_thickness = profile.location('outcrop', depth=depth).layer.thickness
+        org_layer = profile.location('outcrop', depth=depth).layer
+        shear_vel0 = org_layer.initial_shear_vel
+        shear_vel = org_layer.shear_vel
+        unit_wt = org_layer.unit_wt
+        damping = org_layer.damping
+        slice_thickness = org_layer.thickness
         pysra_sl = pysra.site.SoilType("soil", unit_wt, None, damping)
         lay = pysra.site.Layer(pysra_sl, slice_thickness, shear_vel)
         layers.append(lay)
