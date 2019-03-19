@@ -81,4 +81,4 @@ class CPT(object):
 
         """
         # qt the cone tip resistance corrected for unequal end area effects, eq 2.3
-        return qc + ((1 - ar) * u2)
+        return self.q_c + ((1 - self.a_ratio) * self.u_2)
