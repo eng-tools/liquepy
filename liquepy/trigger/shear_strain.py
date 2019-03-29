@@ -1,42 +1,48 @@
 import numbers
 import numpy as np
+from liquepy.exceptions import deprecation
 
 
-def calculate_shear_strain(fs, d_r):
+def calc_shear_strain(fs, d_r):
     if isinstance(fs, numbers.Real):
         if isinstance(d_r, numbers.Real):
-            return calculate_single_shear_strain(fs, d_r)
+            return calc_single_shear_strain(fs, d_r)
         else:
             out_values = []
             for i in range(len(d_r)):
-                out_values.append(calculate_single_shear_strain(fs, d_r[i]))
+                out_values.append(calc_single_shear_strain(fs, d_r[i]))
             return np.array(out_values)
     else:
         out_values = []
         for i in range(len(fs)):
             if isinstance(d_r, numbers.Real):
-                out_values.append(calculate_single_shear_strain(fs[i], d_r))
+                out_values.append(calc_single_shear_strain(fs[i], d_r))
             else:
-                out_values.append(calculate_single_shear_strain(fs[i], d_r[i]))
+                out_values.append(calc_single_shear_strain(fs[i], d_r[i]))
         return np.array(out_values)
 
 
-def calculate_array_shear_strain(fs, d_r):
-    if isinstance(fs, numbers.Real) and isinstance(d_r, numbers.Real):
-        return calculate_single_shear_strain(fs, d_r)
-    elif not isinstance(d_r, numbers.Real) and not isinstance(fs, numbers.Real):
-        assert len(fs) == len(d_r)
-        out_values = []
-        for i in range(len(fs)):
-            fs_value = fs[i]
-            ev_value = calculate_single_shear_strain(fs[i], d_r[i])
-            out_values.append(ev_value)
-        return np.array(out_values)
-    else:
-        raise ValueError("Factor of safety and q_c1n_cs must be the same length")
+def calculate_shear_strain(fos, relative_density):
+    deprecation("Use calc_shear_strain")
+    return calculate_shear_strain(fos, relative_density)
+
+#
+# def calc_array_shear_strain(fs, d_r):
+#     if isinstance(fs, numbers.Real) and isinstance(d_r, numbers.Real):
+#         return calc_single_shear_strain(fs, d_r)
+#     elif not isinstance(d_r, numbers.Real) and not isinstance(fs, numbers.Real):
+#         assert len(fs) == len(d_r)
+#         out_values = []
+#         for i in range(len(fs)):
+#             fs_value = fs[i]
+#             ev_value = calc_single_shear_strain(fs[i], d_r[i])
+#             out_values.append(ev_value)
+#         return np.array(out_values)
+#     else:
+#         raise ValueError("Factor of safety and q_c1n_cs must be the same length")
 
 
-def calculate_single_shear_strain(fs, d_r):
+def calc_single_shear_strain(fs, d_r):
     if d_r == -1:
         return 0
     dr_values = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
@@ -48,8 +54,8 @@ def calculate_single_shear_strain(fs, d_r):
                 low_dr = dr_values[i - 1]
             high_dr = dr_values[i]
             # print(low_dr, high_dr)
-            ev_low = calculate_fixed_dr_gamma_max(fs, low_dr)
-            ev_high = calculate_fixed_dr_gamma_max(fs, high_dr)
+            ev_low = calc_fixed_dr_gamma_max(fs, low_dr)
+            ev_high = calc_fixed_dr_gamma_max(fs, high_dr)
 
             ev_actual = np.interp(fs, [low_dr, high_dr], [ev_low, ev_high])
             # print(ev_low, ev_high, ev_actual)
@@ -57,7 +63,7 @@ def calculate_single_shear_strain(fs, d_r):
 
 
 # Maximum cyclic shear strains
-def calculate_fixed_dr_gamma_max(fs, relative_density):
+def calc_fixed_dr_gamma_max(fs, relative_density):
     if fs > 2.0:
         return 0.0
     elif relative_density == 0.9:

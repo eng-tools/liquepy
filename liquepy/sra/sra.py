@@ -7,7 +7,10 @@ PA_TO_KPA = 0.001
 
 
 def compute_pysra_tf(pysra_profile, pysra_freqs=None):
+    return calc_pysra_tf(pysra_profile, pysra_freqs)
 
+
+def calc_pysra_tf(pysra_profile, pysra_freqs=None):
     if pysra_freqs is None:
         pysra_freqs = np.logspace(-0.7, 1.5, num=200)
     m = pysra.motion.Motion(freqs=pysra_freqs)

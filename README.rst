@@ -39,7 +39,7 @@ How do I get set up?
 Code suggestions
 ----------------
 
-* Implementations of published liquefaction methods should be written as `calc_<first_author>[_et_al]_<date>()`
+* Implementations of published liquefaction methods should be written as `calc_<property>_<first_author>[_et_al]_<date>()` for two authors include both.
 
 * Plotting and visualisation should be not included in computation objects. Instead plotting functions or objects should receive computation objects as inputs.
 

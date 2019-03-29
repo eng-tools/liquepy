@@ -1,8 +1,9 @@
 import numbers
 import numpy as np
+from liquepy.exceptions import deprecation
 
 
-def calculate_volumetric_strain(factor_of_safety, q_c1n_cs):
+def calc_volumetric_strain(factor_of_safety, q_c1n_cs):
     """
     Calculates the Volumetric strain according to Zhang et al. (2002)
 
@@ -13,20 +14,25 @@ def calculate_volumetric_strain(factor_of_safety, q_c1n_cs):
     :return:
     """
     if isinstance(factor_of_safety, numbers.Real) and isinstance(q_c1n_cs, numbers.Real):
-        return _calculate_single_volumetric_strain(factor_of_safety, q_c1n_cs)
+        return _calc_single_volumetric_strain(factor_of_safety, q_c1n_cs)
     elif not isinstance(q_c1n_cs, numbers.Real) and not isinstance(factor_of_safety, numbers.Real):
         assert len(factor_of_safety) == len(q_c1n_cs)
         out_values = []
         for i in range(len(factor_of_safety)):
             fs_value = factor_of_safety[i]
-            ev_value = _calculate_single_volumetric_strain(factor_of_safety[i], q_c1n_cs[i])
+            ev_value = _calc_single_volumetric_strain(factor_of_safety[i], q_c1n_cs[i])
             out_values.append(ev_value)
         return np.array(out_values)
     else:
         raise ValueError("Factor of safety and q_c1n_cs must be the same length")
 
 
-def _calculate_single_volumetric_strain(factor_of_safety, q_c1n_cs):
+def calculate_volumetric_strain(factor_of_safety, q_c1n_cs):
+    deprecation("Use calc_volumetric_strain")
+    return calc_volumetric_strain(factor_of_safety, q_c1n_cs)
+
+
+def _calc_single_volumetric_strain(factor_of_safety, q_c1n_cs):
     """
     Determines the volumetric strain for a single value by interpolation of
     the equations by Zhang et al. (2002).
@@ -44,14 +50,14 @@ def _calculate_single_volumetric_strain(factor_of_safety, q_c1n_cs):
             else:
                 low_fs = fs_values[i - 1]
             high_fs = fs_values[i]
-            ev_low = _calculate_fixed_factor_safety_volumetric_strain(low_fs, q_c1n_cs)
-            ev_high = _calculate_fixed_factor_safety_volumetric_strain(high_fs, q_c1n_cs)
+            ev_low = _calc_fixed_factor_safety_volumetric_strain(low_fs, q_c1n_cs)
+            ev_high = _calc_fixed_factor_safety_volumetric_strain(high_fs, q_c1n_cs)
 
             ev_actual = np.interp(factor_of_safety, [low_fs, high_fs], [ev_low, ev_high])
             return ev_actual
 
 
-def _calculate_fixed_factor_safety_volumetric_strain(factor_of_safety, q_c1n_cs):
+def _calc_fixed_factor_safety_volumetric_strain(factor_of_safety, q_c1n_cs):
     """
     Implementation of the equations from Zhang et al. (2002)
 

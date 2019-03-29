@@ -43,7 +43,7 @@ def calc_unit_weight(e_curr, specific_gravity, saturation, pw):
     return unit_dry_weight + unit_void_volume * saturation * pw + unit_dry_weight
 
 
-def calculate_sigma_v(depths, gammas):
+def calc_sigma_v(depths, gammas):
     """
     Calculates the vertical stress
     """
@@ -54,18 +54,18 @@ def calculate_sigma_v(depths, gammas):
     return sigma_v
 
 
-def calculate_pore_pressure(depth, gwl):
+def calc_pore_pressure(depth, gwl):
     gamma_water = 10
     pore_pressure = np.where(depth > gwl, (depth - gwl) * gamma_water, 0.0)
     return pore_pressure
 
 
-def calculate_sigma_veff(sigma_v, pore_pressure):
+def calc_sigma_veff(sigma_v, pore_pressure):
     sigma_veff = abs(sigma_v - pore_pressure)
     return sigma_veff
 
 
-def calculate_qt(qc, ar, u2):
+def calc_qt(qc, ar, u2):
     """
 
     :param qc: kPa, cone tip resistance
@@ -77,12 +77,12 @@ def calculate_qt(qc, ar, u2):
     return qc + ((1 - ar) * u2)
 
 
-def calculate_f_ic_values(fs, qt, sigma_v):
+def calc_f_ic_values(fs, qt, sigma_v):
     # qt is in kPa, so it's not necessary measure unit transformation
     return (fs / (qt - sigma_v)) * 100
 
 
-def calculate_big_q_values(c_n, qt, sigmav):
+def calc_big_q_values(c_n, qt, sigmav):
     """
     Eq. XXXXX
     :param c_n: CN
@@ -93,7 +93,7 @@ def calculate_big_q_values(c_n, qt, sigmav):
     return (qt - sigmav) / 100 * c_n
 
 
-def calculate_ic(big_q, big_f):
+def calc_i_c(big_q, big_f):
     """
     Calculates the index parameter of the soil
 
@@ -111,14 +111,14 @@ def calculate_ic(big_q, big_f):
     return ((3.47 - np.log10(big_q)) ** 2 + (1.22 + np.log10(big_f)) ** 2) ** 0.5
 
 
-def calculate_fc(ic, cfc):
+def calc_fc(ic, cfc):
     fc_tent = 80 * (ic + cfc) - 137
     fc1 = np.where(fc_tent > 100, 100, fc_tent)
     fc = np.where(fc1 <= 137 / 80 - cfc, 0, fc1)
     return fc
 
 
-def calculate_rd(depth, magnitude):
+def calc_rd(depth, magnitude):
     """
     rd from CPT, Eq 2.14a
     """
@@ -128,14 +128,14 @@ def calculate_rd(depth, magnitude):
     return rd
 
 
-def calculate_csr(sigma_veff, sigma_v, pga, rd, gwl, depth):
+def calc_csr(sigma_veff, sigma_v, pga, rd, gwl, depth):
     """
     Cyclic stress ratio from CPT, Eq 2.2,
     """
     return np.where(depth <= gwl, 2, 0.65 * (sigma_v / sigma_veff) * rd * pga)
 
 
-def calculate_cn_values(m, sigma_veff):
+def calc_cn_values(m, sigma_veff):
     """
     CN parameter from CPT, Eq 2.15a
     """
@@ -145,7 +145,7 @@ def calculate_cn_values(m, sigma_veff):
     return c_n
 
 
-def calculate_m(q_c1ncs):
+def calc_m(q_c1ncs):
     """
     m parameter from CPT, Eq 2.15b
     """
@@ -157,7 +157,7 @@ def calculate_m(q_c1ncs):
     return m
 
 
-def calculate_q_c1n(q_c, c_n):
+def calc_q_c1n(q_c, c_n):
     """
     qc1n from CPT, Eq 2.4
     """
@@ -165,7 +165,7 @@ def calculate_q_c1n(q_c, c_n):
     return q_c1n
 
 
-def crr_7p5_from_cpt(q_c1n_cs, gwl, depth, i_c, i_c_limit=2.6):
+def calc_crr_7p5_from_qc1ncs(q_c1n_cs, gwl, depth, i_c, i_c_limit=2.6):
     """
     cyclic resistance from CPT, Eq. 2.24
     it's not possible to have liquefaction above water table
@@ -181,7 +181,7 @@ def crr_m(ksigma, msf, crr_m7p5):
     return crr_m7p5 * ksigma * msf
 
 
-def calculate_delta_q_c1n(q_c1n, fc):
+def calc_delta_q_c1n(q_c1n, fc):
     """
     delta q_c1n from CPT, Eq 2.22
     """
@@ -189,7 +189,7 @@ def calculate_delta_q_c1n(q_c1n, fc):
     return delta_q_c1n
 
 
-def calculate_q_c1ncs(q_c1n, delta_q_c1n):
+def calc_q_c1ncs(q_c1n, delta_q_c1n):
     """
     q_c1ncs from CPT, Eq 2.10
     """
@@ -197,7 +197,7 @@ def calculate_q_c1ncs(q_c1n, delta_q_c1n):
     return q_c1ncs
 
 
-def calculate_msf(magnitude, q_c1ncs):
+def calc_msf(magnitude, q_c1ncs):
     """
     Magnitude scaling factor to correct the cyclic resistance ratio
 
@@ -215,7 +215,7 @@ def calculate_msf(magnitude, q_c1ncs):
     return msf
 
 
-def calculate_k_sigma(sigma_eff, qc1ncs, pa=100):
+def calc_k_sigma(sigma_eff, qc1ncs, pa=100):
     """
     Overburden correction factor, K_sigma
 
@@ -233,9 +233,9 @@ def calculate_k_sigma(sigma_eff, qc1ncs, pa=100):
     return k_sigma
 
 
-def calculate_dependent_variables(sigma_v, sigma_veff, q_c, f_s, p_a, q_t, cfc):
+def calc_dependent_variables(sigma_v, sigma_veff, q_c, f_s, p_a, q_t, cfc):
     """
-    Iteratively calculate_volumetric_strain parameters as they are interdependent
+    Iteratively calc_volumetric_strain parameters as they are interdependent
 
     Parameters
     ----------
@@ -271,14 +271,14 @@ def calculate_dependent_variables(sigma_v, sigma_veff, q_c, f_s, p_a, q_t, cfc):
         for j in range(100):
             cn_values[dd] = min((p_a / sigma_veff[dd]) ** m_values[dd], 1.7)  # Eq 2.15a
             q_c1n[dd] = (cn_values[dd] * q_c[dd] / p_a)  # Eq. 2.4
-            big_q[dd] = calculate_big_q_values(cn_values[dd], q_t[dd], sigma_v[dd])
-            ft_values[dd] = calculate_f_ic_values(f_s[dd], q_t[dd], sigma_v[dd])
-            i_c[dd] = calculate_ic(big_q[dd], ft_values[dd])
-            fines_content[dd] = calculate_fc(i_c[dd], cfc)
+            big_q[dd] = calc_big_q_values(cn_values[dd], q_t[dd], sigma_v[dd])
+            ft_values[dd] = calc_f_ic_values(f_s[dd], q_t[dd], sigma_v[dd])
+            i_c[dd] = calc_i_c(big_q[dd], ft_values[dd])
+            fines_content[dd] = calc_fc(i_c[dd], cfc)
 
-            delta_q_c1n[dd] = calculate_delta_q_c1n(q_c1n=q_c1n[dd], fc=fines_content[dd])  # Eq. 2.22
+            delta_q_c1n[dd] = calc_delta_q_c1n(q_c1n=q_c1n[dd], fc=fines_content[dd])  # Eq. 2.22
             q_c1n_cs[dd] = q_c1n[dd] + delta_q_c1n[dd]
-            m_values[dd] = calculate_m(q_c1n_cs[dd])
+            m_values[dd] = calc_m(q_c1n_cs[dd])
             if abs(q_c1n[dd] - temp_q_c1n) < 0.00001:
                 break
             temp_q_c1n = q_c1n[dd]
@@ -356,7 +356,7 @@ class BoulangerIdriss2014(object):
         self.i_c_limit = i_c_limit
 
         self.cfc = cfc  # parameter of fines content, eq 2.29
-        self.q_t = calculate_qt(self.q_c, self.a_ratio, self.u_2)  # kPa
+        self.q_t = calc_qt(self.q_c, self.a_ratio, self.u_2)  # kPa
 
         if saturation is None:
             self.saturation = np.where(self.depth < self.gwl, 0, 1)
@@ -371,20 +371,20 @@ class BoulangerIdriss2014(object):
         else:
             raise ValueError("unit_wt_method should be either: 'robertson2009' or 'void_ratio' not: %s" % unit_wt_method)
 
-        self.sigma_v = calculate_sigma_v(self.depth, self.unit_wt)
-        self.pore_pressure = calculate_pore_pressure(self.depth, self.gwl)
-        self.sigma_veff = calculate_sigma_veff(self.sigma_v, self.pore_pressure)
-        self.rd = calculate_rd(depth, self.m_w)
+        self.sigma_v = calc_sigma_v(self.depth, self.unit_wt)
+        self.pore_pressure = calc_pore_pressure(self.depth, self.gwl)
+        self.sigma_veff = calc_sigma_veff(self.sigma_v, self.pore_pressure)
+        self.rd = calc_rd(depth, self.m_w)
 
-        self.q_c1n_cs, self.fines_content, self.i_c, self.big_q = calculate_dependent_variables(self.sigma_v, self.sigma_veff, q_c,
-                                                                                                f_s, p_a,
-                                                                                                self.q_t,
-                                                                                                self.cfc)
+        self.q_c1n_cs, self.fines_content, self.i_c, self.big_q = calc_dependent_variables(self.sigma_v, self.sigma_veff, q_c,
+                                                                                           f_s, p_a,
+                                                                                           self.q_t,
+                                                                                           self.cfc)
 
-        self.k_sigma = calculate_k_sigma(self.sigma_veff, self.q_c1n_cs)
-        self.msf = calculate_msf(self.m_w, self.q_c1n_cs)
-        self.csr = calculate_csr(self.sigma_veff, self.sigma_v, pga, self.rd, gwl, depth)
-        self.crr_m7p5 = crr_7p5_from_cpt(self.q_c1n_cs, gwl, depth, self.i_c, self.i_c_limit)
+        self.k_sigma = calc_k_sigma(self.sigma_veff, self.q_c1n_cs)
+        self.msf = calc_msf(self.m_w, self.q_c1n_cs)
+        self.csr = calc_csr(self.sigma_veff, self.sigma_v, pga, self.rd, gwl, depth)
+        self.crr_m7p5 = calc_crr_7p5_from_qc1ncs(self.q_c1n_cs, gwl, depth, self.i_c, self.i_c_limit)
         self.crr = crr_m(self.k_sigma, self.msf, self.crr_m7p5)  # CRR at set magnitude
         fs_unlimited = self.crr / self.csr
         # fs_fines_limited = np.where(self.fines_content > 71, 2.0, fs_unlimited)  # based on I_c=2.6
@@ -454,7 +454,7 @@ def run_bi2014(cpt, pga, m_w, gwl=None, cfc=0.0, **kwargs):
                                saturation=saturation, unit_wt_method=unit_wt_method)
 
 
-def calculate_qc_1ncs_from_crr_7p5(crr_7p5):
+def calc_qc_1ncs_from_crr_7p5(crr_7p5):
     """
     Solves the closed form solution to a quartic to invert the CRR_7p5-vs-q_c1n_cs relationship
 
@@ -496,3 +496,8 @@ def calculate_qc_1ncs_from_crr_7p5(crr_7p5):
         x4 = C + big_s - 0.5 * big_b ** 0.5
 
     return np.where(big_b < 0, np.where(x1 < 0, x2, x1), np.where(x3 < 0, x4, x3))
+
+
+def calculate_qc_1ncs_from_crr_7p5(crr_7p5):
+    deprecation("Use calc_qc_1ncs_from_crr_7p5")
+    return calc_qc_1ncs_from_crr_7p5(crr_7p5)

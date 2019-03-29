@@ -2,6 +2,13 @@
 History
 =======
 
+0.5.1 (2018-03-29)
+-------------------
+
+* Added more correlations
+* Changed all calculation functions to start with the prefix 'calc'
+* Can set cut_time for obtaining strain compatible site response profile
+
 0.5.0 (2018-03-14)
 -------------------
 

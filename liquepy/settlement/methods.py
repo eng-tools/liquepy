@@ -78,26 +78,65 @@ def cal_z_c(fd, z_liq, h0):
 def karamitros_settlement(fd, z_liq, q, q_ult, acc, dt):
     """
     Calculate the settlement using the method proposed by Karamitros et al. 2013 - sett
+
     :param sss:
     :return:
     """
     sett_dyn_ts = karamitros_settlement_time_series(fd, z_liq, q, q_ult, acc, dt)
-
     return sett_dyn_ts[-1]
 
 
-def karamitros_settlement_time_series(fd, z_liq, q, q_ult, acc, dt):  # units: m, Pa, s
+def karamitros_settlement_time_series(fd, z_liq, q, q_ult, acc, dt, c_dash=0.003):  # units: m, Pa, s
     """
-    Calculate the settlement using the method proposed by Karamitros et al. 2013 - sett
-    :param sss:
-    :return:
+    Calculate the settlement using the method proposed by :cite:`Karamitros:2013gi`
+
+    Parameters
+    ----------
+    fd: sfsimodels.Foundation
+    z_liq
+    q
+    q_ult
+    acc
+    dt
+    c_dash
+
+    Returns
+    -------
+
     """
-    c_dash = 0.003  # Karamitros 2013 sett
+    asig = eqsig.AccSignal(acc, dt)
+    fd_q_ult = q_ult
+    fd_q_demand = q
+    return calc_settlement_karamitros_et_al_2013(fd, asig, fd_q_ult, fd_q_demand, z_liq, c_dash=c_dash)
+
+
+def calc_settlement_karamitros_et_al_2013(fd, asig, fd_q_ult, fd_q_demand, y_liq, c_dash=0.003):
+    """
+    Calculate the settlement using the method proposed by :cite:`Karamitros:2013gi`
+
+    Parameters
+    ----------
+    fd: sfsimodels.Foundation
+    asig: eqsig.AccSignal
+    fd_q_ult: float or array_like
+        Bearing capacity of foundation
+    fd_q_demand: float or array_like
+        Bearing load on foundation
+    y_liq: float
+        Depth to liquefaction
+    c_dash: float (default 0.003)
+
+    Returns
+    -------
+    array_like
+    """
+
     c_factor = min(c_dash * (1.0 + 1.65 * fd.length / fd.width), 11.65 * c_dash)  # Karamitros 2013 sett
-    int_vel = eqsig.im.calc_integral_of_abs_velocity(acc, dt)
+
+    int_vel = eqsig.im.calc_integral_of_abs_velocity(asig)
     amax_t2_n = (np.pi ** 2) * int_vel
-    fs_deg = q_ult / q
-    sett_dyn_ts = c_factor * amax_t2_n * (z_liq / fd.width) ** 1.5 * (1.0 / fs_deg) ** 3
+    fs_deg = fd_q_ult / fd_q_demand
+    sett_dyn_ts = c_factor * amax_t2_n * (y_liq / fd.width) ** 1.5 * (1.0 / fs_deg) ** 3
     return sett_dyn_ts
 
 
@@ -150,7 +189,7 @@ def bray_and_macedo_settlement_time_series(soil_profile, fd, asig, liq_layers):
 
         fs = calculate_factor_safety(q_c1ncs=q_c1ncs, p_a=101000, magnitude=asig.magnitude, pga=pga_max, depth=depth, soil_profile=soil_profile)
         d_r = soil_profile.layer(2).relative_density
-        e_shear = lq.trigger.calculate_shear_strain(fs=fs, d_r=d_r)
+        e_shear = lq.trigger.calc_shear_strain(fs=fs, d_r=d_r)
         if depth < fd.depth:
             w = 0
         else:
@@ -246,7 +285,6 @@ def lu_settlements(q, fd, Dr, acc):
         N_lr = np.power(10.0, np.interp(logz, logx, logy))
     else:
         raise ValueError("q value ({0}) out of range (10-120)".format(q))
-
 
     c_d = 1-(fd.depth/(4*fd.width))
 
