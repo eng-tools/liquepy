@@ -32,7 +32,7 @@ def vardanega_2013_to_modified_hyperbolic_parameters(i_p):
     return gamma_ref, a
 
 
-def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0):
+def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0, base_shear_vel=None, base_unit_wt=None, base_xi=0.01):
     """
     Converts a soil profile from sfsimodels into a soil profile for pysra
 
@@ -56,8 +56,7 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0):
         thickness = sp.layer_height(i + 1)
 
         n_slices = int(thickness / d_inc[i])
-        if i == sp.n_layers - 1:
-            n_slices += 1  # add one more since it is applied at top of layer
+
         slice_thickness = float(thickness) / n_slices
         for j in range(n_slices):
             cum_thickness += slice_thickness
@@ -75,6 +74,7 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0):
             else:
                 unit_wt = sl.unit_dry_weight
             if hasattr(sl, "sra_type") and getattr(sl, "sra_type") == "hyperbolic":
+                name = "hyperbolic"
                 pysra_sl = pysra.site.ModifiedHyperbolicSoilType(name, unit_wt, strain_ref=sl.strain_ref,
                                                                  curvature=sl.strain_curvature,
                                                                  damping_min=sl.xi_min,
@@ -110,6 +110,14 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0):
                 pysra_sl = pysra.site.SoilType(sl.name, unit_wt, None, sl.xi)
             lay = pysra.site.Layer(pysra_sl, slice_thickness, vs)
             layers.append(lay)
+    # add one more since it is applied at top of layer, but make it elastic
+    if base_unit_wt is None:
+        base_unit_wt = layers[-1].unit_wt
+    if base_shear_vel is None:
+        base_shear_vel = layers[-1].shear_vel
+    base_soil = pysra.site.SoilType('base', base_unit_wt, None, base_xi)
+    lay = pysra.site.Layer(base_soil, 0.1, base_shear_vel)
+    layers.append(lay)
 
     profile = pysra.site.Profile(layers, wt_depth=sp.gwl)
     return profile

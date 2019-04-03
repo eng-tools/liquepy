@@ -114,7 +114,7 @@ def test_crr_7p5_from_cpt():
     gwl = 1.6
     depth = 5.35
     expected_crr_7p5 = 0.101
-    crr = bim14.calc_crr_7p5_from_qc1ncs(q_c1n_cs, gwl, depth, i_c=1.8)
+    crr = bim14.calc_crr_m7p5_from_qc1ncs_capped(q_c1n_cs, gwl, depth, i_c=1.8)
     assert np.isclose(crr.astype(float), expected_crr_7p5, rtol=0.011)
 
 
@@ -124,7 +124,7 @@ def test_crr_m():
     q_c1n_cs = 9.73
     gwl = 1.6
     depth = 5.32
-    crr_m7p5 = bim14.calc_crr_7p5_from_qc1ncs(q_c1n_cs, gwl, depth, i_c=2.7)
+    crr_m7p5 = bim14.calc_crr_m7p5_from_qc1ncs_capped(q_c1n_cs, gwl, depth, i_c=2.7)
     crr = bim14.crr_m(k_sigma, msf, crr_m7p5)  # CRR a magnitudo M
 
     expected_crr = 4.4
@@ -249,7 +249,7 @@ def test_calculate_ic():
 
 def test_calculate_qc_1ncs_from_crr_7p5():
     q_c1n_cs_values = np.linspace(50, 220, 100)
-    crr_values = bim14.calc_crr_7p5_from_qc1ncs(q_c1n_cs_values, depth=10, gwl=0, i_c=1.8)
+    crr_values = bim14.calc_crr_m7p5_from_qc1ncs_capped(q_c1n_cs_values, depth=10, gwl=0, i_c=1.8)
     q_c1n_cs_back = bim14.calc_qc_1ncs_from_crr_7p5(crr_values)
     error = np.sum(abs(q_c1n_cs_values - q_c1n_cs_back))
     assert error < 0.01, error

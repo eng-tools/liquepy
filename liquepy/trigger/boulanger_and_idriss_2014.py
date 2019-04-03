@@ -90,7 +90,7 @@ def calc_big_q_values(c_n, qt, sigmav):
     :param sigmav:
     :return:
     """
-    return (qt - sigmav) / 100 * c_n
+    return (qt - sigmav) / 100 * c_n   #TODO: this is different to eq 2.26
 
 
 def calc_i_c(big_q, big_f):
@@ -165,13 +165,17 @@ def calc_q_c1n(q_c, c_n):
     return q_c1n
 
 
-def calc_crr_7p5_from_qc1ncs(q_c1n_cs, gwl, depth, i_c, i_c_limit=2.6):
+def calc_crr_m7p5_from_qc1ncs(q_c1n_cs):
+    return np.exp((q_c1n_cs / 113) + ((q_c1n_cs / 1000) ** 2) -
+                        ((q_c1n_cs / 140) ** 3) + ((q_c1n_cs / 137) ** 4) - 2.8)
+
+
+def calc_crr_m7p5_from_qc1ncs_capped(q_c1n_cs, gwl, depth, i_c, i_c_limit=2.6):
     """
     cyclic resistance from CPT, Eq. 2.24
     it's not possible to have liquefaction above water table
     """
-    crr_values = np.exp((q_c1n_cs / 113) + ((q_c1n_cs / 1000) ** 2) -
-                        ((q_c1n_cs / 140) ** 3) + ((q_c1n_cs / 137) ** 4) - 2.8)
+    crr_values = calc_crr_m7p5_from_qc1ncs(q_c1n_cs)
     crr_tent = np.where(depth < gwl, 4, crr_values)
     return np.where(i_c <= i_c_limit, crr_tent, 4.)
 
@@ -384,7 +388,7 @@ class BoulangerIdriss2014(object):
         self.k_sigma = calc_k_sigma(self.sigma_veff, self.q_c1n_cs)
         self.msf = calc_msf(self.m_w, self.q_c1n_cs)
         self.csr = calc_csr(self.sigma_veff, self.sigma_v, pga, self.rd, gwl, depth)
-        self.crr_m7p5 = calc_crr_7p5_from_qc1ncs(self.q_c1n_cs, gwl, depth, self.i_c, self.i_c_limit)
+        self.crr_m7p5 = calc_crr_m7p5_from_qc1ncs_capped(self.q_c1n_cs, gwl, depth, self.i_c, self.i_c_limit)
         self.crr = crr_m(self.k_sigma, self.msf, self.crr_m7p5)  # CRR at set magnitude
         fs_unlimited = self.crr / self.csr
         # fs_fines_limited = np.where(self.fines_content > 71, 2.0, fs_unlimited)  # based on I_c=2.6
@@ -454,7 +458,7 @@ def run_bi2014(cpt, pga, m_w, gwl=None, cfc=0.0, **kwargs):
                                saturation=saturation, unit_wt_method=unit_wt_method)
 
 
-def calc_qc_1ncs_from_crr_7p5(crr_7p5):
+def calc_qc_1ncs_from_crr_m7p5(crr_7p5):
     """
     Solves the closed form solution to a quartic to invert the CRR_7p5-vs-q_c1n_cs relationship
 
@@ -499,5 +503,5 @@ def calc_qc_1ncs_from_crr_7p5(crr_7p5):
 
 
 def calculate_qc_1ncs_from_crr_7p5(crr_7p5):
-    deprecation("Use calc_qc_1ncs_from_crr_7p5")
-    return calc_qc_1ncs_from_crr_7p5(crr_7p5)
+    deprecation("Use calc_qc_1ncs_from_crr_m7p5")
+    return calc_qc_1ncs_from_crr_m7p5(crr_7p5)
