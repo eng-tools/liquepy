@@ -16,7 +16,7 @@ def calc_diss_energy_fd(force, disp):
     : array_like
         dissipated energy series
     """
-    average_force = (force[1:] + force[:-1]) / 2
+    average_force = (force[1:] + force[:-1]) / 2  # TODO: speed up by pre-allocating array of len(disp), then remove insert statements
     average_force = np.insert(average_force, 0, force[0])  # Include first value
     delta_disp = np.diff(disp)
     delta_disp = np.insert(delta_disp, 0, 0)

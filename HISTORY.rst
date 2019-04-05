@@ -5,7 +5,9 @@ History
 0.5.1 ()
 -------------------
 
-
+* Set base layer of eqlin site response to be elastic
+* Refactored crr_m7p5 function from bi2014 method
+* Switched sra commands to use latests sfsimodels package
 
 0.5.1 (2018-03-29)
 -------------------

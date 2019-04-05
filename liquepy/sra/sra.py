@@ -61,9 +61,9 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0, base_shear_vel=None, 
         for j in range(n_slices):
             cum_thickness += slice_thickness
             rho = sl.unit_dry_weight / 9.8
-            if hasattr(sl, "g_mod_at_v_eff_stress"):
-                v_eff = sp.vertical_effective_stress(cum_thickness)
-                g_mod = sl.g_mod_at_v_eff_stress(v_eff)
+            if hasattr(sl, "get_g_mod_at_v_eff_stress"):
+                v_eff = sp.get_v_eff_stress_at_depth(cum_thickness)
+                g_mod = sl.get_g_mod_at_v_eff_stress(v_eff)
             else:
                 g_mod = sl.g_mod
             if hasattr(sl, "g_mod_red"):
