@@ -2,7 +2,7 @@
 History
 =======
 
-0.5.2 (2018-04-08)
+0.5.3 (2018-04-08)
 -------------------
 
 * Set base layer of eqlin site response to be elastic
