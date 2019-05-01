@@ -2,50 +2,58 @@
 History
 =======
 
-0.5.3 (2018-04-08)
+0.5.4 (2019-xx-xx)
+-------------------
+
+* Added support for computing liquefaction triggering using BI2014 for a sfsimodels.SoilProfile object
+* Fixed issue in sra module where increment was larger than layer, then failed
+* Fixed bug where 'void_ratio' method for unit weight in BI2014 triggering added dry weight twice
+* Added support for loading cpt files that do not have the u2 column
+
+0.5.3 (2019-04-08)
 -------------------
 
 * Set base layer of eqlin site response to be elastic
 * Refactored crr_m7p5 function from bi2014 method
 * Switched sra commands to use latests sfsimodels package
 
-0.5.1 (2018-03-29)
+0.5.1 (2019-03-29)
 -------------------
 
 * Added more correlations
 * Changed all calculation functions to start with the prefix 'calc'
 * Can set cut_time for obtaining strain compatible site response profile
 
-0.5.0 (2018-03-14)
+0.5.0 (2019-03-14)
 -------------------
 
 * Changed order of inputs in ElementTest object!
 * Changed ElementTest attributes (gamma -> strain, tau -> stress)
 
-0.4.12 (2018-03-14)
+0.4.12 (2019-03-14)
 -------------------
 
 * Added calculation of dissipated energy and cumulative absolute change in shear stress of element tests
 
 
-0.4.11 (2018-03-14)
+0.4.11 (2019-03-14)
 -------------------
 
 * Added plotting functions for CPT
 * Cleaned up names of input motion saving functions, and order of args
 
-0.4.8 - 0.4.10 (2018-03-08)
+0.4.8 - 0.4.10 (2019-03-08)
 ---------------------------
 
 * Updated docstrings, readme file
 * Fixed number of columns to load on CPT to be 0-3
 
-0.4.7 (2018-02-28)
+0.4.7 (2019-02-28)
 ------------------
 
 * `run_bi2014` fixed bug where water unit weight was 10 times too big
 
-0.4.5 (2018-02-27)
+0.4.5 (2019-02-27)
 ------------------
 
 * `BoulangerIdriss2014` unit weight calculation now uses the specific weight of water a gravity=9.8
@@ -53,7 +61,7 @@ History
 * Added `BoulangerIdriss2014CPT` which performs `BoulangerIdriss2014` but takes CPT as an input
 
 
-0.4.4 (2018-02-27)
+0.4.4 (2019-02-27)
 ------------------
 
 * Changes to `BoulangerIdriss2014`:
