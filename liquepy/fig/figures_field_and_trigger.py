@@ -1,5 +1,24 @@
 import matplotlib.pyplot as plt
 from matplotlib import patches as mpatches
+from collections import OrderedDict
+from matplotlib.colors import LinearSegmentedColormap
+FS_VMIN = 0.5
+FS_VMAX = 1.750
+FS_LOW_to_0p75 = (0.75, 0, 0)
+FS_0p75_to_1p0 = (0.95, 0, 0)
+FS_1p0_to_1p25 = (0.9, 0.4, 0.15)
+FS_1p25_to_1p5 = (1, 0.65, 0.25)
+FS_1p5_to_HIGH = (0.1, 0.6, 0.1)
+FS_COLORS = OrderedDict([
+    ('FS_LOW_to_0p75', FS_LOW_to_0p75),  # dark red
+    ('FS_0p75_to_1p0', FS_0p75_to_1p0),  # red
+    ('FS_1p0_to_1p25', FS_1p0_to_1p25),  # dark orange
+    ('FS_1p25_to_1p5', FS_1p25_to_1p5),  # orange
+    ('FS_1p5_to_HIGH', FS_1p5_to_HIGH),  # green
+])
+
+
+FS_CMAP = LinearSegmentedColormap.from_list('mine', [FS_COLORS[cname] for cname in FS_COLORS], N=5)
 
 
 def add_ic_colours(subplot):
@@ -41,10 +60,11 @@ def make_ic_plot(subplot):
 
 def make_factor_of_safety_plot(subplot):
     # add the Fs = 1 line
-    subplot.axvspan(0, 1.0, alpha=0.5, color="r")
-    subplot.axvspan(1.0, 1.25, alpha=0.5, color=(1, 0.6, 0.2))
-    subplot.axvspan(1.25, 1.5, alpha=0.5, color=(0.95, 1, 0.4))
-    subplot.axvspan(1.5, 2.0, alpha=0.5, color=(0.2, 0.8, 0.2))
+    subplot.axvspan(0.5, 0.75, alpha=0.5, color=FS_LOW_to_0p75)
+    subplot.axvspan(0.75, 1.0, alpha=0.5, color=FS_0p75_to_1p0)
+    subplot.axvspan(1.0, 1.25, alpha=0.5, color=FS_1p0_to_1p25)
+    subplot.axvspan(1.25, 1.5, alpha=0.5, color=FS_1p25_to_1p5)
+    subplot.axvspan(1.5, 2.0, alpha=0.5, color=FS_1p5_to_HIGH)
     subplot.set_xlim([0, 2.1])
 
 

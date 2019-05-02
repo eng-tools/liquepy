@@ -19,6 +19,19 @@ Liquepy
 
 Python tools for solving problems related to soil liquefaction
 
+Features
+========
+
+* Triggering:
+    * Calculate liquefaction factor of safety according to Boulanger and Idriss (2014)
+    * Calculate expected lateral strain and volumetric strain according to Zhang et al (2002)
+* Settlement:
+    * Calculate foundation settlement on liquefiable deposit according to Karamitros et al. (2013) or Bray et al. (2018)
+* Element tests:
+    * Calculate the dissipated energy required to liquefy
+* Site response analysis
+    * Perform equivalent linear site response analysis using the `pysra` package
+
 Installation
 ============
 
