@@ -349,6 +349,7 @@ class BoulangerIdriss2014(object):
             self.m_w = m_w
 
         unit_water_wt = self.s_g_water * 9.8
+        self.npts = len(depth)
         self.depth = depth
         self.q_c = q_c
         self.f_s = f_s
@@ -424,6 +425,7 @@ class BoulangerIdriss2014SoilProfile(object):  # TODO: validate this properly
         self.sp.gen_split(target=inc, props=['csr_n15'])
         split_depths = np.cumsum(self.sp.split['thickness'])
         self.depth = np.arange(0, sp.height + inc, inc)
+        self.npts = len(self.depth)
 
         self.s_g = kwargs.get("s_g", 2.65)
         self.s_g_water = kwargs.get("s_g_water", 1.0)

@@ -2,6 +2,9 @@ import matplotlib.pyplot as plt
 from matplotlib import patches as mpatches
 from collections import OrderedDict
 from matplotlib.colors import LinearSegmentedColormap
+import numpy as np
+import itertools
+
 FS_VMIN = 0.5
 FS_VMAX = 1.750
 FS_LOW_to_0p75 = (0.75, 0, 0)
@@ -17,13 +20,35 @@ FS_COLORS = OrderedDict([
     ('FS_1p5_to_HIGH', FS_1p5_to_HIGH),  # green
 ])
 
+IC_VMIN = 0.0
+IC_VMAX = 4.0
+IC_LIMITS = [0, 1.3, 1.8, 2.1, 2.6, 4]
+IC_GRAVEL = (0.98, 0.88, 0.5)
+IC_GRAVEL_light = (1.0, 1.0, 0.8)
+IC_CS = (0.48, 0.98, 0.8)
+IC_CS_light = (0.8, 1.0, 0.8)
+IC_SwFC = (0.57, 0.97, 1.0)
+IC_SwFC_light = (0.8, 1.0, 1.0)
+IC_NP_silt = (0.97, 0.66, 0.73)
+IC_NP_silt_light = (1.0, 0.8, 0.8)
+IC_P_silt = (0.65, 0.65, 0.65)
+IC_P_silt_light = (0.8, 0.8, 0.8)
+IC_COLORS = OrderedDict([
+    ('Gravel', IC_GRAVEL),  # yellow
+    ('Clean sand', IC_CS),  # light green
+    ('Sand with fines', IC_SwFC),  # light blue
+    ('Non-plastic silt', IC_NP_silt),  # light red
+    ('Plastic silt', IC_P_silt),  # light grey
+])
 
 FS_CMAP = LinearSegmentedColormap.from_list('mine', [FS_COLORS[cname] for cname in FS_COLORS], N=5)
 
+_incs = (np.diff(IC_LIMITS) * 10).astype(int)
+IC_CMAP = LinearSegmentedColormap.from_list('mine', list(itertools.chain(*[[IC_COLORS[cname]] * _incs[x] for x, cname in enumerate(IC_COLORS)])), N=5)
+
 
 def add_ic_colours(subplot):
-    ic_limits = [0, 1.3, 1.8, 2.1, 2.6, 5]
-
+    ic_limits = IC_LIMITS
     # Colors
     gravel = [154 / 255, 176 / 255, 187 / 255]
     clean_sand = [255 / 255, 246 / 255, 187 / 255]
@@ -135,3 +160,13 @@ def make_bi2014_outputs_plot(sps, bi2014):
     sps[0].set_ylabel("Depth [m]")
 
     plt.tight_layout()
+#
+# bf, sps = plt.subplots()
+# from matplotlib.patches import Rectangle
+#
+# for i, i_c in enumerate(IC_COLORS):
+#     print(i)
+#     rect = Rectangle((i, i), i + 1, i + 1, color=IC_COLORS[i_c])
+#     sps.add_patch(rect)
+# sps.plot(np.arange(5), np.arange(5))
+# plt.show()
