@@ -220,18 +220,18 @@ def calc_msf(magnitude, q_c1ncs):
     return msf
 
 
-def calc_k_sigma(sigma_eff, qc1ncs, pa=100):
+def calc_k_sigma(sigma_eff, q_c1ncs, pa=100):
     """
     Overburden correction factor, K_sigma
 
     Equation 2.16a
 
     :param sigma_eff: vertical effective stress
-    :param qc1ncs: clean sand-corrected normalised cone tip resistance
+    :param q_c1ncs: clean sand-corrected normalised cone tip resistance
     :param pa: atmospheric pressure in kPa
     :return:
     """
-    c_sigma_unrestricted = 1. / (37.3 - 8.27 * (qc1ncs ** 0.264))
+    c_sigma_unrestricted = 1. / (37.3 - 8.27 * (q_c1ncs ** 0.264))
     c_sigma = np.where(c_sigma_unrestricted <= 0.3, c_sigma_unrestricted, 0.3)
     k_sigma_unrestricted = 1 - c_sigma * np.log(sigma_eff / pa)
     k_sigma = np.where(k_sigma_unrestricted <= 1.1, k_sigma_unrestricted, 1.1)
@@ -382,7 +382,7 @@ class BoulangerIdriss2014(object):
         self.sigma_veff = calc_sigma_veff(self.sigma_v, self.pore_pressure)
         self.rd = calc_rd(depth, self.m_w)
 
-        self.q_c1n_cs, self.qc1n, self.fines_content, self.i_c, self.big_q = _calc_dependent_variables(self.sigma_v, self.sigma_veff, q_c,
+        self.q_c1n_cs, self.q_c1n, self.fines_content, self.i_c, self.big_q = _calc_dependent_variables(self.sigma_v, self.sigma_veff, q_c,
                                                                                             f_s, p_a,
                                                                                             self.q_t,
                                                                                             self.cfc)
@@ -421,10 +421,10 @@ class BoulangerIdriss2014SoilProfile(object):  # TODO: validate this properly
     def __init__(self, sp, pga=0.25, m_w=None, **kwargs):
         self.sp = sp
         assert isinstance(self.sp, sm.SoilProfile)
-        inc = 0.01
-        self.sp.gen_split(target=inc, props=['csr_n15'])
+        self.inc = 0.01
+        self.sp.gen_split(target=self.inc, props=['csr_n15'])
         split_depths = np.cumsum(self.sp.split['thickness'])
-        self.depth = np.arange(0, sp.height + inc, inc)
+        self.depth = np.arange(0, sp.height + self.inc, self.inc)
         self.npts = len(self.depth)
 
         self.s_g = kwargs.get("s_g", 2.65)

@@ -7,3 +7,4 @@ from liquepy import num
 from liquepy.functions import *
 from liquepy import fig
 from liquepy import __about__
+from liquepy import spatial

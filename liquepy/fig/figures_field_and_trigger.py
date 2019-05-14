@@ -85,7 +85,7 @@ def make_ic_plot(subplot):
 
 def make_factor_of_safety_plot(subplot):
     # add the Fs = 1 line
-    subplot.axvspan(0.5, 0.75, alpha=0.5, color=FS_LOW_to_0p75)
+    subplot.axvspan(0., 0.75, alpha=0.5, color=FS_LOW_to_0p75)
     subplot.axvspan(0.75, 1.0, alpha=0.5, color=FS_0p75_to_1p0)
     subplot.axvspan(1.0, 1.25, alpha=0.5, color=FS_1p0_to_1p25)
     subplot.axvspan(1.25, 1.5, alpha=0.5, color=FS_1p25_to_1p5)
