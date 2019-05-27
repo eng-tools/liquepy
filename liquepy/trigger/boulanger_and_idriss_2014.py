@@ -30,7 +30,7 @@ def calc_unit_dry_weight(fs, q_t, p_a, unit_water_wt):
     """
     # eq Robertson pag 37- CPT guide
     # unit_water_wt = 9.81
-    q_t = np.clip(q_t, 1e-10, None)
+    np.clip(q_t, 1e-10, None, out=q_t)
     r_f = np.clip((fs / q_t) * 100, 0.1, None)
     min_unit_weight = 1.5 * unit_water_wt  # minimum value obtained in presented results
     max_unit_weight = 4.0 * unit_water_wt  # maximum value obtained in presented results
@@ -387,6 +387,7 @@ class BoulangerIdriss2014(object):
                                                                                             self.q_t,
                                                                                             self.cfc)
 
+        np.clip(self.q_c1n_cs, None, 210., out=self.q_c1n_cs)
         self.k_sigma = calc_k_sigma(self.sigma_veff, self.q_c1n_cs)
         self.msf = calc_msf(self.m_w, self.q_c1n_cs)
         self.csr = calc_csr(self.sigma_veff, self.sigma_v, pga, self.rd, gwl, depth)

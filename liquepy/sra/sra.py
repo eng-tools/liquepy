@@ -55,7 +55,7 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0, base_shear_vel=None, 
         sl = sp.layer(i + 1)
         thickness = sp.layer_height(i + 1)
 
-        n_slices = min(1, int(thickness / d_inc[i]))
+        n_slices = max(1, int(thickness / d_inc[i]))
 
         slice_thickness = float(thickness) / n_slices
         for j in range(n_slices):

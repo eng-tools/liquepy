@@ -6,12 +6,13 @@ History
 -------------------
 
 * Added support for computing liquefaction triggering using BI2014 for a sfsimodels.SoilProfile object
-* Fixed issue in sra module where increment was larger than layer, then failed
+* Fixed issue in sra module where depth increment was larger than layer, then failed
 * Fixed bug where 'void_ratio' method for unit weight in BI2014 triggering added dry weight twice
 * Added support for loading cpt files that do not have the u2 column
 * Updated factor of safety colors for plotting, added color map and colors accessible as static values
 * Added npts to bi2014 object
 * Added colors and color map for I_c soil values
+* Minor speed improvements to the B&I2014 triggering method
 
 0.5.3 (2019-04-08)
 -------------------
