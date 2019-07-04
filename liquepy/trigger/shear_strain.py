@@ -22,24 +22,24 @@ def calc_shear_strain(fs, d_r):
         return np.array(out_values)
 
 
+def calc_relative_density_zhang_2002(q_c1n):
+    """
+    Calculates the relative density (Eq. 2) :cite:`Zhang:2004el`
+
+    Parameters
+    ----------
+    q_c1n: Normalised cone tip resistance
+
+    Returns
+    -------
+
+    """
+    return (-85. + 76. * np.log10(q_c1n)) / 100
+
+
 def calculate_shear_strain(fos, relative_density):
     deprecation("Use calc_shear_strain")
     return calculate_shear_strain(fos, relative_density)
-
-#
-# def calc_array_shear_strain(fs, d_r):
-#     if isinstance(fs, numbers.Real) and isinstance(d_r, numbers.Real):
-#         return calc_single_shear_strain(fs, d_r)
-#     elif not isinstance(d_r, numbers.Real) and not isinstance(fs, numbers.Real):
-#         assert len(fs) == len(d_r)
-#         out_values = []
-#         for i in range(len(fs)):
-#             fs_value = fs[i]
-#             ev_value = calc_single_shear_strain(fs[i], d_r[i])
-#             out_values.append(ev_value)
-#         return np.array(out_values)
-#     else:
-#         raise ValueError("Factor of safety and q_c1n_cs must be the same length")
 
 
 def calc_single_shear_strain(fs, d_r):
@@ -50,15 +50,17 @@ def calc_single_shear_strain(fs, d_r):
         if d_r < dr_values[i]:
             if i == 0:
                 low_dr = dr_values[0]
+                d_r_cur = dr_values[0]
             else:
                 low_dr = dr_values[i - 1]
+                d_r_cur = d_r
             high_dr = dr_values[i]
-            # print(low_dr, high_dr)
+            print(low_dr, high_dr)
             ev_low = calc_fixed_dr_gamma_max(fs, low_dr)
             ev_high = calc_fixed_dr_gamma_max(fs, high_dr)
 
-            ev_actual = np.interp(fs, [low_dr, high_dr], [ev_low, ev_high])
-            # print(ev_low, ev_high, ev_actual)
+            ev_actual = np.interp(d_r_cur, [low_dr, high_dr], [ev_low, ev_high])
+            print(ev_low, ev_high, ev_actual)
             return ev_actual
 
 
@@ -70,7 +72,7 @@ def calc_fixed_dr_gamma_max(fs, relative_density):
         if fs >= 0.7:
             gamma_max = 3.26 * fs ** (-1.80)
         else:
-            gamma_max=6.2
+            gamma_max = 6.2
     elif relative_density == 0.8:
         if fs >= 0.56:
             gamma_max = 3.22 * fs ** (-2.08)

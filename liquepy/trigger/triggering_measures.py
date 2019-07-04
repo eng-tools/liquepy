@@ -1,50 +1,83 @@
 import numpy as np
 
 
-def calculate_lpi_increments(depth, liq_factor_of_safety):
+def calc_lpi_increments(depth, liq_factor_of_safety):
     """
     formulation from 'Soil Dynamics and earthquake engineering', eq. page 317
     """
-    w_unlimited = (10 - depth / 2) / 100
-    w = np.where(depth < 20, w_unlimited, 0)
+    ds = depth[1:] - depth[:-1]
+    depth_av = (depth[1:] + depth[:-1]) / 2
+    w = np.where(depth_av < 20, (10 - depth_av / 2) / 100, 0)
     f = np.where(liq_factor_of_safety < 1, 1 - liq_factor_of_safety, 0)
-    return w * f
+    return w * f * ds  # TODO: Is this correct? or should it be * dz
 
 
-def calculate_lpi(depths, liq_factor_of_safety):
+def calc_lpi(depths, liq_factor_of_safety):
     """
     Formulation from 'Soil Dynamics and earthquake engineering', eq. page 317
     """
-    return np.sum(calculate_lpi_increments(depths, liq_factor_of_safety))
+    return np.sum(calc_lpi_increments(depths, liq_factor_of_safety))
 
 
-def calculate_lsn_increments(e, depth):
+def calculate_lsn_increments(e_v, depth):
     """
     Calculates the liquefaction severity number (LSN)
 
     doi: 10.1016/j.soildyn.2015.09.016
 
-    :param e: array, volumetric strain
+    :param e_v: array, volumetric strain
     :param depth: array, depth from surface
     :return: array, lsn increment at depth
     """
     ds = depth[1:] - depth[:-1]
     depth_av = (depth[1:] + depth[:-1]) / 2
-    av_e = (e[1:] + e[:-1]) / 2
+    av_e = (e_v[1:] + e_v[:-1]) / 2
     # depth_av = np.insert(depth_av, len(depth_av), depth[-1])
     lsn = (av_e * ds) / depth_av
     lsn = np.insert(lsn, len(lsn), 0)
     return lsn * 10
 
 
-def calculate_lsn(e, depth):
+def calc_lsn(e_v, depth):
     """
     Calculates the liquefaction severity number (LSN)
 
     doi: 10.1016/j.soildyn.2015.09.016
 
-    :param e: array, volumetric strain
+    :param e_v: array, volumetric strain
     :param depth: array, depth from surface
     :return: float, profile LSN
     """
-    return sum(calculate_lsn_increments(e, depth))
+    return sum(calculate_lsn_increments(e_v, depth))
+
+
+def calculate_lsn(e_v, depth):
+    return calc_lsn(e_v, depth)
+
+
+def calc_ldi_increments(e_s, depth):
+    """
+    Calculates the Lateral Displacement Index :cite:`Zhang:2004el`
+
+    Parameters
+    ----------
+    e_s
+    depth
+
+    Returns
+    -------
+
+    """
+
+    ds = depth[1:] - depth[:-1]
+    depth_av = (depth[1:] + depth[:-1]) / 2
+    av_e = (e_s[1:] + e_s[:-1]) / 2
+    # depth_av = np.insert(depth_av, len(depth_av), depth[-1])
+    ldi = np.zeros_like(depth)
+    ldi[1:] = av_e * ds
+    return ldi
+
+
+def calc_ldi(e_s, depth):
+    return np.trapz(y=e_s, x=depth)
+

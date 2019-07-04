@@ -20,7 +20,7 @@ setup(name=about['__project__'],
       keywords='geotechnical engineering foundations settlement',
       license='MIT',
       classifiers=[
-          'Development Status :: 3 - Alpha',
+          'Development Status :: 4 - Beta',
           'Intended Audience :: Science/Research',
           'Topic :: Scientific/Engineering',
           'License :: OSI Approved :: MIT License',

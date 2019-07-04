@@ -255,5 +255,21 @@ def test_calculate_qc_1ncs_from_crr_7p5():
     assert error < 0.01, error
 
 
+def test_handles_predrill():
+    depths = np.array([0.5, 0.51, 0.52])
+    q_c = np.array([1.28, 3.13, 4.34])
+    f_s = np.array([0.022, 0.023, 0.024])
+    u_2 = np.array([0.0258, 0.0596, 0.0681])
+    cpt = liquepy.field.CPT(depths, q_c, f_s, u_2, gwl=10, a_ratio=1)
+    unit_wt = liquepy.trigger.boulanger_and_idriss_2014.calc_unit_dry_weight(cpt.f_s, cpt.q_t, p_a=101, unit_water_wt=9.8)
+    assert np.isclose(unit_wt[0], 14.7), unit_wt[0]
+    assert np.isclose(unit_wt[1], 14.7), unit_wt[1]
+    assert np.isclose(unit_wt[2], 14.7), unit_wt[2]
+    print(unit_wt)
+    sigma_v = liquepy.trigger.boulanger_and_idriss_2014.calc_sigma_v(depths, unit_wt)
+    print(sigma_v)
+    # bi2014 = liquepy.trigger.run_bi2014()
+
+
 if __name__ == '__main__':
-    test_compare_fos_to_previous_version()
+    test_handles_predrill()

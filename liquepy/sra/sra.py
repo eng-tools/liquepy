@@ -123,12 +123,12 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0, base_shear_vel=None, 
     return profile
 
 
-def compute_pysra_strain_compatible_profile(soil_profile, in_sig, d_inc=None, cut_time=None):
+def compute_pysra_strain_compatible_profile(soil_profile, in_sig, d_inc=None, cut_time=None, target_height=1.0):
     m = pysra.motion.TimeSeriesMotion(filename=in_sig.label, description=None, time_step=in_sig.dt,
                                       accels=in_sig.values / 9.8)
     if d_inc is None:
         d_inc = 1.0 * np.ones(soil_profile.n_layers)
-    profile = sm_profile_to_pysra(soil_profile, d_inc=d_inc)
+    profile = sm_profile_to_pysra(soil_profile, target_height=target_height, d_inc=d_inc)
 
     layers = []
     calc = pysra.propagation.EquivalentLinearCalculator()
@@ -153,6 +153,7 @@ def compute_pysra_strain_compatible_profile(soil_profile, in_sig, d_inc=None, cu
         org_layer = profile.location('outcrop', depth=depth).layer
         shear_vel0 = org_layer.initial_shear_vel
         shear_vel = org_layer.shear_vel
+        print('vs_ratio: ', shear_vel / shear_vel0)
         unit_wt = org_layer.unit_wt
         damping = org_layer.damping
         slice_thickness = org_layer.thickness

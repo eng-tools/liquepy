@@ -44,14 +44,15 @@ def calc_unit_weight(e_curr, specific_gravity, saturation, pw):
     return unit_dry_weight + unit_void_volume * saturation * pw
 
 
-def calc_sigma_v(depths, gammas):
+def calc_sigma_v(depths, gammas, gamma_predrill=17.0):
     """
     Calculates the vertical stress
     """
+    predrill_depth = depths[0]
     depth_incs = depths[1:] - depths[:-1]
     depth_incs = np.insert(depth_incs, 0, depth_incs[0])
     sigma_v_incs = depth_incs * gammas
-    sigma_v = np.cumsum(sigma_v_incs)
+    sigma_v = np.cumsum(sigma_v_incs) + predrill_depth * gamma_predrill
     return sigma_v
 
 
@@ -336,6 +337,7 @@ class BoulangerIdriss2014(object):
         p_a = kwargs.get("p_a", 101.)  # kPa
         saturation = kwargs.get("saturation", None)
         unit_wt_method = kwargs.get("unit_wt_method", "robertson2009")
+        gamma_predrill = kwargs.get("gamma_predrill", 17.0)
         if gwl is None and cpt_gwl is not None:
             gwl = cpt_gwl
 
@@ -377,9 +379,11 @@ class BoulangerIdriss2014(object):
         else:
             raise ValueError("unit_wt_method should be either: 'robertson2009' or 'void_ratio' not: %s" % unit_wt_method)
 
-        self.sigma_v = calc_sigma_v(self.depth, self.unit_wt)
+        self.sigma_v = calc_sigma_v(self.depth, self.unit_wt, gamma_predrill)
         self.pore_pressure = calc_pore_pressure(self.depth, self.gwl)
         self.sigma_veff = calc_sigma_veff(self.sigma_v, self.pore_pressure)
+        if self.sigma_veff[0] == 0.0:
+            self.sigma_veff[0] = 1.0e-10
         self.rd = calc_rd(depth, self.m_w)
 
         self.q_c1n_cs, self.q_c1n, self.fines_content, self.i_c, self.big_q = _calc_dependent_variables(self.sigma_v, self.sigma_veff, q_c,
@@ -448,6 +452,8 @@ class BoulangerIdriss2014SoilProfile(object):  # TODO: validate this properly
         self.sigma_v = sp.get_v_total_stress_at_depth(self.depth) / 1e3
         self.pore_pressure = sp.get_hydrostatic_pressure_at_depth(self.depth) / 1e3
         self.sigma_veff = self.sigma_v - self.pore_pressure
+        if self.sigma_veff[0] == 0.0:
+            self.sigma_veff[0] = 1.0e-10
         self.rd = calc_rd(self.depth, self.m_w)
         crr_unlimited = np.interp(self.depth, split_depths, self.sp.split['csr_n15'])
         self.crr_m7p5 = np.where(self.depth <= self.gwl, 4, crr_unlimited)
@@ -474,8 +480,6 @@ def run_bi2014(cpt, pga, m_w, gwl=None, cfc=0.0, **kwargs):
         Earthquake magnitude
     gwl: float, m,
         depth to ground water from surface at time of earthquake
-    a_ratio: float, -, default=0.8
-        Area ratio
     cfc: float, -, default=0.0
         Fines content correction factor for Eq 2.29
     i_c_limit: float, -, default=2.6
@@ -484,8 +488,10 @@ def run_bi2014(cpt, pga, m_w, gwl=None, cfc=0.0, **kwargs):
         Specific gravity
     s_g_water: float, -, default=1.0
             Specific gravity of water
-    p_a: float, -, kPa, default=101
+    p_a: float, kPa, default=101
         Atmospheric pressure
+    gamma_predrill: float, kN/m3, default=17.0
+        Unit weight of pre-drilled material
 
     Returns
     -------
@@ -497,10 +503,11 @@ def run_bi2014(cpt, pga, m_w, gwl=None, cfc=0.0, **kwargs):
     p_a = kwargs.get("p_a", 101.)  # kPa
     saturation = kwargs.get("saturation", None)
     unit_wt_method = kwargs.get("unit_wt_method", "robertson2009")
+    gamma_predrill = kwargs.get("gamma_predrill", 17.0)
 
     return BoulangerIdriss2014CPT(cpt, gwl=gwl, pga=pga, m_w=m_w,
                                a_ratio=cpt.a_ratio, cfc=cfc, i_c_limit=i_c_limit, s_g=s_g, s_g_water=s_g_water, p_a=p_a,
-                               saturation=saturation, unit_wt_method=unit_wt_method)
+                               saturation=saturation, unit_wt_method=unit_wt_method, gamma_predrill=gamma_predrill)
 
 
 def calc_qc_1ncs_from_crr_m7p5(crr_7p5):
@@ -544,7 +551,7 @@ def calc_qc_1ncs_from_crr_m7p5(crr_7p5):
         x3 = C + big_s + 0.5 * big_b ** 0.5
         x4 = C + big_s - 0.5 * big_b ** 0.5
 
-    return np.where(big_b < 0, np.where(x1 < 0, x2, x1), np.where(x3 < 0, x4, x3))
+        return np.where(big_b < 0, np.where(x1 < 0, x2, x1), np.where(x3 < 0, x4, x3))
 
 
 def calculate_qc_1ncs_from_crr_7p5(crr_7p5):

@@ -2,7 +2,14 @@
 History
 =======
 
-0.5.4 (2019-xx-xx)
+0.5.5 (2019-xx-xx)
+-------------------
+
+* Added support for setting weight of the pre-drilled depth for B&I2014
+* Added support for calculating Liquefaction Potential Index (LPI) and Lateral Displacement Index (LDI)
+
+
+0.5.4 (2019-05-28)
 -------------------
 
 * Added support for computing liquefaction triggering using BI2014 for a sfsimodels.SoilProfile object
