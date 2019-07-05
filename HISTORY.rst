@@ -5,6 +5,7 @@ History
 0.5.7 (2019-xx-xx)
 -------------------
 
+* Build without history in setup.py file
 
 
 0.5.6 (2019-07-05)
