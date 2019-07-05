@@ -47,6 +47,8 @@ def calc_unit_weight(e_curr, specific_gravity, saturation, pw):
 def calc_sigma_v(depths, gammas, gamma_predrill=17.0):
     """
     Calculates the vertical stress
+
+    Note: properties are forward projecting
     """
     predrill_depth = depths[0]
     depth_incs = depths[1:] - depths[:-1]
@@ -56,9 +58,8 @@ def calc_sigma_v(depths, gammas, gamma_predrill=17.0):
     return sigma_v
 
 
-def calc_pore_pressure(depth, gwl):
-    gamma_water = 10
-    pore_pressure = np.where(depth > gwl, (depth - gwl) * gamma_water, 0.0)
+def calc_pore_pressure(depth, gwl, unit_water_wt):
+    pore_pressure = np.where(depth > gwl, (depth - gwl) * unit_water_wt, 0.0)
     return pore_pressure
 
 
@@ -84,15 +85,16 @@ def calc_f_ic_values(fs, qt, sigma_v):
     return (fs / (qt - sigma_v)) * 100
 
 
-def calc_big_q_values(c_n, qt, sigmav):
+def calc_big_q_values(qt, sigma_v, sigma_veff, p_a, n_val=0.5):
     """
-    Eq. XXXXX
+    Eq. 2.26
     :param c_n: CN
     :param qt:
     :param sigmav:
     :return:
     """
-    return (qt - sigmav) / 100 * c_n   #TODO: this is different to eq 2.26
+    # return (qt - sigmav) / 100 * c_n   # this is different to eq 2.26
+    return (qt - sigma_v) / p_a * (p_a / sigma_veff) ** n_val
 
 
 def calc_i_c(big_q, big_f):
@@ -274,18 +276,27 @@ def _calc_dependent_variables(sigma_v, sigma_veff, q_c, f_s, p_a, q_t, cfc):
 
     for dd in range(0, num_depth):
         temp_q_c1n = 1e6
+        n_val = 1.0
         for j in range(100):
             cn_values[dd] = min((p_a / sigma_veff[dd]) ** m_values[dd], 1.7)  # Eq 2.15a
             q_c1n[dd] = (cn_values[dd] * q_c[dd] / p_a)  # Eq. 2.4
-            big_q[dd] = calc_big_q_values(cn_values[dd], q_t[dd], sigma_v[dd])
+            big_q[dd] = calc_big_q_values(q_t[dd], sigma_v[dd], sigma_veff[dd], p_a, n_val=n_val)
             ft_values[dd] = calc_f_ic_values(f_s[dd], q_t[dd], sigma_v[dd])
             i_c[dd] = calc_i_c(big_q[dd], ft_values[dd])
+            if i_c[dd] < 2.6 and n_val == 1.0:
+                n_val = 0.5
+                n_val_stable = False
+            elif i_c[dd] > 2.6 and n_val == 0.5:
+                n_val = 0.75
+                n_val_stable = False
+            else:
+                n_val_stable = True
             fines_content[dd] = calc_fc(i_c[dd], cfc)
 
             delta_q_c1n[dd] = calc_delta_q_c1n(q_c1n=q_c1n[dd], fc=fines_content[dd])  # Eq. 2.22
             q_c1n_cs[dd] = q_c1n[dd] + delta_q_c1n[dd]
             m_values[dd] = calc_m(q_c1n_cs[dd])
-            if abs(q_c1n[dd] - temp_q_c1n) < 0.00001:
+            if abs(q_c1n[dd] - temp_q_c1n) < 0.00001 and n_val_stable:
                 break
             temp_q_c1n = q_c1n[dd]
     return q_c1n_cs, q_c1n, fines_content, i_c, big_q
@@ -380,7 +391,7 @@ class BoulangerIdriss2014(object):
             raise ValueError("unit_wt_method should be either: 'robertson2009' or 'void_ratio' not: %s" % unit_wt_method)
 
         self.sigma_v = calc_sigma_v(self.depth, self.unit_wt, gamma_predrill)
-        self.pore_pressure = calc_pore_pressure(self.depth, self.gwl)
+        self.pore_pressure = calc_pore_pressure(self.depth, self.gwl, unit_water_wt)
         self.sigma_veff = calc_sigma_veff(self.sigma_v, self.pore_pressure)
         if self.sigma_veff[0] == 0.0:
             self.sigma_veff[0] = 1.0e-10

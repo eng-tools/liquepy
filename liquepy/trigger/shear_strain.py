@@ -3,7 +3,7 @@ import numpy as np
 from liquepy.exceptions import deprecation
 
 
-def calc_shear_strain(fs, d_r):
+def calc_shear_strain_zhang_2004(fs, d_r):
     if isinstance(fs, numbers.Real):
         if isinstance(d_r, numbers.Real):
             return calc_single_shear_strain(fs, d_r)
@@ -22,7 +22,11 @@ def calc_shear_strain(fs, d_r):
         return np.array(out_values)
 
 
-def calc_relative_density_zhang_2002(q_c1n):
+def calc_shear_strain(fs, d_r):
+    return calc_shear_strain_zhang_2004(fs, d_r)
+
+
+def calc_relative_density_zhang_2002(q_c1n, dr_min=0.0, dr_max=1.0):
     """
     Calculates the relative density (Eq. 2) :cite:`Zhang:2004el`
 
@@ -34,7 +38,7 @@ def calc_relative_density_zhang_2002(q_c1n):
     -------
 
     """
-    return (-85. + 76. * np.log10(q_c1n)) / 100
+    return np.clip((-85. + 76. * np.log10(q_c1n)) / 100, 0.0, 1.0)
 
 
 def calculate_shear_strain(fos, relative_density):
@@ -55,18 +59,19 @@ def calc_single_shear_strain(fs, d_r):
                 low_dr = dr_values[i - 1]
                 d_r_cur = d_r
             high_dr = dr_values[i]
-            print(low_dr, high_dr)
-            ev_low = calc_fixed_dr_gamma_max(fs, low_dr)
-            ev_high = calc_fixed_dr_gamma_max(fs, high_dr)
+            es_low = calc_fixed_dr_gamma_max(fs, low_dr)
+            es_high = calc_fixed_dr_gamma_max(fs, high_dr)
 
-            ev_actual = np.interp(d_r_cur, [low_dr, high_dr], [ev_low, ev_high])
-            print(ev_low, ev_high, ev_actual)
-            return ev_actual
+            es_actual = np.interp(d_r_cur, [low_dr, high_dr], [es_low, es_high])
+            return es_actual
+    return 0.0
 
 
 # Maximum cyclic shear strains
 def calc_fixed_dr_gamma_max(fs, relative_density):
     if fs > 2.0:
+        return 0.0
+    elif relative_density == 1.0:
         return 0.0
     elif relative_density == 0.9:
         if fs >= 0.7:

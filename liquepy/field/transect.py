@@ -39,7 +39,7 @@ class Loc(sm.CustomObject):
     @property
     def cpt(self):
         if self._cpt is None:
-            self._cpt = lq.field.load_cpt_from_file(self.cpt_folder_path + "/" + self.cpt_file_name, delimiter=self.cpt_delimiter)
+            self._cpt = lq.field.load_mpa_cpt_file(self.cpt_folder_path + "/" + self.cpt_file_name, delimiter=self.cpt_delimiter)
 
         return self._cpt
 

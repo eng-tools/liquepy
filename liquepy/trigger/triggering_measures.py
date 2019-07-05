@@ -1,22 +1,25 @@
 import numpy as np
 
 
-def calc_lpi_increments(depth, liq_factor_of_safety):
+def calc_lpi_increments(liq_factor_of_safety, depth):
     """
     formulation from 'Soil Dynamics and earthquake engineering', eq. page 317
     """
     ds = depth[1:] - depth[:-1]
     depth_av = (depth[1:] + depth[:-1]) / 2
-    w = np.where(depth_av < 20, (10 - depth_av / 2) / 100, 0)
-    f = np.where(liq_factor_of_safety < 1, 1 - liq_factor_of_safety, 0)
-    return w * f * ds  # TODO: Is this correct? or should it be * dz
+    w = np.where(depth_av < 20, (10 - 0.5 * depth_av), 0)
+    fos_av = (liq_factor_of_safety[1:] + liq_factor_of_safety[:-1]) / 2
+    f = np.where(fos_av < 1, 1 - fos_av, 0)
+    lpis = np.zeros_like(depth)
+    lpis[1:] = w * f * ds
+    return lpis  # TODO: Is this correct? or should it be * dz
 
 
-def calc_lpi(depths, liq_factor_of_safety):
+def calc_lpi(liq_factor_of_safety, depths):
     """
     Formulation from 'Soil Dynamics and earthquake engineering', eq. page 317
     """
-    return np.sum(calc_lpi_increments(depths, liq_factor_of_safety))
+    return np.sum(calc_lpi_increments(liq_factor_of_safety, depths))
 
 
 def calculate_lsn_increments(e_v, depth):

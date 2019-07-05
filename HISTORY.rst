@@ -7,6 +7,12 @@ History
 
 * Added support for setting weight of the pre-drilled depth for B&I2014
 * Added support for calculating Liquefaction Potential Index (LPI) and Lateral Displacement Index (LDI)
+* Fixed bug where calculation of shear strain from Zhang et al. (2004) used wrong value for interpolating between
+different Dr lines, such that upper or lower limit were taken not interpolated value (resulted in slight change of
+values for Bray foundation settlement method)
+* Added new default cpt loader `load_mpa_cpt_file`, where all values are in MPa and metres and delimeter is ','
+* Fixed bug where `big_Q` in B&I2014 triggering method was calculated with the `m` from Eq. 2.15b,
+now calculated using the `n` from Robertson and Wride (1997)
 
 
 0.5.4 (2019-05-28)

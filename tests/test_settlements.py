@@ -44,7 +44,7 @@ def test_karamitros():
     q = 80000  # applied load
 
     z_c = lqs.cal_z_c(fd, z_liq=4, h0=2)
-    vertical_effective_stress = soil_profile.vertical_effective_stress(z_c)
+    vertical_effective_stress = soil_profile.get_v_eff_stress_at_depth(z_c)
     phi_deg = lqs.calc_degraded_phi(sl_1.phi, vertical_effective_stress, q=q)
     assert np.isclose(phi_deg, 9.9275389), phi_deg  # Not validated
     sl_1.phi = phi_deg
@@ -82,7 +82,7 @@ def test_bray_and_macedo_settlement():
 
     liq_layers = [2]
     sett_dyn_bray = lqs.bray_and_macedo_settlement_time_series(soil_profile, fd, asig, liq_layers)[-1]
-    assert np.isclose(sett_dyn_bray, 0.08243780383602352, rtol=0.001), sett_dyn_bray  # 0.08243780383602352 Not validated, liquepy 0.3.2+
+    assert np.isclose(sett_dyn_bray, 0.077205675, rtol=0.001), sett_dyn_bray  # 0.077205675 Not validated, liquepy 0.5.5+
 
 
 # class FakeSignal(object):
@@ -134,7 +134,7 @@ def test_lu_settlement():
 
 
 if __name__ == '__main__':
-    test_bray_and_macedo_settlement_paper_values()
+    test_bray_and_macedo_settlement()
 
 # if __name__ == '__main__':
 #     test_karamitros()

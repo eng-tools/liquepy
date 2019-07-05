@@ -3,7 +3,7 @@ import numpy as np
 from liquepy.exceptions import deprecation
 
 
-def calc_volumetric_strain(factor_of_safety, q_c1n_cs):
+def calc_volumetric_strain_zhang_2004(factor_of_safety, q_c1n_cs):
     """
     Calculates the Volumetric strain according to Zhang et al. (2002)
 
@@ -25,6 +25,10 @@ def calc_volumetric_strain(factor_of_safety, q_c1n_cs):
         return np.array(out_values)
     else:
         raise ValueError("Factor of safety and q_c1n_cs must be the same length")
+
+
+def calc_volumetric_strain(factor_of_safety, q_c1n_cs):
+    return calc_volumetric_strain_zhang_2004(factor_of_safety, q_c1n_cs)
 
 
 def calculate_volumetric_strain(factor_of_safety, q_c1n_cs):

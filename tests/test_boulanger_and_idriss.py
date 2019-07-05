@@ -7,25 +7,25 @@ from tests.conftest import TEST_DATA_DIR
 
 
 def test_can_calculate_fos():
-    cpt = liquepy.field.load_cpt_from_file(TEST_DATA_DIR + "standard_1.csv")
+    cpt = liquepy.field.load_mpa_cpt_file(TEST_DATA_DIR + "standard_1.csv")
     bi2014 = liquepy.trigger.run_bi2014(cpt, pga=0.25, m_w=7.5, gwl=cpt.gwl, unit_wt_method='robertson2009')
     factor_safety_values = bi2014.factor_of_safety
 
-    expected_fos_at_40 = 2.0
-    expected_fos_at_500 = 0.53835973747
-    assert factor_safety_values[40] == expected_fos_at_40
-    assert np.isclose(factor_safety_values[500], expected_fos_at_500, rtol=0.0001)
+    expected_fos_at_41 = 2.0
+    expected_fos_at_501 = 0.5431854
+    assert factor_safety_values[41] == expected_fos_at_41
+    assert np.isclose(factor_safety_values[501], expected_fos_at_501, rtol=0.0001)
 
 
 def test_compare_fos_to_previous_version():
-    cpt = liquepy.field.load_cpt_from_file(TEST_DATA_DIR + "standard_1.csv")
+    cpt = liquepy.field.load_mpa_cpt_file(TEST_DATA_DIR + "standard_1.csv")
     cpt.a_ratio = 0.8
     bi2014 = liquepy.trigger.run_bi2014(cpt, pga=0.25, m_w=7.5, gwl=cpt.gwl, unit_wt_method='robertson2009')
     factor_safety_values = bi2014.factor_of_safety
-    # new_version = "0p4p7"  # uncomment to generate new version if changed
-    # np.savetxt(TEST_DATA_DIR + "standard_1_fos_lq%s.csv" % new_version, factor_safety_values)
+    new_version = "0p5p5"  # uncomment to generate new version if changed
+    np.savetxt(TEST_DATA_DIR + "standard_1_fos_lq%s.csv" % new_version, factor_safety_values)
 
-    fos_expected = np.loadtxt(TEST_DATA_DIR + "standard_1_fos_lq0p4p7.csv")
+    fos_expected = np.loadtxt(TEST_DATA_DIR + "standard_1_fos_lq0p5p5.csv")
     assert np.isclose(fos_expected, factor_safety_values).all()
 
 
@@ -188,9 +188,10 @@ def test_calculate_msf():
 def test_calculate_big_q_values():
     qt = 20.
     sigma_v = 15.
-    c_n = 0.8
-    qq = bim14.calc_big_q_values(c_n, qt, sigma_v)
-    assert np.isclose(qq, 0.04, rtol=0.011)
+    sigma_veff = 15.
+    p_a = 101
+    qq = bim14.calc_big_q_values(qt, sigma_v, sigma_veff, p_a, n_val=0.5)
+    assert np.isclose(qq, 0.12845, rtol=0.011)
 
 
 def test_calculate_big_f_values():
@@ -272,4 +273,5 @@ def test_handles_predrill():
 
 
 if __name__ == '__main__':
-    test_handles_predrill()
+    test_compare_fos_to_previous_version()
+    # test_handles_predrill()

@@ -1,5 +1,5 @@
 import numpy as np
-# from liquepy.exceptions import deprecation
+from liquepy.exceptions import deprecation
 import ntpath
 
 
@@ -21,8 +21,41 @@ import ntpath
 #
 #     return depth, q_c, f_s, u_2, gwl
 
+def load_mpa_cpt_file(ffp, delimiter=",", a_ratio_override=None):
+    # import data from csv file
+    folder_path, file_name = ntpath.split(ffp)
+    ncols = 4
+    try:
+        data = np.loadtxt(ffp, skiprows=24, delimiter=delimiter, usecols=(0, 1, 2, 3))
+    except:
+        ncols = 3
+        data = np.loadtxt(ffp, skiprows=24, delimiter=delimiter, usecols=(0, 1, 2))
+    depth = data[:, 0]
+    q_c = data[:, 1] * 1e3  # convert to kPa
+    f_s = data[:, 2] * 1e3  # convert to kPa
+    if ncols == 4:
+        u_2 = data[:, 3] * 1e3  # convert to kPa
+    else:
+        u_2 = np.zeros_like(depth)
+    gwl = None
+    a_ratio = 1.0
+    infile = open(ffp)
+    lines = infile.readlines()
+    for line in lines:
+        if "Assumed GWL:" in line:
+            gwl = float(line.split(delimiter)[1])
+        if "aratio" in line:
+            try:
+                a_ratio = float(line.split(delimiter)[1])
+            except ValueError:
+                pass
+    if a_ratio_override:
+        a_ratio = a_ratio_override
+    return CPT(depth, q_c, f_s, u_2, gwl, a_ratio, folder_path=folder_path, file_name=file_name, delimiter=delimiter)
+
 
 def load_cpt_from_file(ffp, delimiter=";"):
+    deprecation('Use load_cpt_from_file() where file is all in MPa')
     # import data from csv file
     folder_path, file_name = ntpath.split(ffp)
     ncols = 4
@@ -62,7 +95,7 @@ class CPT(object):
         Parameters
         ----------
         depth: array_like
-            depths from surface
+            depths from surface, properties are forward projecting (i.e. start at 0.0 for surface)
         q_c: array_like, [kPa]
         f_s: array_like, [kPa]
         u_2: array_like, [kPa]

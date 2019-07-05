@@ -23,8 +23,8 @@ def calculate_factor_safety(q_c1ncs, p_a, magnitude, pga, depth, soil_profile):
 
     c_sigma = 1.0 / (37.3 - (8.27 * (q_c1ncs ** 0.264)))
 
-    sigma_v = soil_profile.vertical_total_stress(depth)
-    sigma_veff = soil_profile.vertical_effective_stress(depth)
+    sigma_v = soil_profile.get_v_total_stress_at_depth(depth)
+    sigma_veff = soil_profile.get_v_eff_stress_at_depth(depth)
 
     k_sigma = np.clip(1.0 - c_sigma * np.log(sigma_veff / p_a), -1000, 1.1)
 
