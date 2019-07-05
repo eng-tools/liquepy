@@ -283,7 +283,7 @@ def _calc_dependent_variables(sigma_v, sigma_veff, q_c, f_s, p_a, q_t, cfc):
             big_q[dd] = calc_big_q_values(q_t[dd], sigma_v[dd], sigma_veff[dd], p_a, n_val=n_val)
             ft_values[dd] = calc_f_ic_values(f_s[dd], q_t[dd], sigma_v[dd])
             i_c[dd] = calc_i_c(big_q[dd], ft_values[dd])
-            if i_c[dd] < 2.6 and n_val == 1.0:
+            if i_c[dd] < 2.6 and n_val == 1.0:  # See second half of pg 449 of Robertson and Wride (1997)
                 n_val = 0.5
                 n_val_stable = False
             elif i_c[dd] > 2.6 and n_val == 0.5:
