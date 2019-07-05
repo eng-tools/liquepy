@@ -2,7 +2,17 @@
 History
 =======
 
-0.5.5 (2019-xx-xx)
+0.5.7 (2019-xx-xx)
+-------------------
+
+
+
+0.5.6 (2019-07-05)
+-------------------
+
+* Added geographiclib to install reqs.
+
+0.5.5 (2019-07-05)
 -------------------
 
 * Added support for setting weight of the pre-drilled depth for B&I2014
