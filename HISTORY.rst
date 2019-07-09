@@ -2,7 +2,12 @@
 History
 =======
 
-0.5.7 (2019-xx-xx)
+0.5.8 (2019-xx-xx)
+-------------------
+
+* If CPT file contains key word 'Pre-Drill:' then CPT loads with pre-drilled depth removed
+
+0.5.7 (2019-07-05)
 -------------------
 
 * Build without history in setup.py file

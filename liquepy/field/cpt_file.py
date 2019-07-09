@@ -39,6 +39,7 @@ def load_mpa_cpt_file(ffp, delimiter=",", a_ratio_override=None):
         u_2 = np.zeros_like(depth)
     gwl = None
     a_ratio = 1.0
+    pre_drill = None
     infile = open(ffp)
     lines = infile.readlines()
     for line in lines:
@@ -49,13 +50,23 @@ def load_mpa_cpt_file(ffp, delimiter=",", a_ratio_override=None):
                 a_ratio = float(line.split(delimiter)[1])
             except ValueError:
                 pass
+        if "Pre-Drill:" in line:
+            val = line.split(delimiter)[1]
+            if val != '':
+                pre_drill = float(val)
     if a_ratio_override:
         a_ratio = a_ratio_override
+    if pre_drill is not None:
+        indy = np.argmin(depth - pre_drill)
+        depth = depth[indy:]
+        q_c = q_c[indy:]
+        f_s = f_s[indy:]
+        u_2 = u_2[indy:]
     return CPT(depth, q_c, f_s, u_2, gwl, a_ratio, folder_path=folder_path, file_name=file_name, delimiter=delimiter)
 
 
 def load_cpt_from_file(ffp, delimiter=";"):
-    deprecation('Use load_cpt_from_file() where file is all in MPa')
+    deprecation('Use load_mpa_cpt_file() where file is all in MPa')
     # import data from csv file
     folder_path, file_name = ntpath.split(ffp)
     ncols = 4
