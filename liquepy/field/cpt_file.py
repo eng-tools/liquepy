@@ -57,11 +57,12 @@ def load_mpa_cpt_file(ffp, delimiter=",", a_ratio_override=None):
     if a_ratio_override:
         a_ratio = a_ratio_override
     if pre_drill is not None:
-        indy = np.argmin(depth - pre_drill)
-        depth = depth[indy:]
-        q_c = q_c[indy:]
-        f_s = f_s[indy:]
-        u_2 = u_2[indy:]
+        if depth[0] < pre_drill:
+            indy = np.argmin(depth - pre_drill)
+            depth = depth[indy:]
+            q_c = q_c[indy:]
+            f_s = f_s[indy:]
+            u_2 = u_2[indy:]
     return CPT(depth, q_c, f_s, u_2, gwl, a_ratio, folder_path=folder_path, file_name=file_name, delimiter=delimiter)
 
 
