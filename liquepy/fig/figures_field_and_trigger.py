@@ -24,15 +24,25 @@ IC_VMIN = 0.0
 IC_VMAX = 4.0
 IC_LIMITS = [0, 1.3, 1.8, 2.1, 2.6, 4]
 IC_GRAVEL = (0.98, 0.88, 0.5)
+IC_GRAVEL_dark = (0.88, 0.76, 0.2)
 IC_GRAVEL_light = (1.0, 1.0, 0.8)
 IC_CS = (0.48, 0.98, 0.8)
-IC_CS_light = (0.8, 1.0, 0.8)
+IC_CS_light = (0.6, 1.0, 0.8)
 IC_SwFC = (0.57, 0.97, 1.0)
+IC_SwFC_dark = (0.38, 0.66, 0.8)
 IC_SwFC_light = (0.8, 1.0, 1.0)
 IC_NP_silt = (0.97, 0.66, 0.73)
-IC_NP_silt_light = (1.0, 0.8, 0.8)
+IC_NP_silt_light = (0.97, 0.72, 0.72)
 IC_P_silt = (0.65, 0.65, 0.65)
+IC_P_silt_dark = (0.5, 0.5, 0.5)
 IC_P_silt_light = (0.8, 0.8, 0.8)
+IC_COLORS_w_CONTRAST = OrderedDict([
+    ('Gravel', IC_GRAVEL_dark),  # yellow
+    ('Clean sand', IC_CS_light),  # light green
+    ('Sand with fines', IC_SwFC_dark),  # light blue
+    ('Non-plastic silt', IC_NP_silt_light),  # light red
+    ('Plastic silt', IC_P_silt_dark),  # light grey
+])
 IC_COLORS = OrderedDict([
     ('Gravel', IC_GRAVEL),  # yellow
     ('Clean sand', IC_CS),  # light green
@@ -44,7 +54,10 @@ IC_COLORS = OrderedDict([
 FS_CMAP = LinearSegmentedColormap.from_list('mine', [FS_COLORS[cname] for cname in FS_COLORS], N=5)
 
 _incs = (np.diff(IC_LIMITS) * 10).astype(int)
-IC_CMAP = LinearSegmentedColormap.from_list('mine', list(itertools.chain(*[[IC_COLORS[cname]] * _incs[x] for x, cname in enumerate(IC_COLORS)])), N=5)
+_clist = list(itertools.chain(*[[IC_COLORS[cname]] * _incs[x] for x, cname in enumerate(IC_COLORS)]))
+IC_CMAP = LinearSegmentedColormap.from_list('mine', _clist, N=len(_clist))
+_clist = list(itertools.chain(*[[IC_COLORS_w_CONTRAST[cname]] * _incs[x] for x, cname in enumerate(IC_COLORS_w_CONTRAST)]))
+IC_CMAP_w_CONTRAST = LinearSegmentedColormap.from_list('mine', _clist, N=len(_clist))
 
 
 def add_ic_colours(subplot):
@@ -93,25 +106,26 @@ def make_factor_of_safety_plot(subplot):
     subplot.set_xlim([0, 2.1])
 
 
-def make_cpt_plots(sps, cpt):
+def make_cpt_plots(sps, cpt, c="gray", x_origin=True, y_origin=True):
 
-    sps[0].plot(cpt.q_c, cpt.depth, lw=1, c="gray")
-    sps[1].plot(cpt.f_s, cpt.depth, lw=1, c="gray")
-    sps[2].plot(cpt.u_2, cpt.depth, lw=1, c="gray")
-    sps[2].axhline(cpt.gwl, c="k", ls="--", lw=0.7)
+    sps[0].plot(cpt.q_c, cpt.depth, lw=1, c=c)
+    sps[1].plot(cpt.f_s, cpt.depth, lw=1, c=c)
+    sps[2].plot(cpt.u_2, cpt.depth, lw=1, c=c)
+    sps[2].axhline(cpt.gwl, c=c, ls="--", lw=0.7)
 
     # Prepare y-axis
-    ylim = sps[0].get_ylim()
-    sps[0].set_ylim([0, ylim[1]])
-    sps[0].invert_yaxis()
+    if y_origin:
+        ylim = sps[0].get_ylim()
+        sps[0].set_ylim([0, ylim[1]])
 
     # Prepare x-axis
-    xlim = sps[0].get_xlim()
-    sps[0].set_xlim([0, xlim[1]])
-    xlim = sps[1].get_xlim()
-    sps[1].set_xlim([0, xlim[1]])
-    xlim = sps[2].get_xlim()
-    sps[2].set_xlim([0, xlim[1]])
+    if x_origin:
+        xlim = sps[0].get_xlim()
+        sps[0].set_xlim([0, xlim[1]])
+        xlim = sps[1].get_xlim()
+        sps[1].set_xlim([0, xlim[1]])
+        xlim = sps[2].get_xlim()
+        sps[2].set_xlim([0, xlim[1]])
 
     sps[0].set_ylabel("Depth [m]")
     sps[0].set_xlabel("q_c [kPa]")

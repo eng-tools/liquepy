@@ -6,6 +6,9 @@ History
 -------------------
 
 * If CPT file contains key word 'Pre-Drill:' then CPT loads with pre-drilled depth removed
+* Can set depth limit to LDI calculation
+* Can set relative density limits to zhang_2002 relative density calculation
+* Fixed issue with I_c color map for plotting
 
 0.5.7 (2019-07-05)
 -------------------

@@ -81,6 +81,23 @@ def calc_ldi_increments(e_s, depth):
     return ldi
 
 
-def calc_ldi(e_s, depth):
+def calc_ldi(e_s, depth, z_max=None):
+    """
+    Calculates the Lateral Displacement Index :cite:`Zhang:2004el`
+    
+    Parameters
+    ----------
+    e_s
+    depth
+    z_max
+
+    Returns
+    -------
+
+    """
+    if z_max is not None and depth[-1] > z_max:
+        indy = np.argmin(abs(depth - z_max))
+        e_s = e_s[:indy]
+        depth = depth[:indy]
     return np.trapz(y=e_s, x=depth)
 

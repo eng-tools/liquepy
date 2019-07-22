@@ -4,6 +4,18 @@ from liquepy.exceptions import deprecation
 
 
 def calc_shear_strain_zhang_2004(fs, d_r):
+    """
+    Calculates the shear strain (not in percentage)
+
+    Parameters
+    ----------
+    fs
+    d_r
+
+    Returns
+    -------
+
+    """
     if isinstance(fs, numbers.Real):
         if isinstance(d_r, numbers.Real):
             return calc_single_shear_strain(fs, d_r)
@@ -26,6 +38,24 @@ def calc_shear_strain(fs, d_r):
     return calc_shear_strain_zhang_2004(fs, d_r)
 
 
+def calc_relative_density_tasuoka_1990(q_c, esig_v0, dr_min=0.0, dr_max=1.0):
+    """
+    Calculates the relative density according to Tasuoka et al. (1990)
+
+    Parameters
+    ----------
+    q_c1n
+    esig_v0
+    dr_min
+    dr_max
+
+    Returns
+    -------
+
+    """
+    return np.clip((-85. + 76. * np.log10(q_c / np.sqrt(esig_v0))), dr_min, dr_max)
+
+
 def calc_relative_density_zhang_2002(q_c1n, dr_min=0.0, dr_max=1.0):
     """
     Calculates the relative density (Eq. 2) :cite:`Zhang:2004el`
@@ -38,7 +68,7 @@ def calc_relative_density_zhang_2002(q_c1n, dr_min=0.0, dr_max=1.0):
     -------
 
     """
-    return np.clip((-85. + 76. * np.log10(q_c1n)) / 100, 0.0, 1.0)
+    return np.clip((-85. + 76. * np.log10(q_c1n)) / 100, dr_min, dr_max)
 
 
 def calculate_shear_strain(fos, relative_density):
@@ -109,4 +139,4 @@ def calc_fixed_dr_gamma_max(fs, relative_density):
         gamma_max = 51.2
     else:
         raise ValueError("Relative density (%.4f) not set to standard value" % relative_density)
-    return gamma_max
+    return gamma_max / 100
