@@ -22,7 +22,7 @@ def calc_lpi(liq_factor_of_safety, depths):
     return np.sum(calc_lpi_increments(liq_factor_of_safety, depths))
 
 
-def calculate_lsn_increments(e_v, depth):
+def calc_lsn_increments(e_v, depth):
     """
     Calculates the liquefaction severity number (LSN)
 
@@ -39,6 +39,13 @@ def calculate_lsn_increments(e_v, depth):
     lsn = (av_e * ds) / depth_av
     lsn = np.insert(lsn, len(lsn), 0)
     return lsn * 10
+
+
+def calculate_lsn_increments(e_v, depth):
+    """
+    Deprecated: see calc_lsn_increments
+    """
+    return calc_lsn_increments(e_v, depth)
 
 
 def calc_lsn(e_v, depth):
