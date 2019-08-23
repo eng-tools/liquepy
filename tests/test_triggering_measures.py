@@ -7,8 +7,8 @@ import pytest
 def test_calc_lsn():
     cpt = lq.field.load_mpa_cpt_file(TEST_DATA_DIR + "standard_1.csv")
     bi2014 = lq.trigger.run_bi2014(cpt, pga=0.25, m_w=7.5, gwl=cpt.gwl)
-    epsilon = lq.trigger.calc_volumetric_strain(bi2014.factor_of_safety, bi2014.q_c1n_cs)
-    lsn_direct = lq.trigger.calc_lsn(epsilon, cpt.depth)
+    epsilon = lq.trigger.calc_volumetric_strain_zhang_2004(bi2014.factor_of_safety, bi2014.q_c1n_cs)
+    lsn_direct = lq.trigger.calc_lsn(epsilon * 100, cpt.depth)
     assert np.isclose(lsn_direct, 36.0919293469645, rtol=0.01)  # v0.5.5
 
 

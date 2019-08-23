@@ -2,13 +2,16 @@
 History
 =======
 
-0.5.8 (2019-xx-xx)
--------------------
+
+0.6.0 (2019-08-23)
+--------------------
 
 * If CPT file contains key word 'Pre-Drill:' then CPT loads with pre-drilled depth removed
 * Can set depth limit to LDI calculation
 * Can set relative density limits to zhang_2002 relative density calculation
 * Fixed issue with I_c color map for plotting
+* Switched
+* [Not backward compatible] Switched Zhang et al shear and volumetric strain calculations to proper naming convention and changed to return strain as decimal, removed old functions
 
 0.5.7 (2019-07-05)
 -------------------

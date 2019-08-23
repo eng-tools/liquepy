@@ -10,14 +10,15 @@ def calc_shear_strain_zhang_2004(fs, d_r):
     Parameters
     ----------
     fs
-    d_r
+    d_r: float or array_like, [dec]
+        Relative density of soil
 
     Returns
     -------
 
     """
-    if isinstance(fs, numbers.Real):
-        if isinstance(d_r, numbers.Real):
+    if not hasattr(fs, '__len__'):
+        if not hasattr(d_r, '__len__'):
             return calc_single_shear_strain(fs, d_r)
         else:
             out_values = []
@@ -27,7 +28,7 @@ def calc_shear_strain_zhang_2004(fs, d_r):
     else:
         out_values = []
         for i in range(len(fs)):
-            if isinstance(d_r, numbers.Real):
+            if not hasattr(d_r, '__len__'):
                 out_values.append(calc_single_shear_strain(fs[i], d_r))
             else:
                 out_values.append(calc_single_shear_strain(fs[i], d_r[i]))
@@ -35,7 +36,8 @@ def calc_shear_strain_zhang_2004(fs, d_r):
 
 
 def calc_shear_strain(fs, d_r):
-    return calc_shear_strain_zhang_2004(fs, d_r)
+    deprecation("Use calc_shear_strain_zhang_2004, note that new function returns strain not in percentage!")
+    return None
 
 
 def calc_relative_density_tasuoka_1990(q_c, esig_v0, dr_min=0.0, dr_max=1.0):
@@ -53,7 +55,7 @@ def calc_relative_density_tasuoka_1990(q_c, esig_v0, dr_min=0.0, dr_max=1.0):
     -------
 
     """
-    return np.clip((-85. + 76. * np.log10(q_c / np.sqrt(esig_v0))), dr_min, dr_max)
+    return np.clip((-85. + 76. * np.log10(q_c / np.sqrt(esig_v0))), dr_min, dr_max) / 1e2
 
 
 def calc_relative_density_zhang_2002(q_c1n, dr_min=0.0, dr_max=1.0):
@@ -79,6 +81,8 @@ def calculate_shear_strain(fos, relative_density):
 def calc_single_shear_strain(fs, d_r):
     if d_r == -1:
         return 0
+    if d_r > 2.:
+        raise ValueError('d_r should be a decimal not a percentage')
     dr_values = [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
     for i in range(len(dr_values)):
         if d_r < dr_values[i]:

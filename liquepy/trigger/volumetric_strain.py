@@ -7,11 +7,13 @@ def calc_volumetric_strain_zhang_2004(factor_of_safety, q_c1n_cs):
     """
     Calculates the Volumetric strain according to Zhang et al. (2002)
 
+    Note: strain is not as a percentage
+
     doi: 10.1139/t02-047
 
     :param factor_of_safety: float or array, factor of safety against liquefaction triggering
     :param q_c1n_cs: float, or array, corrected normalised clean sand cone tip resistance
-    :return:
+    :return: strain as decimal (not percentage)
     """
     if isinstance(factor_of_safety, numbers.Real) and isinstance(q_c1n_cs, numbers.Real):
         return _calc_single_volumetric_strain(factor_of_safety, q_c1n_cs)
@@ -28,18 +30,21 @@ def calc_volumetric_strain_zhang_2004(factor_of_safety, q_c1n_cs):
 
 
 def calc_volumetric_strain(factor_of_safety, q_c1n_cs):
-    return calc_volumetric_strain_zhang_2004(factor_of_safety, q_c1n_cs)
+    deprecation("Use calc_volumetric_strain_zhang_2004, note that new function returns strain not in percentage!")
+    return None
 
 
 def calculate_volumetric_strain(factor_of_safety, q_c1n_cs):
-    deprecation("Use calc_volumetric_strain")
-    return calc_volumetric_strain(factor_of_safety, q_c1n_cs)
+    deprecation("Use calc_volumetric_strain_zhang_2004, note that new function returns strain not in percentage!")
+    return None
 
 
 def _calc_single_volumetric_strain(factor_of_safety, q_c1n_cs):
     """
     Determines the volumetric strain for a single value by interpolation of
     the equations by Zhang et al. (2002).
+
+    Note: strain is not as a percentage
 
     :param factor_of_safety:
     :param q_c1n_cs:
@@ -115,4 +120,4 @@ def _calc_fixed_factor_safety_volumetric_strain(factor_of_safety, q_c1n_cs):
         e_v = 0
     else:
         raise ValueError
-    return e_v
+    return e_v / 1e2

@@ -54,11 +54,14 @@ def calc_lsn(e_v, depth):
 
     doi: 10.1016/j.soildyn.2015.09.016
 
-    :param e_v: array, volumetric strain
-    :param depth: array, depth from surface
-    :return: float, profile LSN
+    :param e_v: array,
+        volumetric strain in percentage
+    :param depth: array,
+        depth from surface
+    :return: float,
+        LSN for profile
     """
-    return sum(calculate_lsn_increments(e_v, depth))
+    return sum(calc_lsn_increments(e_v, depth))
 
 
 def calculate_lsn(e_v, depth):
