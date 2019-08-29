@@ -186,6 +186,15 @@ class PM4Sand(FlacSoil, sm.StressDependentSoil):
         k0 = 1 - np.sin(self.phi_r)
         return self.g0_mod * self.p_atm * (sigma_v_eff * (1 + k0) / 2 / self.p_atm) ** 0.5
 
+    def get_g_mod_at_v_eff_stress(self, sigma_v_eff):  # Override base function since k0 is different
+        k0 = 1 - np.sin(self.phi_r)
+        return self.g0_mod * self.p_atm * (sigma_v_eff * (1 + k0) / 2 / self.p_atm) ** 0.5
+
+    def set_g0_mod_from_g_mod_at_v_eff_stress(self, g_mod, sigma_v_eff):
+        k0 = 1 - np.sin(self.phi_r)
+        self.g0_mod = g_mod / self.p_atm / (sigma_v_eff * (1 + k0) / 2 / self.p_atm) ** 0.5
+
+
     # def e_critical(self, p):
     #     p = float(p)
     #     return self.e_cr0 - self.lamb_crl * np.log(p / self.p_cr0)
@@ -298,3 +307,7 @@ def save_input_motion(ffp, name, values, dt):
     ofile = open(ffp, "w")
     ofile.write("\n".join(para))
     ofile.close()
+
+
+def calc_hp0_from_crr_n15_and_relative_density_millen_et_al_2019(crr_n15, d_r):
+    return crr_n15 * (2.05 - 2.4 * d_r) / (1. - crr_n15 * (12.0 - (12.5 * d_r)))
