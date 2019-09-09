@@ -13,6 +13,10 @@
     :target: https://github.com/eng-tools/liquepy/blob/master/LICENSE
     :alt: License
 
+.. image:: https://zenodo.org/badge/133526042.svg
+    :target: https://zenodo.org/badge/latestdoi/133526042
+    :alt: DOI
+
 *******
 Liquepy
 *******
