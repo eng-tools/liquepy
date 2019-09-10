@@ -183,8 +183,7 @@ class PM4Sand(FlacSoil, sm.StressDependentSoil):
         self._h_o = value
 
     def g_mod_at_v_eff_stress(self, sigma_v_eff):  # Override base function since k0 is different
-        k0 = 1 - np.sin(self.phi_r)
-        return self.g0_mod * self.p_atm * (sigma_v_eff * (1 + k0) / 2 / self.p_atm) ** 0.5
+        return self.get_g_mod_at_v_eff_stress(self, sigma_v_eff)
 
     def get_g_mod_at_v_eff_stress(self, sigma_v_eff):  # Override base function since k0 is different
         k0 = 1 - np.sin(self.phi_r)
