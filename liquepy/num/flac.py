@@ -15,8 +15,19 @@ class FlacSoil(sm.Soil):
     def __str__(self):
         return "Base Soil model, id=%i, phi=%.1f" % (self.id, self.phi)
 
-    def __init__(self, pw=9800):
-        super(FlacSoil, self).__init__(pw=pw)  # run parent class initialiser function
+    def __init__(self, pw=9800, liq_mass_density=None, g=9.8):
+        _gravity = g  # m/s2
+        if liq_mass_density:
+            _liq_mass_density = liq_mass_density  # kg/m3
+        elif pw is not None and _gravity is not None:
+            if pw == 9800 and g == 9.8:
+                _liq_mass_density = 1.0e3
+            else:
+                _liq_mass_density = pw / _gravity
+        else:
+            _liq_mass_density = None
+        # run parent class initialiser function
+        super(FlacSoil, self).__init__(liq_mass_density=_liq_mass_density, g=_gravity)
         self._extra_class_inputs = ["tension"]
         self.inputs = self.inputs + self._extra_class_inputs
         self.flac_parameters = OrderedDict([
@@ -95,9 +106,21 @@ class PM4Sand(FlacSoil, sm.StressDependentSoil):
     # TODO: add non default inputs here
     type = "pm4sand"
 
-    def __init__(self, pw=9800, p_atm=101000.0):
-        FlacSoil.__init__(self, pw=pw)
-        sm.StressDependentSoil.__init__(self, pw=pw)
+    def __init__(self, pw=9800, liq_mass_density=None, g=9.8, p_atm=101000.0, **kwargs):
+        # Note: pw has deprecated
+        _gravity = g  # m/s2
+        if liq_mass_density:
+            _liq_mass_density = liq_mass_density  # kg/m3
+        elif pw is not None and _gravity is not None:
+            if pw == 9800 and g == 9.8:
+                _liq_mass_density = 1.0e3
+            else:
+                _liq_mass_density = pw / _gravity
+        else:
+            _liq_mass_density = None
+
+        FlacSoil.__init__(self, liq_mass_density=_liq_mass_density, g=_gravity)
+        sm.StressDependentSoil.__init__(self, liq_mass_density=_liq_mass_density, g=_gravity, **kwargs)
         self._extra_class_inputs = [
             "hp0",
             "csr_n15",

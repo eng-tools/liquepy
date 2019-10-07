@@ -2,6 +2,10 @@
 History
 =======
 
+0.6.1 (2019-10-7)
+--------------------
+
+* Incremented numerical model inputs to make use of latest sfsimodels version
 
 0.6.0 (2019-08-23)
 --------------------
