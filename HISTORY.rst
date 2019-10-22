@@ -2,6 +2,12 @@
 History
 =======
 
+0.6.1 (2019-X-X)
+--------------------
+
+* Fixed issue with stack not working for overriding soil properties
+* Added h_po to PM4Sand obj
+
 0.6.1 (2019-10-7)
 --------------------
 

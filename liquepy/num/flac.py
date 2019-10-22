@@ -85,7 +85,7 @@ class FlacSoil(sm.Soil):
 
 
 class PM4Sand(FlacSoil, sm.StressDependentSoil):
-    _hp0 = None
+    _h_po = None
     _csr_n15 = None
 
     _h_o = None  # not required
@@ -124,13 +124,27 @@ class PM4Sand(FlacSoil, sm.StressDependentSoil):
         self._extra_class_inputs = [
             "hp0",
             "csr_n15",
-            "p_atm"
+            "p_atm",
+            "h_o",
+            "n_b",
+            "n_d",
+            "a_do",
+            "z_max",
+            "c_z",
+            "c_e",
+            "g_degr",
+            "c_kaf",
+            "q_bolt",
+            "r_bolt",
+            "m_par",
+            "mc_ratio",
+            "mc_c"
         ]
         self.p_atm = p_atm
         self.inputs += self._extra_class_inputs
         self.pm4sand_parameters = OrderedDict([
             ("D_r", "relative_density"),
-            ("h_po", "hp0"),
+            ("h_po", "h_po"),
             ("G_o", "g0_mod"),
             ("density", "density"),
             ("porosity", "porosity"),
@@ -157,7 +171,7 @@ class PM4Sand(FlacSoil, sm.StressDependentSoil):
             ])
         if not hasattr(self, "definitions"):
             self.definitions = OrderedDict()
-        self.definitions["hp0"] = ["Contraction rate parameter", "-"]
+        self.definitions["h_po"] = ["Contraction rate parameter", "-"]
         self.definitions["G_o"] = ["Normalised shear modulus factor", "-"]
         self.definitions["p_atm"] = ["Atmospheric pressure", "Pa"]
 
@@ -176,13 +190,27 @@ class PM4Sand(FlacSoil, sm.StressDependentSoil):
         self.prop_dict = build_parameter_descriptions(self, user_p=self.definitions, output="dict", plist=plist)
 
     @property
+    def h_po(self):
+        return self._h_po
+
+    @h_po.setter
+    def h_po(self, value):
+        value = clean_float(value)
+        self._h_po = value
+        if value is not None:
+            self._add_to_stack("h_po", value)
+
+    @property
     def hp0(self):
-        return self._hp0
+        deprecation('hp0 is deprecated, used h_po')
+        return self._h_po
 
     @hp0.setter
     def hp0(self, value):
         value = clean_float(value)
-        self._hp0 = value
+        self._h_po = value
+        if value is not None:
+            self._add_to_stack("h_po", value)
 
     @property
     def csr_n15(self):
@@ -192,6 +220,8 @@ class PM4Sand(FlacSoil, sm.StressDependentSoil):
     def csr_n15(self, value):
         value = clean_float(value)
         self._csr_n15 = value
+        if value is not None:
+            self._add_to_stack("h_po", value)
 
     @property
     def h_o(self):
@@ -204,6 +234,8 @@ class PM4Sand(FlacSoil, sm.StressDependentSoil):
     @h_o.setter
     def h_o(self, value):
         self._h_o = value
+        if value is not None:
+            self._add_to_stack("h_po", value)
 
     def g_mod_at_v_eff_stress(self, sigma_v_eff):  # Override base function since k0 is different
         return self.get_g_mod_at_v_eff_stress(self, sigma_v_eff)
