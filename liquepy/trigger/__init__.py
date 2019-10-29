@@ -5,3 +5,4 @@ from liquepy.trigger.volumetric_strain import calc_volumetric_strain, calculate_
     calc_volumetric_strain_zhang_2004
 from liquepy.trigger.shear_strain import calc_shear_strain, calculate_shear_strain, calc_relative_density_zhang_2002, \
     calc_shear_strain_zhang_2004
+from ..trigger import nses

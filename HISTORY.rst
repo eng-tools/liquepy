@@ -7,6 +7,9 @@ History
 
 * Fixed issue with stack not working for overriding soil properties
 * Added h_po to PM4Sand obj
+* Added estimation of cumulative absolute (change in) strain energy (CASE) in 1D soil profile using the nodal surface energy spectrum (NSES) from Millen et al. (2019) as a function `lq.trigger.nses.est_case_1d_millen_et_al_2019()`
+* Added example of estimation of CASE compared to linear analysis using pysra package
+* Added calculation of cumulative absolute (change in) strain energy (CASE) of element test from Millen et al. (2019) as function `calc_case_peaks_and_indices_fd`
 
 0.6.1 (2019-10-7)
 --------------------
