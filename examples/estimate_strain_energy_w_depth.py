@@ -9,6 +9,24 @@ import engformat as ef
 
 
 def run_sra(sp, m, odepths, analysis="linear", d_inc=None):
+    """
+    Conduct a site response analysis
+
+    Parameters
+    ----------
+    sp: sm.SoilProfile object
+    m: pysra.Motion object
+    odepths: array_like
+        Depths for outputting results
+    analysis: str
+        Analysis type (equivalent linear or linear)
+    d_inc: float
+        depth increment to discretize soil material behaviour
+
+    Returns
+    -------
+
+    """
     if d_inc is None:
         d_inc = np.ones(sp.n_layers)
 
@@ -46,7 +64,19 @@ def run_sra(sp, m, odepths, analysis="linear", d_inc=None):
     return out_series, profile, calc
 
 
-def analyse(sp, m):
+def calc_case_and_cake_from_lin_analysis(sp, m):
+    """
+    Compute the CASE and CAKE from a linear analysis
+
+    Parameters
+    ----------
+    sp: sm.SoilProfile object
+    m: pysra.Motion object
+
+    Returns
+    -------
+
+    """
     odepths = np.arange(0.5, int(sp.height - 1), 0.5)
 
     oseries, profile, calc = run_sra(sp, m, odepths)
@@ -83,100 +113,81 @@ def analyse(sp, m):
     return odepths, case, cake
 
 
-def build_soil_profile(thicknesses, g_mods, xis, unit_weights, add_rock=0):
-    depths = np.cumsum(thicknesses)
-    depths = np.insert(depths, 0, 0)
-
-    sp = sm.SoilProfile()
-    sp.gwl = 10000
-    sp.height = depths[-1]
-    sp.hydrostatic = True
-    for i in range(len(unit_weights)):
-        sl = sm.Soil()
-        sl.unit_dry_weight = unit_weights[i]
-        sl.g_mod = g_mods[i]
-        sl.specific_gravity = 2.65
-        sl.xi = xis[i]
-        sp.add_layer(depths[i], sl)
-
-    if add_rock:
-        rock = sm.Soil()
-        rock.unit_dry_weight = 17500.
-        rock.specific_gravity = 2.65
-        rock.g_mod = 100.0e6
-        rock.xi = 0.01
-
-        sp.height = depths[-1] + 1.0
-        sp.add_layer(depths[-1], rock)
-    return sp
-
-
 def create(save=0, show=0):
 
     bf, sps = plt.subplots(ncols=2, nrows=1, figsize=(6.5, 5), squeeze=False)
     sps = sps.flatten()
 
-    # Define soil profile
+    # Define soil profile properties
     damp = 0.03
-    thicknesses = np.array([10, 10, 10])
-    g_mods = np.array([40.0e6, 30.0e6, 40.0e6])
-    unit_weights = [20000., 20000., 20000.]
-    xis = np.ones(3) * damp
-    sp = build_soil_profile(thicknesses, g_mods, xis, unit_weights)
+    sp = sm.SoilProfile()  # Soil profile object
+    # Top layer
+    sl1 = sm.Soil(g_mod=40.0e6, unit_dry_weight=20.0e3)
+    sl1.xi = damp
+    sp.add_layer(depth=0, soil=sl1)
+    # Middle layer - with lower shear modulus
+    sl2 = sm.Soil(g_mod=30.0e6, unit_dry_weight=20.0e3)
+    sl2.xi = damp
+    sp.add_layer(depth=10, soil=sl2)
+    # Bottom layer
+    sl3 = sm.Soil(g_mod=40.0e6, unit_dry_weight=20.0e3)
+    sl3.xi = damp
+    sp.add_layer(depth=20, soil=sl3)
+    sp.height = 30  # m
 
-    sps[-1].axvline(0, c="k", ls="--")
+    # Load ground motion
+    acc = np.loadtxt('test_motion_dt0p01.txt', skiprows=2)
+    dt = 0.01
 
-    asig = eqsig.load_asig('test_motion_dt0p01.txt')
+    # Create pysra motion object, Should be input as g
+    m = pysra.motion.TimeSeriesMotion('test motion', description=None, time_step=dt, accels=acc / 9.8)
 
-    # Should be input as g
-    m = pysra.motion.TimeSeriesMotion(filename='test motion', description=None, time_step=asig.dt,
-                                      accels=asig.values / 9.8)
-
-    in_signal = eqsig.AccSignal((m.accels / 2) * 9.8, m.time_step)  # Should be input as m/s2
+    # Calculate the input CAKE to normalise the plots
+    in_signal = eqsig.AccSignal((m.accels / 2) * 9.8, m.time_step)  # Should be input as m/s2 (note divide by 2)
     rho = sp.layer(3).unit_dry_weight / 9.8
     in_uke = eqsig.im.calc_unit_kinetic_energy(in_signal)[-1]
     in_cake = in_uke * rho
-    odepths, cake, case = analyse(sp, m)
 
-    sps[1].plot(cake / in_cake, odepths, ls="-", ms=2, label="Linear $\\xi={0:.0f}$%".format(damp * 100), c=cbox(0))
+    # Perform linear site response analysis
+    odepths, cake, case = calc_case_and_cake_from_lin_analysis(sp, m)
     sps[0].plot(case / in_cake, odepths, ls="-", label="Linear $\\xi={0:.0f}$%".format(damp * 100), c=cbox(0), lw=1)
+    sps[1].plot(cake / in_cake, odepths, ls="-", ms=2, label="Linear $\\xi={0:.0f}$%".format(damp * 100), c=cbox(0))
 
-    pred_case = lq.trigger.nses.est_case_1d_millen_et_al_2019(sp, in_signal, odepths, xi=sp.layer(1).xi)[:, -1]
-    sps[0].plot(pred_case / in_cake, odepths, 's', label="NSES (base)", c=cbox(1))
-    pred_cake = lq.trigger.nses.est_case_1d_millen_et_al_2019(sp, in_signal, odepths, xi=sp.layer(1).xi,
-                                                              g_scale_limit=4, nodal=False)[:, -1]
-    sps[1].plot(pred_cake / in_cake, odepths, 's', label="ASES (base)", c=cbox(1))
+    # Estimate CASE and CAKE using the input motion with method from Millen et al. (2019)
+
+    pred_case = lq.trigger.nses.est_case_1d_millen_et_al_2019(sp, in_signal, odepths, xi=damp)[:, -1]
+    pred_cake = lq.trigger.nses.est_case_1d_millen_et_al_2019(sp, in_signal, odepths, xi=damp, nodal=False)[:, -1]
+    sps[0].plot(pred_case / in_cake, odepths, 's', label="NSES (base)", c=cbox(1), ms=3, alpha=0.6)
+    sps[1].plot(pred_cake / in_cake, odepths, 's', label="ASES (base)", c=cbox(1), ms=3, alpha=0.6)
 
     # get surface motion
     oseries, profile, calc = run_sra(sp, m, [0])
-    acc_signal = eqsig.AccSignal(oseries["upACCX_d%i" % 0] * 9.8, m.time_step)
-    pred_case = lq.trigger.nses.est_case_1d_millen_et_al_2019(sp, acc_signal, odepths, xi=sp.layer(1).xi, in_loc=0, start=False)[:, -1]
+    surf_sig = eqsig.AccSignal(oseries["upACCX_d%i" % 0] * 9.8, m.time_step)
+
+    # Estimate CASE and CAKE using the surface motion with method from Millen et al. (2019)
+    pred_case = lq.trigger.nses.est_case_1d_millen_et_al_2019(sp, surf_sig, odepths, xi=damp, in_loc=0)[:, -1]
+
+    pred_cake = lq.trigger.nses.est_case_1d_millen_et_al_2019(sp, surf_sig, odepths, xi=damp, in_loc=0,
+                                                              nodal=False)[:, -1]
     sps[0].plot(pred_case / in_cake, odepths, "x", ms=3, label="NSES (surf)", c=cbox(3))
-    pred_cake = lq.trigger.nses.est_case_1d_millen_et_al_2019(sp, acc_signal, odepths, xi=sp.layer(1).xi, in_loc=0,
-                                                              start=False, nodal=False)[:, -1]
     sps[1].plot(pred_cake / in_cake, odepths, "x", ms=3, label="ASES (surf)", c=cbox(3))
 
-    sps[0].legend().set_zorder(1012)
-    ef.revamp_legend(sps[0], prop={"size": 8}, loc="lower right")
-
+    # Clean plot
     sps[0].set_ylabel("Depth [m]")
-    sps[-1].set_xlabel("$\\frac{CASE - CASE_{pred}}{CASE_{pred}}$")
-    ef.revamp_legend(sps[-1], prop={"size": 8}, loc="lower left")
-    ef.xy(sps[-1], y_origin=True)
     sps[0].set_xlabel("$\\frac{CASE}{CAKE_{in}}$")
     sps[1].set_xlabel("$\\frac{CAKE}{CAKE_{in}}$")
+
+    ef.revamp_legend(sps[0], prop={"size": 8}, loc="lower left")
+    ef.revamp_legend(sps[-1], prop={"size": 8}, loc="lower right")
+
     for i in range(len(sps)):
-
         ef.xy(sps[i], x_origin=True, y_origin=True)
-
         sps[i].set_ylim([0, 30])
         sps[i].invert_yaxis()
         if i != 0:
             sps[i].tick_params(axis='y', which='both', left=False, right=False, labelleft=False)
-
     plt.tight_layout()
     bf.subplots_adjust(wspace=0.05, hspace=0)
-
     plt.show()
 
 

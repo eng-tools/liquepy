@@ -1,4 +1,5 @@
 import numpy as np
+import eqsig
 
 
 def calc_diss_energy_fd(force, disp):

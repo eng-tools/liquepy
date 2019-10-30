@@ -2,9 +2,9 @@
 History
 =======
 
-0.6.X (2019-X-X)
+0.6.3 (2019-10-X)
 --------------------
-
+* Added missing `import eqsig` at top of lq.element.assess.py file - used in `calc_stored_energy_abs_incs_fd_peaks_and_indices` function
 
 0.6.2 (2019-10-30)
 --------------------

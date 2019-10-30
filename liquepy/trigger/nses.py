@@ -11,7 +11,7 @@ def calc_energy_ratio_w_time(xi, total_time, time, av_period):
     return (up_reduction + down_reduction) / 2
 
 
-def est_case_1d_millen_et_al_2019(sp, asig, depth, xi, g_mod_red=1.0, trim=False, start=True, period=0.5, exact=False,
+def est_case_1d_millen_et_al_2019(sp, asig, depth, xi, g_mod_red=1.0, trim=False, start=False, period=0.5, exact=False,
                                    in_loc=1, g_scale_limit=10, nodal=True):
     """
     Calculates the Cumulative absolute change in strain energy according to Millen et al. (2019)
@@ -78,7 +78,10 @@ def est_case_1d_millen_et_al_2019(sp, asig, depth, xi, g_mod_red=1.0, trim=False
             stt = 0.0
         else:
             soil_in = sp.get_soil_at_depth(sp.height)
-            stt = total_time
+            if start:
+                stt = total_time
+            else:
+                stt = 0.0
         down_red = np.exp(-xi * time_at_depth * 2 * np.pi / period) ** 2 * surf_reduction
         spectra_series = eqsig.surface.calc_cum_abs_surface_energy(asig, time_at_depth, up_red=up_red,
                                                                    down_red=down_red, trim=trim, nodal=nodal, stt=stt)
@@ -92,7 +95,10 @@ def est_case_1d_millen_et_al_2019(sp, asig, depth, xi, g_mod_red=1.0, trim=False
         else:
             soil_in = sp.get_soil_at_depth(sp.height)
             red_ratio = red_at_surf + (1 - red_at_surf) / 2 * time_at_depth / total_time
-            stt = total_time
+            if start:
+                stt = total_time
+            else:
+                stt = 0.0
         spectra_series = eqsig.surface.calc_cum_abs_surface_energy(asig, time_at_depth, trim=trim, nodal=nodal, stt=stt)
         spectra_series = red_ratio[:, np.newaxis] * np.asarray(spectra_series)
     rho_in = soil_in.unit_dry_weight / 9.8
