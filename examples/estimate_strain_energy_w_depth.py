@@ -141,7 +141,7 @@ def create(save=0, show=0):
     sps[1].plot(cake / in_cake, odepths, ls="-", ms=2, label="Linear $\\xi={0:.0f}$%".format(damp * 100), c=cbox(0))
     sps[0].plot(case / in_cake, odepths, ls="-", label="Linear $\\xi={0:.0f}$%".format(damp * 100), c=cbox(0), lw=1)
 
-    pred_case = lq.trigger.nses.est_case_1d_millen_et_al_2019(sp, in_signal, odepths, xi=sp.layer(1).xi, g_scale_limit=4)[:, -1]
+    pred_case = lq.trigger.nses.est_case_1d_millen_et_al_2019(sp, in_signal, odepths, xi=sp.layer(1).xi)[:, -1]
     sps[0].plot(pred_case / in_cake, odepths, 's', label="NSES (base)", c=cbox(1))
     pred_cake = lq.trigger.nses.est_case_1d_millen_et_al_2019(sp, in_signal, odepths, xi=sp.layer(1).xi,
                                                               g_scale_limit=4, nodal=False)[:, -1]
