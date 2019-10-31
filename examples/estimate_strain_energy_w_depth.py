@@ -150,15 +150,15 @@ def create(save=0, show=0):
 
     # Perform linear site response analysis
     odepths, cake, case = calc_case_and_cake_from_lin_analysis(sp, m)
-    sps[0].plot(case / in_cake, odepths, ls="-", label="Linear $\\xi={0:.0f}$%".format(damp * 100), c=cbox(0), lw=1)
-    sps[1].plot(cake / in_cake, odepths, ls="-", ms=2, label="Linear $\\xi={0:.0f}$%".format(damp * 100), c=cbox(0))
+    sps[0].plot(case / in_cake, odepths, ls="-", label="Linear analysis $\\xi={0:.0f}$%".format(damp * 100), c=cbox(0), lw=1)
+    sps[1].plot(cake / in_cake, odepths, ls="-", ms=2, label="Linear analysis $\\xi={0:.0f}$%".format(damp * 100), c=cbox(0))
 
     # Estimate CASE and CAKE using the input motion with method from Millen et al. (2019)
 
     pred_case = lq.trigger.nses.est_case_1d_millen_et_al_2019(sp, in_signal, odepths, xi=damp)[:, -1]
     pred_cake = lq.trigger.nses.est_case_1d_millen_et_al_2019(sp, in_signal, odepths, xi=damp, nodal=False)[:, -1]
-    sps[0].plot(pred_case / in_cake, odepths, 's', label="NSES (base)", c=cbox(1), ms=3, alpha=0.6)
-    sps[1].plot(pred_cake / in_cake, odepths, 's', label="ASES (base)", c=cbox(1), ms=3, alpha=0.6)
+    sps[0].plot(pred_case / in_cake, odepths, 's', label="NSES Estimate (base)", c=cbox(1), ms=3, alpha=0.6)
+    sps[1].plot(pred_cake / in_cake, odepths, 's', label="ASES Estimate (base)", c=cbox(1), ms=3, alpha=0.6)
 
     # get surface motion
     oseries, profile, calc = run_sra(sp, m, [0])
@@ -169,8 +169,8 @@ def create(save=0, show=0):
 
     pred_cake = lq.trigger.nses.est_case_1d_millen_et_al_2019(sp, surf_sig, odepths, xi=damp, in_loc=0,
                                                               nodal=False)[:, -1]
-    sps[0].plot(pred_case / in_cake, odepths, "x", ms=3, label="NSES (surf)", c=cbox(3))
-    sps[1].plot(pred_cake / in_cake, odepths, "x", ms=3, label="ASES (surf)", c=cbox(3))
+    sps[0].plot(pred_case / in_cake, odepths, "x", ms=3, label="NSES Estimate (surf)", c=cbox(3))
+    sps[1].plot(pred_cake / in_cake, odepths, "x", ms=3, label="ASES Estimate (surf)", c=cbox(3))
 
     # Clean plot
     sps[0].set_ylabel("Depth [m]")
