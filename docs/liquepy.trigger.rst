@@ -36,6 +36,14 @@ liquepy.trigger.volumetric\_strain module
     :undoc-members:
     :show-inheritance:
 
+liquepy.trigger.nses module
+-----------------------------------------
+
+.. automodule:: liquepy.trigger.nses
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

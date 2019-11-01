@@ -12,6 +12,14 @@ liquepy.element.models module
     :undoc-members:
     :show-inheritance:
 
+liquepy.element.assess module
+-----------------------------
+
+.. automodule:: liquepy.element.assess
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------

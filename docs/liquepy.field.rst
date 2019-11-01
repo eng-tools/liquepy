@@ -12,6 +12,22 @@ liquepy.field.cpt\_file module
     :undoc-members:
     :show-inheritance:
 
+liquepy.field.correlations module
+------------------------------
+
+.. automodule:: liquepy.field.correlations
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+liquepy.field.transect module
+------------------------------
+
+.. automodule:: liquepy.field.transect
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------
@@ -20,3 +36,5 @@ Module contents
     :members:
     :undoc-members:
     :show-inheritance:
+
+
