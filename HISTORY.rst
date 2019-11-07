@@ -6,6 +6,8 @@ History
 --------------------
 * Updated docs
 * Updated names for PM4Sand FLAC
+* Refactored numerical models to be in generic num.models.py file and the inherited in application specific files (flac, o3), where app specific details are added.
+* Added permeability estimate `est_permeability_robertson_and_cabal_2012`
 
 0.6.3 (2019-10-31)
 --------------------

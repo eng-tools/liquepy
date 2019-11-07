@@ -84,4 +84,23 @@ def calc_g0_mod_boulanger_and_ziotopoulou_2015_spt_values(n_1_60):
     return 167. * np.sqrt(n_1_60 + 2.5)
 
 
+def est_permeability_robertson_and_cabal_2012(i_c):
+    """
+    Estimates the soil permeability based on the soil behaviour index :cite: `Robertson:2012cpt`
+
+    Parameters
+    ----------
+    i_c: float or array_like
+
+    Returns
+    -------
+
+    """
+    if np.min(i_c) < 1:
+        raise ValueError
+    return np.where(i_c < 3.27, 10.0 ** (0.952 - 3.04 * i_c), 10.0 ** (-4.52 - 1.37 * i_c))
+
+
+def est_shear_vel_hegazy_and_mayne_2006(q_c1n, i_c, esig_v0, p_a):
+    return 0.0831 * q_c1n * np.exp(1.7861 + i_c) * (esig_v0 / p_a) ** 0.25
 
