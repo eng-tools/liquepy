@@ -95,11 +95,15 @@ class PM4Sand(FlacSoil, sm.StressDependentSoil):
     z_max = None
     c_z = None
     c_e = None
+    phi_cv = None
     g_degr = None
+    c_dr = None
     c_kaf = None
     q_bolt = None
     r_bolt = None
     m_par = None
+    f_sed = None
+    p_sed = None
     mc_ratio = None
     mc_c = None
 
@@ -132,11 +136,15 @@ class PM4Sand(FlacSoil, sm.StressDependentSoil):
             "z_max",
             "c_z",
             "c_e",
+            "phi_cv",
             "g_degr",
+            "c_dr",
             "c_kaf",
             "q_bolt",
             "r_bolt",
             "m_par",
+            "f_sed",
+            "p_sed",
             "mc_ratio",
             "mc_c"
         ]

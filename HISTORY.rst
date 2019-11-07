@@ -5,6 +5,7 @@ History
 0.6.X (2019-X-X)
 --------------------
 * Updated docs
+* Updated names for PM4Sand FLAC
 
 0.6.3 (2019-10-31)
 --------------------
