@@ -9,3 +9,5 @@ pySRA>=0.2.1
 
 pytest
 geographiclib
+cython
+cyko
