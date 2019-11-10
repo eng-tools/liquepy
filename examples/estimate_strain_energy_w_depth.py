@@ -113,7 +113,7 @@ def calc_case_and_cake_from_lin_analysis(sp, m):
     return odepths, case, cake
 
 
-def create(save=0, show=0):
+def create(show=0):
 
     bf, sps = plt.subplots(ncols=2, nrows=1, figsize=(6.5, 5), squeeze=False)
     sps = sps.flatten()
@@ -136,7 +136,9 @@ def create(save=0, show=0):
     sp.height = 30  # m
 
     # Load ground motion
-    acc = np.loadtxt('test_motion_dt0p01.txt', skiprows=2)
+    name = __file__.replace('.py', '')
+    path = name.split("estimate_strain_")[0]
+    acc = np.loadtxt(path + 'test_motion_dt0p01.txt', skiprows=2)
     dt = 0.01
 
     # Create pysra motion object, Should be input as g
@@ -188,8 +190,9 @@ def create(save=0, show=0):
             sps[i].tick_params(axis='y', which='both', left=False, right=False, labelleft=False)
     plt.tight_layout()
     bf.subplots_adjust(wspace=0.05, hspace=0)
-    plt.show()
+    if show:
+        plt.show()
 
 
 if __name__ == '__main__':
-    create()
+    create(show=1)

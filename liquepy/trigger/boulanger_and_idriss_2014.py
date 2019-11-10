@@ -169,9 +169,25 @@ def calc_q_c1n(q_c, c_n):
     return q_c1n
 
 
-def calc_crr_m7p5_from_qc1ncs(q_c1n_cs):
+def calc_crr_m7p5_from_qc1ncs(q_c1n_cs, c_0=2.8):
+    """
+    Calculation of cyclic resistance ratio for Magnitude 7.5 earthquake
+
+    Parameters
+    ----------
+    q_c1n_cs: float or array_like
+        Clean-sand equivalent, normalised cone tip resistance
+    c_0: float (default=2.8)
+        Empirical fitting parameter.
+         - 2.8=16th percentile (commonly used)
+         - 2.6=median response
+
+    Returns
+    -------
+
+    """
     return np.exp((q_c1n_cs / 113) + ((q_c1n_cs / 1000) ** 2) -
-                        ((q_c1n_cs / 140) ** 3) + ((q_c1n_cs / 137) ** 4) - 2.8)
+                        ((q_c1n_cs / 140) ** 3) + ((q_c1n_cs / 137) ** 4) - c_0)
 
 
 def calc_crr_m7p5_from_qc1ncs_capped(q_c1n_cs, gwl, depth, i_c, i_c_limit=2.6):
@@ -521,7 +537,7 @@ def run_bi2014(cpt, pga, m_w, gwl=None, cfc=0.0, **kwargs):
                                saturation=saturation, unit_wt_method=unit_wt_method, gamma_predrill=gamma_predrill)
 
 
-def calc_qc_1ncs_from_crr_m7p5(crr_7p5):
+def calc_qc_1ncs_from_crr_m7p5(crr_7p5, c_0=2.8):
     """
     Solves the closed form solution to a quartic to invert the CRR_7p5-vs-q_c1n_cs relationship
 
@@ -529,6 +545,10 @@ def calc_qc_1ncs_from_crr_m7p5(crr_7p5):
     ----------
     crr_7p5: float or array_like
         values of cyclic resistance ratio at m_w 7.5
+    c_0: float (default=2.8)
+        Empirical fitting parameter.
+         - 2.8=16th percentile (commonly used)
+         - 2.6=median response
     Returns
     -------
     float or array_like
@@ -539,7 +559,7 @@ def calc_qc_1ncs_from_crr_m7p5(crr_7p5):
     b = - (1 / 140) ** 3
     c = (1 / 1000) ** 2
     d = (1 / 113)
-    e = - (np.log(crr_7p5) + 2.8)
+    e = - (np.log(crr_7p5) + c_0)
 
     p = (8 * a * c - 3 * b ** 2) / (8 * a ** 2)
     q = (b ** 3 - 4 * a *b *c + 8 * d * (a ** 2)) / (8 * a ** 3)

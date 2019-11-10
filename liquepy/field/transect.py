@@ -33,7 +33,7 @@ class Loc(sm.CustomObject):
             cpt_delimiter = None
         self.cpt_delimiter = kwargs.get("cpt_delimiter", cpt_delimiter)
         self._extra_class_inputs = ["cpt", "x", "offset", "off_dir", "cpt_folder_path", "cpt_file_name", "cpt_delimiter",
-                                    "esp", "soil_profile_id", "coords"]
+                                    "soil_profile_id", "coords"]
         self.inputs = self.inputs + self._extra_class_inputs
 
     @property

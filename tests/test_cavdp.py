@@ -20,6 +20,9 @@ def test_cavdp():
 
     # 1.4598176 from liquepy 0.1.0  tested with several motion
     assert np.isclose(cav_dp, 1.4598176, rtol=0.001), cav_dp
+    cav_dp = liquepy.motion.measures.calculate_cav_dp(asig.values, dt)
+    assert np.isclose(cav_dp, 1.4598176, rtol=0.001), cav_dp
+
 
 if __name__ == '__main__':
     test_cavdp()
