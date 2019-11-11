@@ -42,12 +42,23 @@ class FlacSoil(sm.Soil):
             ("por", "porosity"),
             ("perm", "flac_permeability")
         ])
+        self.required_parameters = []
+        for item in self.flac_parameters:
+            param = self.flac_parameters[item]
+            self.required_parameters.append(param)
         if not hasattr(self, "definitions"):
             self.definitions = OrderedDict()
         self.definitions["density"] = ["Soil mass density", "kg"]
         self.definitions["tension"] = ["Soil strength in tension", "Pa"]
-        self.definitions["flac_permeability"] = ["Permeability of soil", "??"]
+        self.definitions["flac_permeability"] = ["Permeability of soil", "m^2/Pa.sec"]
         self.prop_dict = OrderedDict()
+
+    def to_fis_mohr_coulomb(self):
+        name = "'Layer {0}'".format(self.id)
+        para = ["model mohr notnull group %s" % name]
+        para.append(write_parameters_to_fis(self, self.flac_parameters, name, prefix="layer%i_" % self.id,
+                                            ncols=1, not_null=True))
+        return "\n".join(para)
 
     def set_prop_dict(self):
         plist = []
@@ -242,3 +253,27 @@ def save_input_motion(ffp, name, values, dt):
 
 def calc_hp0_from_crr_n15_and_relative_density_millen_et_al_2019(crr_n15, d_r):
     return crr_n15 * (2.05 - 2.4 * d_r) / (1. - crr_n15 * (12.0 - (12.5 * d_r)))
+
+
+def write_parameters_to_fis(obj, parameters, name, prefix="", ncols=3, not_null=False):
+    count = 0
+    para = []
+    pline = ["prop"]
+    for item in parameters:
+        ecp_name = parameters[item]
+        if getattr(obj, ecp_name) is None:
+            continue
+        pline.append("{}={}{}".format(item, prefix, ecp_name))
+        count += 1
+        if count == ncols:
+            if not_null:
+                pline.append("notnull group %s" % name)
+            else:
+                pline.append("group %s" % name)
+            para.append(" ".join(pline))
+            pline = ["prop"]
+            count = 0
+    if count:
+        para.append(" ".join(pline))
+
+    return "\n".join(para)
