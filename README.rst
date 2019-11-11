@@ -2,6 +2,9 @@
    :target: https://travis-ci.org/eng-tools/liquepy
    :alt: Testing Status
 
+.. image:: https://circleci.com/gh/eng-tools/liquepy.svg?style=svg
+    :target: https://circleci.com/gh/eng-tools/liquepy
+
 .. image:: https://img.shields.io/pypi/v/liquepy.svg
    :target: https://pypi.python.org/pypi/liquepy
    :alt: PyPi version
