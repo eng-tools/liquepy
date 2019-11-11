@@ -11,7 +11,7 @@ def determine_t_liq_index(ru, ru_limit, return_none=False):
     :return:
     """
 
-    ind2 = np.where(ru > ru_limit)
+    ind2 = np.where(ru >= ru_limit)
     if len(ind2[0]):
         t_liq_index = ind2[0][0]
     else:

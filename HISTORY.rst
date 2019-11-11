@@ -2,7 +2,7 @@
 History
 =======
 
-0.6.4 (2019-11-12)
+0.6.5 (2019-11-12)
 --------------------
 * Updated docs
 * Updated names for PM4Sand FLAC
@@ -12,6 +12,7 @@ History
 * Can change empirical fitting parameter 'c0' in calculation of CRR_m7.5 from BI2016
 * Added more logic for FLACSoil model to output to fis file
 * Fixed issue where could not calculate transfer function in site response analysis
+* `determine_t_liq_index` now uses ru greater than or equal to limit, rather than just greater than
 
 0.6.3 (2019-10-31)
 --------------------
