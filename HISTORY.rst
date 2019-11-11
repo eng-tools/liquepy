@@ -2,7 +2,7 @@
 History
 =======
 
-0.6.5 (2019-11-12)
+0.6.6 (2019-11-12)
 --------------------
 * Updated docs
 * Updated names for PM4Sand FLAC

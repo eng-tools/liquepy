@@ -2,3 +2,7 @@ coverage
 codecov
 pylint
 twine
+
+# for example tests
+bwplot
+engformat
