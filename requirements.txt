@@ -11,3 +11,7 @@ pytest
 geographiclib
 #cython
 #cyko
+
+# for example tests
+bwplot
+engformat
