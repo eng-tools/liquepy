@@ -15,8 +15,8 @@ def calc_pysra_tf(pysra_profile, pysra_freqs=None):
         pysra_freqs = np.logspace(-0.7, 1.5, num=200)
     m = pysra.motion.Motion(freqs=pysra_freqs)
     outputs = pysra.output.OutputCollection(
-        pysra.output.AccelTransferFunctionOutput(pysra_freqs, pysra.output.OutputLocation('outcrop', index=-1),
-                                                 pysra.output.OutputLocation('outcrop', index=0)),
+        [pysra.output.AccelTransferFunctionOutput(pysra_freqs, pysra.output.OutputLocation('outcrop', index=-1),
+                                                 pysra.output.OutputLocation('outcrop', index=0)),]
     )
     calc = pysra.propagation.LinearElasticCalculator()
     calc(m, pysra_profile, pysra_profile.location('outcrop', index=-1))
