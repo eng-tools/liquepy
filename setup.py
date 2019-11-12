@@ -31,6 +31,7 @@ setup(name=about['__project__'],
                         'geofound',
                         'numpy',
                         'pyexcel',
+                        "pandas"
                         'pysra>=0.3.2',
                         'eqsig>=0.5.35',
                         'geographiclib',

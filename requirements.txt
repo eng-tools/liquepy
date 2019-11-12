@@ -6,6 +6,7 @@ geofound
 pyexcel
 # pySRA===0.2.1p2
 pySRA  # <=0.4.4
+pandas
 
 pytest
 geographiclib
