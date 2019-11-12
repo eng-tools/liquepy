@@ -12,7 +12,7 @@ def calc_energy_ratio_w_time(xi, total_time, time, av_period):
 
 
 def est_case_1d_millen_et_al_2019(sp, asig, depth, xi, g_mod_red=1.0, trim=False, start=False, period=0.5, exact=False,
-                                   in_loc=1, g_scale_limit=1e3, nodal=True):
+                                   in_loc=1, g_scale_limit=1e3, nodal=True, cace=True):
     """
     Calculates the Cumulative absolute change in strain energy according to Millen et al. (2019)
 
@@ -80,8 +80,13 @@ def est_case_1d_millen_et_al_2019(sp, asig, depth, xi, g_mod_red=1.0, trim=False
             soil_in = sp.get_soil_at_depth(sp.height)
             stt = total_time
         down_red = np.exp(-xi * time_at_depth * 2 * np.pi / period) ** 2 * surf_reduction
-        spectra_series = eqsig.surface.calc_cum_abs_surface_energy(asig, time_at_depth, up_red=up_red,
+        if cace:
+            spectra_series = eqsig.surface.calc_cum_abs_surface_energy(asig, time_at_depth, up_red=up_red,
                                                                    down_red=down_red, trim=trim, nodal=nodal, stt=stt)
+        else:
+            spectra_series = eqsig.surface.calc_surface_energy(asig, time_at_depth, up_red=up_red,
+                                                                       down_red=down_red, trim=trim, nodal=nodal,
+                                                                       stt=stt)
         spectra_series = np.asarray(spectra_series)
     else:
         red_at_surf = calc_energy_ratio_w_time(xi, total_time, 0, av_period=period)
@@ -93,8 +98,11 @@ def est_case_1d_millen_et_al_2019(sp, asig, depth, xi, g_mod_red=1.0, trim=False
             soil_in = sp.get_soil_at_depth(sp.height)
             red_ratio = red_at_surf + (1 - red_at_surf) / 2 * time_at_depth / total_time
             stt = total_time
-        spectra_series = eqsig.surface.calc_cum_abs_surface_energy(asig, time_at_depth, trim=trim, nodal=nodal, stt=stt,
+        if cace:
+            spectra_series = eqsig.surface.calc_cum_abs_surface_energy(asig, time_at_depth, trim=trim, nodal=nodal, stt=stt,
                                                                    start=start)
+        else:
+            spectra_series = eqsig.surface.calc_surface_energy(asig, time_at_depth, trim=trim, nodal=nodal, stt=stt, start=start)
         spectra_series = red_ratio[:, np.newaxis] * np.asarray(spectra_series)
     rho_in = soil_in.unit_dry_weight / 9.8
     g_in = np.interp(in_depth, split_depths, split_g_mod)

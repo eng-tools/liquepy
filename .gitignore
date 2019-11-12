@@ -7,3 +7,5 @@ liquepy.egg-info/
 venv/
 
 docs/_build
+*/~$*
+tests/unit_test_data/~$CPT*

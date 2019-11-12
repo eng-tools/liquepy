@@ -5,7 +5,7 @@ eqsig>=0.5.35
 geofound
 pyexcel
 # pySRA===0.2.1p2
-pySRA<=0.4.4
+pySRA  # <=0.4.4
 
 pytest
 geographiclib
@@ -15,3 +15,6 @@ geographiclib
 # for example tests
 bwplot
 engformat
+
+# for tests
+xlrd

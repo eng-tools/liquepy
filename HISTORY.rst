@@ -2,6 +2,10 @@
 History
 =======
 
+0.6.X (2019-X-X)
+--------------------
+* Added nzgd CPT file converter
+
 0.6.6 (2019-11-12)
 --------------------
 * Updated docs
