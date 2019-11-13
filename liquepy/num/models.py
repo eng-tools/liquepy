@@ -47,7 +47,7 @@ class PM4Sand(sm.StressDependentSoil):
 
         sm.StressDependentSoil.__init__(self, liq_mass_density=_liq_mass_density, g=_gravity, **kwargs)
         self._extra_class_inputs = [
-            "hp0",
+            "h_po",
             "crr_n15",
             "p_atm",
             "h_o",

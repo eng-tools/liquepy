@@ -31,7 +31,7 @@ class FlacSoil(sm.Soil):
         super(FlacSoil, self).__init__(liq_mass_density=_liq_mass_density, g=_gravity)
         self._extra_class_inputs = ["tension"]
         self.inputs = self.inputs + self._extra_class_inputs
-        self.flac_parameters = OrderedDict([
+        self.app2mod = OrderedDict([
             ("bulk", "bulk_mod"),
             ("shear", "g_mod"),
             ("friction", "phi"),
@@ -43,9 +43,10 @@ class FlacSoil(sm.Soil):
             ("perm", "flac_permeability")
         ])
         self.required_parameters = []
-        for item in self.flac_parameters:
-            param = self.flac_parameters[item]
-            self.required_parameters.append(param)
+        # for item in self.flac_parameters:
+        #     param = self.flac_parameters[item]
+        self.required_parameters = list(self.app2mod)
+        self.optional_parameters = []
         if not hasattr(self, "definitions"):
             self.definitions = OrderedDict()
         self.definitions["density"] = ["Soil mass density", "kg"]
@@ -53,17 +54,21 @@ class FlacSoil(sm.Soil):
         self.definitions["flac_permeability"] = ["Permeability of soil", "m^2/Pa.sec"]
         self.prop_dict = OrderedDict()
 
+    @property
+    def all_flac_parameters(self):
+        return self.required_parameters + self.optional_parameters
+
     def to_fis_mohr_coulomb(self):
         name = "'Layer {0}'".format(self.id)
         para = ["model mohr notnull group %s" % name]
-        para.append(write_parameters_to_fis(self, self.flac_parameters, name, prefix="layer%i_" % self.id,
+        para.append(write_parameters_to_fis_models(self, self.all_flac_parameters,
                                             ncols=1, not_null=True))
         return "\n".join(para)
 
     def set_prop_dict(self):
         plist = []
-        for item in self.flac_parameters:
-            plist.append(self.flac_parameters[item])
+        for item in self.app2mod:
+            plist.append(self.app2mod[item])
         self.prop_dict = build_parameter_descriptions(self, user_p=self.definitions, output="dict", plist=plist)
 
     def find_units(self, parameter):
@@ -116,9 +121,10 @@ class PM4Sand(FlacSoil, PM4SandBase):
         FlacSoil.__init__(self, liq_mass_density=_liq_mass_density, g=_gravity)
         PM4SandBase.__init__(self, liq_mass_density=_liq_mass_density, g=_gravity, p_atm=p_atm, **kwargs)
         self._extra_class_inputs = []
-        self.app2mod = OrderedDict([
+
+        additional_dict = OrderedDict([
             ("D_r", "relative_density"),
-            ("h_po", "h_po"),
+            # ("h_po", "h_po"),
             ("G_o", "g0_mod"),
             # ("density", "density"),
             # ("porosity", "porosity"),
@@ -142,8 +148,34 @@ class PM4Sand(FlacSoil, PM4SandBase):
             ("R_bolt", "r_bolt"),
             ("MC_ratio", "mc_ratio"),
             ("MC_c", "mc_c")
-            ])
+        ])
+        self.app2mod.update(additional_dict)
         self.pm4sand_parameters = self.app2mod  # deprecated
+        self.required_parameters += ['h_po', 'D_r', 'G_o']
+        self.optional_parameters += [
+            "P_atm",
+            "k11",
+            "k22",
+            "pois",
+            "h_o",
+            "n_b",
+            "n_d",
+            "A_do",
+            "z_max",
+            "c_z",
+            "c_e",
+            "phi_cv",
+            "G_degr",
+            "c_dr",
+            "Ckaf",
+            "Q_bolt",
+            "R_bolt",
+            "m_par",
+            "f_sed",
+            "p_sed",
+            "MC_ratio",
+            "MC_c"
+        ]
 
     def __repr__(self):
         return "PM4SandFLAC Soil model, id=%i, phi=%.1f, Dr=%.2f" % (self.id, self.phi, self.relative_density)
@@ -255,21 +287,24 @@ def calc_hp0_from_crr_n15_and_relative_density_millen_et_al_2019(crr_n15, d_r):
     return crr_n15 * (2.05 - 2.4 * d_r) / (1. - crr_n15 * (12.0 - (12.5 * d_r)))
 
 
-def write_parameters_to_fis(obj, parameters, name, prefix="", ncols=3, not_null=False):
+def write_parameters_to_fis_models(obj, parameters, ncols=3, not_null=False):
     count = 0
     para = []
     pline = ["prop"]
-    for item in parameters:
-        ecp_name = parameters[item]
+    for flac_name in parameters:
+        if flac_name in obj.app2mod:
+            ecp_name = obj.app2mod[flac_name]
+        else:
+            ecp_name = flac_name
         if getattr(obj, ecp_name) is None:
             continue
-        pline.append("{}={}{}".format(item, prefix, ecp_name))
+        pline.append("{}={}_{}".format(flac_name, obj.name, ecp_name))
         count += 1
         if count == ncols:
             if not_null:
-                pline.append("notnull group %s" % name)
+                pline.append("notnull group %s" % obj.name)
             else:
-                pline.append("group %s" % name)
+                pline.append("group %s" % obj.name)
             para.append(" ".join(pline))
             pline = ["prop"]
             count = 0
@@ -277,3 +312,62 @@ def write_parameters_to_fis(obj, parameters, name, prefix="", ncols=3, not_null=
         para.append(" ".join(pline))
 
     return "\n".join(para)
+
+
+def write_obj_to_fis_str(obj, parameters, required=''):
+    para = []
+    for item in parameters:
+        if hasattr(obj, "find_units"):
+            units = obj.find_units(item)
+            if units is None or units == "":
+                units_str = ""
+            else:
+                units_str = "  ; %s" % obj.find_units(item)
+        else:
+            units_str = ""
+        if item in obj.app2mod:
+            ecp_name = obj.app2mod[item]
+        else:
+            ecp_name = item
+        val = getattr(obj, ecp_name)
+        if val is None:
+            if item in required:
+                raise sm.ModelError("%s_%s is None" % (obj.name, ecp_name))
+        elif isinstance(val, str):
+            para.append("  %s_%s=%s%s" % (obj.name, ecp_name, val, units_str))
+        else:
+            para.append("  %s_%s=%.5g%s" % (obj.name, ecp_name, val, units_str))
+
+    return para
+
+
+def write_soil_profile_obj_to_fis_str(soil_profile, auto_name=True):
+    """
+    This file defines the contents of the soil profile object as parameters in fis language
+
+    :param soil_profile:
+    :return:
+    """
+
+    num_layers = soil_profile.n_layers
+
+    para = ["", "def soil_profile_parameters"]
+
+    for i in range(1, num_layers + 1):
+        sl = soil_profile.layer(i)
+        if auto_name:
+            sl.name = "layer_%i" % i
+        sl.set_prop_dict()
+        para.append(" ; LAYER %i" % i)
+        para.append(f'; name: {sl.name}')
+        para.append(" layer_%i_thickness=%.4g  ; m" % (i, soil_profile.layer_height(i)))
+        para += write_obj_to_fis_str(sl, sl.all_flac_parameters, sl.required_parameters)
+        para.append("  ;")
+
+    para.append(" ; GROUND WATER TABLE (negative)")
+    para.append(" gwl= -%.4g  ; m" % soil_profile.gwl)
+    para.append(" gravity=%.4g  ; m/s2" % 9.8)
+    para.append(" density_water=%.4g  ; kg/m3" % (soil_profile.layer(1)._uww / 9.8))
+    para.append("end")
+    para.append("soil_profile_parameters")
+    return para
