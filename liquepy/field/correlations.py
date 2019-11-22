@@ -102,5 +102,21 @@ def est_permeability_robertson_and_cabal_2012(i_c):
 
 
 def est_shear_vel_hegazy_and_mayne_2006(q_c1n, i_c, esig_v0, p_a):
-    return 0.0831 * q_c1n * np.exp(1.7861 + i_c) * (esig_v0 / p_a) ** 0.25
+    """
+    Estimates the soil shear wave velocity from CPT :cite: `Hegazy:2012bs`
+
+    Eq 6.
+
+    Parameters
+    ----------
+    q_c1n
+    i_c
+    esig_v0
+    p_a
+
+    Returns
+    -------
+
+    """
+    return 0.0831 * q_c1n * np.exp(1.7861 * i_c) * (esig_v0 / p_a) ** 0.25
 

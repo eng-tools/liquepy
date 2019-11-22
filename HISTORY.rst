@@ -5,6 +5,7 @@ History
 0.6.X (2019-X-X)
 --------------------
 * Added nzgd CPT file converter
+* Corrected error in `est_shear_vel_hegazy_and_mayne_2006`
 
 0.6.6 (2019-11-12)
 --------------------

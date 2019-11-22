@@ -11,7 +11,7 @@ class PM4Sand(PM4SandBase):
         self.app2mod = {
             'd_r': 'relative_density',
             'g_o': 'g0_mod',
-            'den': 'unit_sat_mass',
+            'den': 'unit_moist_mass',
             'nu': 'poissons_ratio'
         }
 
@@ -30,7 +30,7 @@ class StressDensityModel(StressDensityModelBase):
         self._extra_class_inputs = []
         self.app2mod = {
             'e_init': 'e_curr',
-            'den': 'unit_sat_mass',
+            'den': 'unit_moist_mass',
             'nu': 'poissons_ratio',
             'n': 'a'
         }

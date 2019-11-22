@@ -588,3 +588,31 @@ def calc_qc_1ncs_from_crr_m7p5(crr_7p5, c_0=2.8):
 def calculate_qc_1ncs_from_crr_7p5(crr_7p5):
     deprecation("Use calc_qc_1ncs_from_crr_m7p5")
     return calc_qc_1ncs_from_crr_m7p5(crr_7p5)
+
+
+def calc_n_cycles_at_m7p5_bi2014(b):
+    """
+    Number of equivalent cycles for Magnitude 7.5 from Fig A.15 in BI2014
+
+    :param b:
+    :return:
+    """
+    b_vals = [0.060, 0.063, 0.068, 0.072, 0.078, 0.086, 0.095, 0.110, 0.129, 0.148,
+              0.168, 0.189, 0.213, 0.235, 0.253, 0.273, 0.310, 0.333, 0.372, 0.400]
+    n_cyc = [950.789, 628.731, 405.756, 278.274, 197.931, 121.658, 77.552, 47.081, 30.742, 22.947,
+             18.878, 16.503, 15.519, 14.593, 14.235, 14.054, 14.384, 14.374, 14.710, 15.060]
+    return np.interp(b, b_vals, n_cyc)
+
+
+def calc_b_from_msf_max_bi2014(msf_max):
+    """
+    Equivalent b value for a given magnitude scaling factor from Fig A.16 in BI2014
+
+    Where b is the power coefficient for the CSR-vs-n_cycles liquefaction resistance relationship
+
+    :param msf_max:
+    :return:
+    """
+    b_vals = [0.080, 0.101, 0.121, 0.147, 0.170, 0.191, 0.211, 0.250, 0.290, 0.312, 0.333, 0.353, 0.374, 0.399]
+    msf_max_vals = [1.000, 1.019, 1.045, 1.084, 1.130, 1.184, 1.242, 1.373, 1.540, 1.651, 1.768, 1.891, 2.025, 2.215]
+    return np.interp(msf_max, msf_max_vals, b_vals)
