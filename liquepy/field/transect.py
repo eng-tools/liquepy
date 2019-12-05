@@ -2,7 +2,8 @@ from _collections import OrderedDict
 import sfsimodels as sm
 from sfsimodels import functions as sf
 import liquepy as lq
-from liquepy.spatial import map_coords
+from liquepy._spatial_models import Coords
+import warnings
 
 
 # THESE MODELS ARE STILL IN ALPHA AND MAY CHANGE OFTEN
@@ -100,8 +101,8 @@ class Transect(sm.CustomObject):
         self.name = kwargs.get("name", None)
         start = kwargs.get("start", (0, 0))  # coords (lat, long)
         end = kwargs.get("end", (0, 0))
-        self.s_coords = map_coords.Coords(lat=start[0], lon=start[1])
-        self.e_coords = map_coords.Coords(lat=end[0], lon=end[1])
+        self.s_coords = Coords(lat=start[0], lon=start[1])
+        self.e_coords = Coords(lat=end[0], lon=end[1])
         self.ug_values = []
         self.ug_xs = []
         self.h_face = kwargs.get("h_face", None)
@@ -162,7 +163,13 @@ class Transect(sm.CustomObject):
 
     @property
     def tran_line(self):
-        return map_coords.Line(self.s_coords, self.e_coords)
+        try:
+            from liquepy.spatial.map_coords import Line
+            return Line(self.s_coords, self.e_coords)
+        except ImportError as e:
+            warnings.warn('Need to import spatial packages', stacklevel=3)
+            warnings.warn(e, stacklevel=3)
+            return None
 
     @property
     def x_end(self):
@@ -234,11 +241,11 @@ class Transect(sm.CustomObject):
 
     @start.setter
     def start(self, values):
-        self.s_coords = map_coords.Coords(lat=values[0], lon=values[1])
+        self.s_coords = Coords(lat=values[0], lon=values[1])
 
     @end.setter
     def end(self, values):
-        self.e_coords = map_coords.Coords(lat=values[0], lon=values[1])
+        self.e_coords = Coords(lat=values[0], lon=values[1])
 
 
 CUSTOM_MODELS = {"transect-transect": Transect,

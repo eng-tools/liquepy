@@ -120,3 +120,30 @@ def est_shear_vel_hegazy_and_mayne_2006(q_c1n, i_c, esig_v0, p_a):
     """
     return 0.0831 * q_c1n * np.exp(1.7861 * i_c) * (esig_v0 / p_a) ** 0.25
 
+
+def est_g_mod_robertson_2009(i_c, big_q, unit_weight):
+    """Set normalised shear modulus using Robertson (2009)."""
+    alpha_vs = 10 * (0.55 * i_c + 1.68)  # Eq 11 [m/s]
+    big_q = np.clip(big_q, 0.001, None)
+    vs1 = (alpha_vs * big_q) ** 0.5  # Eq 9 [m/s]
+    return unit_weight * vs1 ** 2
+
+
+def est_g0_mod_robertson_2009(i_c, big_q, unit_weight, esig_v, pa=101000, n=0.5):
+    """Set normalised shear modulus using Robertson (2009)."""
+    g_mod = est_g_mod_robertson_2009(i_c, big_q, unit_weight)
+    return g_mod / pa / (esig_v / pa) ** n
+
+
+def est_undrained_strength_ratio_robertson_2009(big_q, n_kt=14):
+    """determine normalised undrained strength using Robertson (2009)."""
+    return big_q / n_kt  # =(su / esig_v)  Eq 33
+
+
+def set_strength_props(sl, vert_eff_stress, i_c, big_q, n_kt=14):
+    if i_c > 2.6:
+        sl.cohesion = est_undrained_strength_ratio_robertson_2009(big_q, n_kt=n_kt) * vert_eff_stress
+        sl.phi = 0.0
+    else:
+        sl.phi = np.arctan(est_undrained_strength_ratio_robertson_2009(big_q, n_kt=n_kt))
+        sl.cohesion = 0.0

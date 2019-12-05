@@ -46,6 +46,14 @@ Installation
 
     pip install liquepy
 
+Optional modules (`sra`, `fig`, `spatial`) require large third-party dependencies and therefore do
+not import unless dependencies are satisfied.
+
+to install all dependencies for these optional modules run (example for installing `sra` dependencies)
+
+.. code:: bash
+
+    pip install liquepy[sra]
 
 Contributors
 ============

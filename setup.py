@@ -13,7 +13,7 @@ with open('HISTORY.rst') as history_file:  # TODO: why does this not build on ci
 setup(name=about['__project__'],
       version=about['__version__'],
       description='Tools for soil liquefaction analysis',
-      long_description=readme + '\n\n',# + history,
+      long_description=readme + '\n\n' + history,
       url='https://github.com/eng-tools/liquepy',
       author=about['__author__'],
       author_email='mmi46@uclive.ac.nz',
@@ -27,21 +27,22 @@ setup(name=about['__project__'],
           'Programming Language :: Python :: 3',
       ],
       packages=find_packages(exclude=['contrib', 'docs', 'tests']),
-      install_requires=['sfsimodels>=0.9.21',
-                        'geofound',
-                        'numpy',
-                        'pyexcel',
-                        "pandas"
-                        'pysra>=0.3.2',
-                        'eqsig>=0.5.35',
-                        'geographiclib',
-                        'matplotlib'],
+      install_requires=[
+          'sfsimodels>=0.9.21',
+          'eqsig>=0.5.35',
+          'geofound',
+          'numpy',
+          'pandas'
+                        ],
       # List additional groups of dependencies here (e.g. development
       # dependencies). You can install these using the following syntax,
       # for example:
       # $ pip install -e .[dev,test]
       extras_require={
           'test': ['pytest'],
+          'maps': ['geographiclib'],
+          'sra': ['pysra>=0.3.2'],
+          'fig': ['matplotlib']
       },
       python_requires='>=3',
       package_data={},

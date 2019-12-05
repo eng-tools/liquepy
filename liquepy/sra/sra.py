@@ -1,5 +1,8 @@
 import numpy as np
-import pysra
+try:
+    import pysra
+except ImportError as e:
+    raise ImportError(e)
 import sfsimodels as sm
 
 

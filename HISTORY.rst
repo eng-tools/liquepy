@@ -2,16 +2,19 @@
 History
 =======
 
-0.6.X (2019-X-X)
+0.6.8 (2019-12-6)
 --------------------
 * Added nzgd CPT file converter
 * Corrected error in `est_shear_vel_hegazy_and_mayne_2006`
+* Change modules (`sra`, `fig`, `spatial`) to be optional due to heavy dependencies. Only imported at base level if all
+  dependencies are satisfied.
 
-0.6.6 (2019-11-12)
+0.6.7 (2019-11-12)
 --------------------
 * Updated docs
 * Updated names for PM4Sand FLAC
-* Refactored numerical models to be in generic num.models.py file and the inherited in application specific files (flac, o3), where app specific details are added.
+* Refactored numerical models to be in generic num.models.py file and the inherited in application specific files
+  (flac, o3), where app specific details are added.
 * Added permeability estimate `est_permeability_robertson_and_cabal_2012`
 * Added more tests to increase coverage
 * Can change empirical fitting parameter 'c0' in calculation of CRR_m7.5 from BI2016
@@ -21,7 +24,8 @@ History
 
 0.6.3 (2019-10-31)
 --------------------
-* Added missing `import eqsig` at top of lq.element.assess.py file - used in `calc_stored_energy_abs_incs_fd_peaks_and_indices` function
+* Added missing `import eqsig` at top of lq.element.assess.py file - used in
+  `calc_stored_energy_abs_incs_fd_peaks_and_indices` function
 * Finalised NSES example
 
 0.6.2 (2019-10-30)
@@ -29,9 +33,11 @@ History
 
 * Fixed issue with Soil stack not working for overriding soil properties
 * Added h_po to PM4Sand obj
-* Added estimation of cumulative absolute (change in) strain energy (CASE) in 1D soil profile using the nodal surface energy spectrum (NSES) from Millen et al. (2019) as a function `lq.trigger.nses.est_case_1d_millen_et_al_2019()`
+* Added estimation of cumulative absolute (change in) strain energy (CASE) in 1D soil profile using the nodal surface
+  energy spectrum (NSES) from Millen et al. (2019) as a function `lq.trigger.nses.est_case_1d_millen_et_al_2019()`
 * Added example of estimation of CASE compared to linear analysis using pysra package
-* Added calculation of cumulative absolute (change in) strain energy (CASE) of element test from Millen et al. (2019) as function `calc_case_peaks_and_indices_fd`
+* Added calculation of cumulative absolute (change in) strain energy (CASE) of element test from Millen et al. (2019)
+  as function `calc_case_peaks_and_indices_fd`
 
 0.6.1 (2019-10-7)
 --------------------
@@ -46,7 +52,8 @@ History
 * Can set relative density limits to zhang_2002 relative density calculation
 * Fixed issue with I_c color map for plotting
 * Switched
-* [Not backward compatible] Switched Zhang et al shear and volumetric strain calculations to proper naming convention and changed to return strain as decimal, removed old functions
+* [Not backward compatible] Switched Zhang et al shear and volumetric strain calculations to proper naming convention
+  and changed to return strain as decimal, removed old functions
 
 0.5.7 (2019-07-05)
 -------------------
@@ -65,11 +72,11 @@ History
 * Added support for setting weight of the pre-drilled depth for B&I2014
 * Added support for calculating Liquefaction Potential Index (LPI) and Lateral Displacement Index (LDI)
 * Fixed bug where calculation of shear strain from Zhang et al. (2004) used wrong value for interpolating between
-different Dr lines, such that upper or lower limit were taken not interpolated value (resulted in slight change of
-values for Bray foundation settlement method)
+  different Dr lines, such that upper or lower limit were taken not interpolated value (resulted in slight change of
+  values for Bray foundation settlement method)
 * Added new default cpt loader `load_mpa_cpt_file`, where all values are in MPa and metres and delimeter is ','
 * Fixed bug where `big_Q` in B&I2014 triggering method was calculated with the `m` from Eq. 2.15b,
-now calculated using the `n` from Robertson and Wride (1997)
+  now calculated using the `n` from Robertson and Wride (1997)
 
 
 0.5.4 (2019-05-28)
@@ -139,11 +146,11 @@ now calculated using the `n` from Robertson and Wride (1997)
 ------------------
 
 * Changes to `BoulangerIdriss2014`:
-
-    * Added `big_q` as a property
-    * Modified unit weight calculation (minimum changed from 15kN/m3 to 14.715kN/m3 (lowest value in original study by Roberston (2010)), Added maximum unit weight 19.62kN/m3 (maximum value in study),
-    * Changed atmospheric pressure from 100kPa to 101kPa (also added as an optional input)
-    * Input `magnitude` -> `m_w`
-    * Added support for calculation of unit weight using specific weight
-    * Optional input `s_g` to override specific weight of 2.65
-    * Optional input `s_g_water` to override specific weight of water
+* Added `big_q` as a property
+* Modified unit weight calculation (minimum changed from 15kN/m3 to 14.715kN/m3 (lowest value in original study
+  by Roberston (2010)), Added maximum unit weight 19.62kN/m3 (maximum value in study),
+* Changed atmospheric pressure from 100kPa to 101kPa (also added as an optional input)
+* Input `magnitude` -> `m_w`
+* Added support for calculation of unit weight using specific weight
+* Optional input `s_g` to override specific weight of 2.65
+* Optional input `s_g_water` to override specific weight of water
