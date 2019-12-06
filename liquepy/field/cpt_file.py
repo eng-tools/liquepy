@@ -58,7 +58,7 @@ def load_mpa_cpt_file(ffp, delimiter=",", a_ratio_override=None):
         a_ratio = a_ratio_override
     if pre_drill is not None:
         if depth[0] < pre_drill:
-            indy = np.argmin(depth - pre_drill)
+            indy = np.argmin(abs(depth - pre_drill))
             depth = depth[indy:]
             q_c = q_c[indy:]
             f_s = f_s[indy:]

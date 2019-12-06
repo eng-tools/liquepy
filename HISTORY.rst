@@ -2,7 +2,7 @@
 History
 =======
 
-0.6.8 (2019-12-6)
+0.6.9 (2019-12-6)
 --------------------
 * Added nzgd CPT file converter
 * Corrected error in `est_shear_vel_hegazy_and_mayne_2006`
