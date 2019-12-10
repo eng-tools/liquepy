@@ -2,6 +2,11 @@
 History
 =======
 
+0.6.X (2019-X-X)
+--------------------
+* Added .p_atm to Boulanger and Idriss (2014) method
+* Improved plotting colors for i_c
+
 0.6.9 (2019-12-6)
 --------------------
 * Added nzgd CPT file converter

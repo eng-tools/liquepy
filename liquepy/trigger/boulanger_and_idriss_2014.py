@@ -361,7 +361,7 @@ class BoulangerIdriss2014(object):
         i_c_limit = kwargs.get("i_c_limit", 2.6)
         self.s_g = kwargs.get("s_g", 2.65)
         self.s_g_water = kwargs.get("s_g_water", 1.0)
-        p_a = kwargs.get("p_a", 101.)  # kPa
+        self.p_a = kwargs.get("p_a", 101.)  # kPa
         saturation = kwargs.get("saturation", None)
         unit_wt_method = kwargs.get("unit_wt_method", "robertson2009")
         gamma_predrill = kwargs.get("gamma_predrill", 17.0)
@@ -398,9 +398,9 @@ class BoulangerIdriss2014(object):
         else:
             self.saturation = saturation
         if unit_wt_method == "robertson2009":
-            self.unit_wt = calc_unit_dry_weight(self.f_s, self.q_t, p_a, unit_water_wt)
+            self.unit_wt = calc_unit_dry_weight(self.f_s, self.q_t, self.p_a, unit_water_wt)
         elif unit_wt_method == 'void_ratio':
-            self.unit_dry_wt = calc_unit_dry_weight(self.f_s, self.q_t, p_a, unit_water_wt)
+            self.unit_dry_wt = calc_unit_dry_weight(self.f_s, self.q_t, self.p_a, unit_water_wt)
             self.e_curr = calc_void_ratio(self.unit_dry_wt, self.s_g, pw=unit_water_wt)
             self.unit_wt = calc_unit_weight(self.e_curr, self.s_g, self.saturation, pw=unit_water_wt)
         else:
@@ -414,7 +414,7 @@ class BoulangerIdriss2014(object):
         self.rd = calc_rd(depth, self.m_w)
 
         self.q_c1n_cs, self.q_c1n, self.fines_content, self.i_c, self.big_q = _calc_dependent_variables(self.sigma_v, self.sigma_veff, q_c,
-                                                                                            f_s, p_a,
+                                                                                            f_s, self.p_a,
                                                                                             self.q_t,
                                                                                             self.cfc)
 

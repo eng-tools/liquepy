@@ -51,41 +51,47 @@ IC_COLORS = OrderedDict([
     ('Plastic silt', IC_P_silt),  # light grey
 ])
 
+# Colors
+IC_ALT_GRAVEL = [154 / 255, 176 / 255, 187 / 255]
+IC_ALT_CS = [255 / 255, 246 / 255, 187 / 255]
+IC_ALT_SwFC = [218 / 255, 196 / 255, 77 / 255]
+IC_ALT_NP_silt = [223 / 255, 220 / 255, 151 / 255]
+IC_ALT_P_silt = [196 / 255, 148 / 255, 73 / 255]
+IC_ALT_COLORS = OrderedDict([
+    ('Gravel', IC_ALT_GRAVEL),  # yellow
+    ('Clean sand', IC_ALT_CS),  # light green
+    ('Sand with fines', IC_ALT_SwFC),  # light blue
+    ('Non-plastic silt', IC_ALT_NP_silt),  # light red
+    ('Plastic silt', IC_ALT_P_silt),  # light grey
+])
+
 FS_CMAP = LinearSegmentedColormap.from_list('mine', [FS_COLORS[cname] for cname in FS_COLORS], N=5)
 
-_incs = (np.diff(IC_LIMITS) * 10).astype(int)
+_incs = np.round(np.diff(IC_LIMITS) * 10).astype(int)
 _clist = list(itertools.chain(*[[IC_COLORS[cname]] * _incs[x] for x, cname in enumerate(IC_COLORS)]))
 IC_CMAP = LinearSegmentedColormap.from_list('mine', _clist, N=len(_clist))
 _clist = list(itertools.chain(*[[IC_COLORS_w_CONTRAST[cname]] * _incs[x] for x, cname in enumerate(IC_COLORS_w_CONTRAST)]))
 IC_CMAP_w_CONTRAST = LinearSegmentedColormap.from_list('mine', _clist, N=len(_clist))
 
 
-def add_ic_colours(subplot):
-    ic_limits = IC_LIMITS
-    # Colors
-    gravel = [154 / 255, 176 / 255, 187 / 255]
-    clean_sand = [255 / 255, 246 / 255, 187 / 255]
-    sand_w_fc = [218 / 255, 196 / 255, 77 / 255]
-    silty_sand = [223 / 255, 220 / 255, 151 / 255]
-    clay_silt = [196 / 255, 148 / 255, 73 / 255]
+def add_ic_colours(subplot, col_dict='alt', ic_limits=None):
+    if ic_limits is None:
+        ic_limits = IC_LIMITS
 
-    colours = [gravel, clean_sand, sand_w_fc, silty_sand, clay_silt,
-               (1, 1, 1)]
-
-    gravel_patch = mpatches.Patch(color=gravel, label='Gravel')
-
-    clean_sand_patch = mpatches.Patch(color=clean_sand, label='Clean Sand')
-
-    silty_sand_patch = mpatches.Patch(color=silty_sand, label='Silty Sand')
-
-    sand_w_fc_patch = mpatches.Patch(color=sand_w_fc, label='Sand with much Fines Content')
-
-    clay_silty_patch = mpatches.Patch(color=clay_silt, label='Clay-Silty/Not Liquefable')
-
-    # subplot.rc('legend', fontsize=9)
-    subplot.legend([gravel_patch, clean_sand_patch, silty_sand_patch, sand_w_fc_patch, clay_silty_patch,
-                (gravel_patch, clean_sand_patch, silty_sand_patch, sand_w_fc_patch, clay_silty_patch)],
-               ["Gravel", "Clean Sand", "Silty Sand", "Sand with FC", "Clay-Silty/\nNot Liq.", ], loc=0, prop={"size": 8})
+    if col_dict == 'alt':
+        dd = IC_ALT_COLORS
+    elif col_dict == 'main':
+        dd = IC_COLORS
+    elif col_dict == 'con':
+        dd = IC_COLORS_w_CONTRAST
+    else:
+        dd = col_dict
+    colours = [dd[x] for x in dd]
+    colours.append((1, 1, 1))
+    patches = []
+    for col in dd:
+        patches.append(mpatches.Patch(color=dd[col], label=col))
+    subplot.legend(patches + [(patches)], list(dd), loc=0, prop={'size': 8})
 
     for i in range(len(ic_limits) - 1):
         subplot.axvspan(ic_limits[i], ic_limits[i + 1], alpha=1.0, color=colours[i])
@@ -94,6 +100,22 @@ def add_ic_colours(subplot):
 def make_ic_plot(subplot):
     add_ic_colours(subplot)
     subplot.set_xlim([0, 3])
+
+
+def get_ic_legend_patches(col_dict):
+    if col_dict == 'alt':
+        dd = IC_ALT_COLORS
+    elif col_dict == 'main':
+        dd = IC_COLORS
+    elif col_dict == 'con':
+        dd = IC_COLORS_w_CONTRAST
+    else:
+        dd = col_dict
+    legend_elements = []
+    patches = []
+    for col in dd:
+        patches.append(mpatches.Patch(color=dd[col], label=col))
+    return patches
 
 
 def make_factor_of_safety_plot(subplot):
