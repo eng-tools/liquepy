@@ -6,12 +6,14 @@ import numpy as np
 import itertools
 
 FS_VMIN = 0.5
-FS_VMAX = 1.750
+FS_VMAX = 1.75
+FS_VMAX_W_NONLIQ = 2.5
 FS_LOW_to_0p75 = (0.75, 0, 0)
 FS_0p75_to_1p0 = (0.95, 0, 0)
 FS_1p0_to_1p25 = (0.9, 0.4, 0.15)
 FS_1p25_to_1p5 = (1, 0.65, 0.25)
 FS_1p5_to_HIGH = (0.1, 0.6, 0.1)
+FS_NON_LIQ = (0.4, 0.4, 0.4)
 FS_COLORS = OrderedDict([
     ('FS_LOW_to_0p75', FS_LOW_to_0p75),  # dark red
     ('FS_0p75_to_1p0', FS_0p75_to_1p0),  # red
@@ -19,6 +21,20 @@ FS_COLORS = OrderedDict([
     ('FS_1p25_to_1p5', FS_1p25_to_1p5),  # orange
     ('FS_1p5_to_HIGH', FS_1p5_to_HIGH),  # green
 ])
+FS_COLORS_W_NONLIQ = OrderedDict([
+    ('FS_LOW_to_0p75', FS_LOW_to_0p75),  # dark red
+    ('FS_0p75_to_1p0', FS_0p75_to_1p0),  # red
+    ('FS_1p0_to_1p25', FS_1p0_to_1p25),  # dark orange
+    ('FS_1p25_to_1p5', FS_1p25_to_1p5),  # orange
+    ('FS_1p5_to_HIGH', FS_1p5_to_HIGH),  # green
+    ('FS_1p5_to_HIGH2', FS_1p5_to_HIGH),  # green
+    ('FS_1p5_to_HIGH2', FS_1p5_to_HIGH),  # green
+    ('FS_NON_LIQ', FS_NON_LIQ),  # green
+])
+
+FS_CMAP = LinearSegmentedColormap.from_list('fs', [FS_COLORS[cname] for cname in FS_COLORS], N=5)
+FS_CMAP_W_NONLIQ = LinearSegmentedColormap.from_list('fs_w_nonliq', [FS_COLORS_W_NONLIQ[cname] for cname in FS_COLORS_W_NONLIQ], N=5)
+
 
 IC_VMIN = 0.0
 IC_VMAX = 4.0
@@ -64,8 +80,6 @@ IC_ALT_COLORS = OrderedDict([
     ('Non-plastic silt', IC_ALT_NP_silt),  # light red
     ('Plastic silt', IC_ALT_P_silt),  # light grey
 ])
-
-FS_CMAP = LinearSegmentedColormap.from_list('mine', [FS_COLORS[cname] for cname in FS_COLORS], N=5)
 
 _incs = np.round(np.diff(IC_LIMITS) * 10).astype(int)
 _clist = list(itertools.chain(*[[IC_COLORS[cname]] * _incs[x] for x, cname in enumerate(IC_COLORS)]))

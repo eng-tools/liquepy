@@ -280,6 +280,15 @@ def test_handles_predrill():
     # bi2014 = liquepy.trigger.run_bi2014()
 
 
+def test_calc_crr_m7p5_from_n1_60cs():
+    crr = liquepy.trigger.boulanger_and_idriss_2014.calc_crr_m7p5_from_n1_60cs(3, c_0=2.8)
+    assert np.isclose(crr, 0.07513065), (crr, 0.07513065)  # v0.6.9+
+    crr = liquepy.trigger.boulanger_and_idriss_2014.calc_crr_m7p5_from_n1_60cs(15, c_0=2.8)
+    assert np.isclose(crr, 0.156119), (crr, 0.156119)  # v0.6.9+
+    crr = liquepy.trigger.boulanger_and_idriss_2014.calc_crr_m7p5_from_n1_60cs(3, c_0=2.6)
+    assert np.isclose(crr, 0.09176478), (crr, 0.09176478)  # v0.6.9+
+
+
 if __name__ == '__main__':
     test_compare_fos_to_previous_version()
     # test_handles_predrill()

@@ -6,6 +6,7 @@ History
 --------------------
 * Added .p_atm to Boulanger and Idriss (2014) method
 * Improved plotting colors for i_c
+* Changed liquefaction factor of safety for high plasticity soil to be 2.25
 
 0.6.9 (2019-12-6)
 --------------------

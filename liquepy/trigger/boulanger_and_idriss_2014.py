@@ -426,7 +426,8 @@ class BoulangerIdriss2014(object):
         self.crr = crr_m(self.k_sigma, self.msf, self.crr_m7p5)  # CRR at set magnitude
         fs_unlimited = self.crr / self.csr
         # fs_fines_limited = np.where(self.fines_content > 71, 2.0, fs_unlimited)  # based on I_c=2.6
-        self.factor_of_safety = np.where(fs_unlimited > 2, 2, fs_unlimited)
+        fos = np.where(fs_unlimited > 2, 2, fs_unlimited)
+        self.factor_of_safety = np.where(self.i_c <= self.i_c_limit, fos, 2.25)
 
     @property
     def gammas(self):
@@ -616,3 +617,44 @@ def calc_b_from_msf_max_bi2014(msf_max):
     b_vals = [0.080, 0.101, 0.121, 0.147, 0.170, 0.191, 0.211, 0.250, 0.290, 0.312, 0.333, 0.353, 0.374, 0.399]
     msf_max_vals = [1.000, 1.019, 1.045, 1.084, 1.130, 1.184, 1.242, 1.373, 1.540, 1.651, 1.768, 1.891, 2.025, 2.215]
     return np.interp(msf_max, msf_max_vals, b_vals)
+
+
+def calc_k_sigma_w_n1_60cs(sigma_eff, n1_60cs, pa=100):
+    """
+    Overburden correction factor, K_sigma
+
+    Equation 2.16a
+
+    Parameters
+    ----------
+    sigma_eff: float or array_like
+        Vertical effective stress
+    n1_60cs: float or array_like
+        Clean-sand equivalent, normalised SPT blow count
+    pa: float
+        Atmospheric pressure in kPa
+
+    """
+    c_sigma = 1. / (18.9 - 2.55 * np.sqrt(n1_60cs))
+    c_sigma = np.clip(c_sigma, None, 0.3)
+    return np.clip(1 - c_sigma * np.log(sigma_eff / pa), None, 1.1)
+
+
+def calc_crr_m7p5_from_n1_60cs(n1_60cs, c_0=2.8):
+    """
+    Calculation of cyclic resistance ratio for Magnitude 7.5 earthquake from SPT
+
+    Parameters
+    ----------
+    n1_60cs: float or array_like
+        Clean-sand equivalent, normalised SPT blow count
+    c_0: float (default=2.8)
+        Empirical fitting parameter.
+         - 2.8=16th percentile (commonly used)
+         - 2.6=median response
+
+    Returns
+    -------
+
+    """
+    return np.exp((n1_60cs / 14.1) + ((n1_60cs / 126) ** 2) - ((n1_60cs / 23.6) ** 3) + ((n1_60cs / 25.4) ** 4) - c_0)

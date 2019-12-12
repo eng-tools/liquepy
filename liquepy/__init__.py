@@ -8,10 +8,10 @@ except ImportError:
     pass
 from liquepy import num
 from liquepy.functions import *
-try:
-    from liquepy import fig
-except ImportError:
-    pass
+# try:  # TOO SLOW
+#     from liquepy import fig
+# except ImportError:
+#     pass
 from liquepy import __about__
 try:
     from liquepy import spatial
