@@ -26,7 +26,7 @@ setup(name=about['__project__'],
           'License :: OSI Approved :: MIT License',
           'Programming Language :: Python :: 3',
       ],
-      packages=find_packages(exclude=['contrib', 'docs', 'tests']),
+      packages=find_packages(exclude=['contrib', 'docs', 'tests', 'examples']),
       install_requires=[
           'sfsimodels>=0.9.21',
           'eqsig>=0.5.35',
