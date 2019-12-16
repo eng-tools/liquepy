@@ -190,12 +190,12 @@ def calc_crr_m7p5_from_qc1ncs(q_c1n_cs, c_0=2.8):
                         ((q_c1n_cs / 140) ** 3) + ((q_c1n_cs / 137) ** 4) - c_0)
 
 
-def calc_crr_m7p5_from_qc1ncs_capped(q_c1n_cs, gwl, depth, i_c, i_c_limit=2.6):
+def calc_crr_m7p5_from_qc1ncs_capped(q_c1n_cs, gwl, depth, i_c, i_c_limit=2.6, c_0=2.8):
     """
     cyclic resistance from CPT, Eq. 2.24
     it's not possible to have liquefaction above water table
     """
-    crr_values = calc_crr_m7p5_from_qc1ncs(q_c1n_cs)
+    crr_values = calc_crr_m7p5_from_qc1ncs(q_c1n_cs, c_0)
     crr_tent = np.where(depth < gwl, 4, crr_values)
     return np.where(i_c <= i_c_limit, crr_tent, 4.)
 
@@ -362,6 +362,7 @@ class BoulangerIdriss2014(object):
         self.s_g = kwargs.get("s_g", 2.65)
         self.s_g_water = kwargs.get("s_g_water", 1.0)
         self.p_a = kwargs.get("p_a", 101.)  # kPa
+        self.c_0 = kwargs.get("c_0", 2.8)
         saturation = kwargs.get("saturation", None)
         unit_wt_method = kwargs.get("unit_wt_method", "robertson2009")
         gamma_predrill = kwargs.get("gamma_predrill", 17.0)
@@ -422,7 +423,7 @@ class BoulangerIdriss2014(object):
         self.k_sigma = calc_k_sigma(self.sigma_veff, self.q_c1n_cs)
         self.msf = calc_msf(self.m_w, self.q_c1n_cs)
         self.csr = calc_csr(self.sigma_veff, self.sigma_v, pga, self.rd, gwl, depth)
-        self.crr_m7p5 = calc_crr_m7p5_from_qc1ncs_capped(self.q_c1n_cs, gwl, depth, self.i_c, self.i_c_limit)
+        self.crr_m7p5 = calc_crr_m7p5_from_qc1ncs_capped(self.q_c1n_cs, gwl, depth, self.i_c, self.i_c_limit, self.c_0)
         self.crr = crr_m(self.k_sigma, self.msf, self.crr_m7p5)  # CRR at set magnitude
         fs_unlimited = self.crr / self.csr
         # fs_fines_limited = np.where(self.fines_content > 71, 2.0, fs_unlimited)  # based on I_c=2.6
@@ -532,10 +533,12 @@ def run_bi2014(cpt, pga, m_w, gwl=None, cfc=0.0, **kwargs):
     saturation = kwargs.get("saturation", None)
     unit_wt_method = kwargs.get("unit_wt_method", "robertson2009")
     gamma_predrill = kwargs.get("gamma_predrill", 17.0)
+    c_0 = kwargs.get('c_0', 2.8)
 
     return BoulangerIdriss2014CPT(cpt, gwl=gwl, pga=pga, m_w=m_w,
                                a_ratio=cpt.a_ratio, cfc=cfc, i_c_limit=i_c_limit, s_g=s_g, s_g_water=s_g_water, p_a=p_a,
-                               saturation=saturation, unit_wt_method=unit_wt_method, gamma_predrill=gamma_predrill)
+                               saturation=saturation, unit_wt_method=unit_wt_method, gamma_predrill=gamma_predrill,
+                                  c_0=c_0)
 
 
 def calc_qc_1ncs_from_crr_m7p5(crr_7p5, c_0=2.8):

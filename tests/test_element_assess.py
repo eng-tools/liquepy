@@ -186,3 +186,13 @@ def test_case_et_simple_6points():
     et = ShearTest(tau, gamma)
     energy = assess.calc_case_et(et)
     assert energy[-1] == expected_delta_e, (energy, expected_delta_e)
+
+
+def test_get_energy_peaks_for_cyclic_loading():
+    fs = np.array([0, 1., 2., 3., 4., 5., 5.5, 5.5, 4., 3., 2.5, 2.0, 1., 0., -1, -2, -5, 1, 3, 3.5,
+                   2.5, 3.5, 2.5, -1, -3])
+    ds = np.array([0, 0.5, 1., 1.5, 2.5, 3., 4.25, 5.5, 5.5, 5.25, 5.5, 5.25, 4., 3., 1.5, 0.5, -3, -2, -1, -0.5,
+                   -0.75, 1.5, 1., -1.5, -5])
+    inds = assess.get_energy_peaks_for_cyclic_loading(-fs, -ds)
+    expected = np.array([0,  7, 16, 21, 24])
+    assert np.sum(abs(inds - expected)) == 0

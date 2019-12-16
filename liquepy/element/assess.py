@@ -118,7 +118,7 @@ def average_of_absolute_via_trapz(values):
     return abs(expected)
 
 
-def calc_stored_energy_abs_incs_fd_peaks_and_indices(forces, disps):
+def calc_stored_energy_abs_incs_fd_peaks_and_indices(forces, disps, peaks_from='disp'):
     """
     Calculates the absolute change stored energy for an oscillating system
 
@@ -133,11 +133,21 @@ def calc_stored_energy_abs_incs_fd_peaks_and_indices(forces, disps):
         displacement time series
     forces: array_like
         force time series
+    peaks_from: str or array_like
+        Method to determine peaks or array of peak indices
     :return: array_like
     """
     forces = forces.astype(float)
     disps = disps.astype(float)
-    peak_indices = eqsig.get_peak_array_indices(disps)
+    if peaks_from == 'disp':
+        peak_indices = eqsig.get_peak_array_indices(disps)
+    elif peaks_from == 'cyclic_energy':
+        peak_indices = get_energy_peaks_for_cyclic_loading(forces, disps)  # slow
+    elif not isinstance(peaks_from, str):
+        peak_indices = np.array(peaks_from)
+    else:
+        raise ValueError("'peaks_from' must be either 'disp', 'cyclic_energy' or "
+                         "array indices, not {0}".format(peaks_from))
     peak_forces = np.take(forces, peak_indices)
     peak_disps = np.take(disps, peak_indices)
 
@@ -176,7 +186,7 @@ def calc_case_peaks_and_indices_fd(forces, disps):
     return cum_work, peak_indices
 
 
-def calc_case_fd(forces, disps, stepped=False):
+def calc_case_fd(forces, disps, stepped=False, peaks_from='disp'):
     """
     Calculates the cumulative change in stored energy for an oscillating system.
 
@@ -199,7 +209,8 @@ def calc_case_fd(forces, disps, stepped=False):
     :return: array_like
     """
 
-    peak_abs_delta_work, peak_indices = calc_stored_energy_abs_incs_fd_peaks_and_indices(forces, disps)
+    peak_abs_delta_work, peak_indices = calc_stored_energy_abs_incs_fd_peaks_and_indices(forces, disps,
+                                                                                         peaks_from=peaks_from)
     if stepped:
         peak_abs_delta_work_full_series = np.zeros_like(disps)
         np.put(peak_abs_delta_work_full_series, peak_indices, peak_abs_delta_work)
@@ -213,7 +224,7 @@ def calc_case_fd(forces, disps, stepped=False):
         return cum_abs_delta_work_full_series
 
 
-def calc_case_et(element_test, stepped=False, to_liq=False, norm=False):
+def calc_case_et(element_test, stepped=False, to_liq=False, norm=False, peaks_from='disp'):
     """
     Calculates the absolute elastic work (case), cumulative absolute change in stored energy for an element test
 
@@ -239,4 +250,57 @@ def calc_case_et(element_test, stepped=False, to_liq=False, norm=False):
     denom = 1
     if norm:
         denom = element_test.esig_v0
-    return calc_case_fd(element_test.stress, element_test.strain, stepped=stepped)[:indy] / denom
+    return calc_case_fd(element_test.stress, element_test.strain, stepped=stepped, peaks_from=peaks_from)[:indy] / denom
+
+
+def calc_damping_et(element_test, to_liq=False, cumulative=False):
+    """
+    Calculates the damping ratio during the element test
+
+    Parameters
+    ----------
+    element_test
+    to_liq
+
+    Returns
+    -------
+
+    """
+    diss_e = calc_diss_energy_et(element_test, to_liq=False, norm=False)
+    case = calc_case_et(element_test, to_liq=False, norm=False)
+    indy = None
+    if to_liq:
+        indy = element_test.i_liq
+    if cumulative:
+        return diss_e / (np.pi * case)[:indy]
+    else:
+        ci = eqsig.get_zero_crossings_array_indices(element_test.stress)
+        loc_damp = np.diff(diss_e[ci]) / (np.pi * np.diff(case[ci]))
+        return np.interp(np.arange(element_test.n_points, ci, loc_damp))[:indy]
+
+
+def get_energy_peaks_for_cyclic_loading(forces, disps):
+    zi = eqsig.get_zero_crossings_array_indices(forces)
+    if zi[-1] != len(forces):
+        zi = np.append(zi, len(forces))
+    inds = [0]
+    for i in range(len(zi) - 1):
+        e = (forces[zi[i]: zi[i + 1]] - forces[inds[i]]) * (disps[zi[i]: zi[i + 1]] - disps[inds[i]])
+        inds.append(np.argmax(e) + zi[i])
+    if inds[1] == 0:  # remove due to non zero start
+        inds = inds[1:]
+    return np.array(inds)
+
+
+
+if __name__ == '__main__':
+    fs = np.array([0, 1., 2., 3., 4., 5., 5.5, 5.5, 4., 3., 2.5, 2.0, 1., 0., -1, -2, -5, 1, 3, 3.5,
+                   2.5, 3.5, 2.5, -1, -3])
+    ds = np.array([0, 0.5, 1., 1.5, 2.5, 3., 4.25, 5.5, 5.5, 5.25, 5.5, 5.25, 4., 3., 1.5, 0.5, -3, -2, -1, -0.5,
+                   -0.75, 1.5, 1., -1.5, -5])
+    inds = get_energy_peaks_for_cyclic_loading(-fs, -ds)
+    print(inds)
+    import matplotlib.pyplot as plt
+    plt.plot(ds, fs)
+    plt.plot(ds[inds], fs[inds], 'o')
+    plt.show()

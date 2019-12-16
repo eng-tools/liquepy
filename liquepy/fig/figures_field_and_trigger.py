@@ -132,14 +132,15 @@ def get_ic_legend_patches(col_dict):
     return patches
 
 
-def make_factor_of_safety_plot(subplot):
+def make_factor_of_safety_plot(subplot, w_ic_lim=False):
     # add the Fs = 1 line
     subplot.axvspan(0., 0.75, alpha=0.5, color=FS_LOW_to_0p75)
     subplot.axvspan(0.75, 1.0, alpha=0.5, color=FS_0p75_to_1p0)
     subplot.axvspan(1.0, 1.25, alpha=0.5, color=FS_1p0_to_1p25)
     subplot.axvspan(1.25, 1.5, alpha=0.5, color=FS_1p25_to_1p5)
     subplot.axvspan(1.5, 2.0, alpha=0.5, color=FS_1p5_to_HIGH)
-    subplot.set_xlim([0, 2.1])
+    subplot.axvspan(2.0, 2.3, alpha=0.5, color=FS_NON_LIQ)
+    subplot.set_xlim([0, 2.3])
 
 
 def make_cpt_plots(sps, cpt, c="gray", x_origin=True, y_origin=True):
