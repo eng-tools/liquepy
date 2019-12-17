@@ -59,7 +59,7 @@ class FlacSoil(sm.Soil):
         return self.required_parameters + self.optional_parameters
 
     def to_fis_mohr_coulomb(self):
-        name = "'Layer {0}'".format(self.id)
+        name = "'{0}'".format(self.name)
         para = ["model mohr notnull group %s" % name]
         para.append(write_parameters_to_fis_models(self, self.all_flac_parameters,
                                             ncols=1, not_null=True))
@@ -371,3 +371,58 @@ def write_soil_profile_obj_to_fis_str(soil_profile, auto_name=True):
     para.append("end")
     para.append("soil_profile_parameters")
     return para
+
+
+def calc_rayleigh_damping_params(f1, f2, d):
+    w1 = 2 * np.pi * f1
+    w2 = 2 * np.pi * f2
+
+    beta = 2 * (((w1 * d) - (w2 * d)) / ((w1 ** 2) - (w2 ** 2)))
+    alpha = beta * w1 * w2
+
+    wmin = np.sqrt(alpha / beta)
+
+    emin = np.sqrt(alpha * beta)
+    fmin = wmin / (2 * np.pi)
+
+    return emin, fmin
+
+
+def check_max_char_limit(fnames, run_loc):
+    """
+    Fis files have a maximum character limit of 200. This function checks that the fis files do not exceed it
+
+    :param fnames:
+    :param run_loc:
+    :return:
+    """
+    MAX_CHAR_LIMIT = 200  # according to pg 2 of command reference manual this should be 2000
+    fname_char_limit = 30
+    for fname in fnames:
+        if len(fname) > fname_char_limit:
+            raise ValueError('File name: %s - exceeds limit of %i' % (fname, fname_char_limit))
+        print(fname)
+        a = open(run_loc + fname)
+        lines = a.read().splitlines()
+        for i, line in enumerate(lines):
+            if len(line) > MAX_CHAR_LIMIT:
+                print(line)
+                raise ValueError('%s - Line %i has %i chars and exceeds limit of %i' % (fname, i + 1, len(line),
+                                                                                        MAX_CHAR_LIMIT))
+
+
+def pip_freeze_to_run_loc(run_loc):
+    """
+    Saves current list of python packages to the run location
+
+    :param run_loc:
+    :return:
+    """
+    import pip
+    import datetime
+    from pip._internal.operations import freeze
+    reqs = freeze.freeze()
+    dt = datetime.datetime.today().strftime("%Y%m%d")
+    ofile = open(run_loc + f'requirements_{dt}.txt', 'w')
+    ofile.write('\n'.join(reqs))
+    ofile.close()

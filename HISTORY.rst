@@ -9,6 +9,7 @@ History
 * Changed liquefaction factor of safety for high plasticity soil to be 2.25
 * Added method for detecting cyclic peaks using peak energy
 * removed examples folder from pip install of package
+* Added more FLAC based functions
 
 0.6.9 (2019-12-6)
 --------------------
