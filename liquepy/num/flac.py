@@ -287,7 +287,7 @@ def calc_hp0_from_crr_n15_and_relative_density_millen_et_al_2019(crr_n15, d_r):
     return crr_n15 * (2.05 - 2.4 * d_r) / (1. - crr_n15 * (12.0 - (12.5 * d_r)))
 
 
-def write_parameters_to_fis_models(obj, parameters, ncols=3, not_null=False):
+def write_parameters_to_fis_models(obj, parameters, ncols=3, not_null=False, group_suffix=''):
     count = 0
     para = []
     pline = ["prop"]
@@ -302,9 +302,9 @@ def write_parameters_to_fis_models(obj, parameters, ncols=3, not_null=False):
         count += 1
         if count == ncols:
             if not_null:
-                pline.append("notnull group %s" % obj.name)
+                pline.append(f"notnull group {obj.name}{group_suffix}")
             else:
-                pline.append("group %s" % obj.name)
+                pline.append(f"group {obj.name}{group_suffix}")
             para.append(" ".join(pline))
             pline = ["prop"]
             count = 0

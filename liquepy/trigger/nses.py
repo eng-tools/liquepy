@@ -103,14 +103,20 @@ def est_case_1d_millen_et_al_2019(sp, asig, depth, xi, g_mod_red=1.0, trim=False
                                                                    start=start)
         else:
             spectra_series = eqsig.surface.calc_surface_energy(asig, time_at_depth, trim=trim, nodal=nodal, stt=stt, start=start)
-        spectra_series = red_ratio[:, np.newaxis] * np.asarray(spectra_series)
+        if hasattr(red_ratio, '__len__'):
+            spectra_series = red_ratio[:, np.newaxis] * np.asarray(spectra_series)
+        else:
+            spectra_series *= red_ratio
     rho_in = soil_in.unit_dry_weight / 9.8
     g_in = np.interp(in_depth, split_depths, split_g_mod)
     g_scale = (g_mod / g_in)
     if not nodal:
         g_scale_limit = 1.0
     g_scale = np.clip(g_scale, 1.0 / g_scale_limit, g_scale_limit)  # simple scaling from Millen et al. (2019)
-    estimate = spectra_series * rho_in / g_scale[:, np.newaxis]
+    if hasattr(g_scale, '__len__'):
+        estimate = spectra_series * rho_in / g_scale[:, np.newaxis]
+    else:
+        estimate = spectra_series * rho_in / g_scale
     return estimate
 
 
