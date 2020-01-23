@@ -1,6 +1,7 @@
 import numpy as np
 from liquepy.exceptions import deprecation
 import sfsimodels as sm
+from liquepy.field import CPT
 
 
 def calc_void_ratio(unit_dry_weight, specific_gravity, pw):
@@ -318,8 +319,9 @@ def _calc_dependent_variables(sigma_v, sigma_veff, q_c, f_s, p_a, q_t, cfc):
     return q_c1n_cs, q_c1n, fines_content, i_c, big_q
 
 
-class BoulangerIdriss2014(object):
-    def __init__(self, depth, q_c, f_s, u_2, cpt_gwl=None, gwl=None, pga=0.25, m_w=None, a_ratio=0.8, cfc=0.0, **kwargs):
+class BoulangerIdriss2014CPT(object):
+
+    def __init__(self, cpt, gwl=None, pga=0.25, m_w=None, cfc=0.0, **kwargs):
         """
         Performs the Boulanger and Idriss triggering procedure for a CPT profile
 
@@ -327,14 +329,7 @@ class BoulangerIdriss2014(object):
 
         Parameters
         ----------
-        depth: array_like m,
-            depths measured downwards from surface
-        q_c: array_like kPa,
-            cone tip resistance
-        f_s: array_like kPa,
-            skin friction
-        u_2: array_like kPa,
-            water pressure beneath cone tip
+
         gwl: float, m,
             ground water level below the surface
         pga: float, g,
@@ -366,8 +361,8 @@ class BoulangerIdriss2014(object):
         saturation = kwargs.get("saturation", None)
         unit_wt_method = kwargs.get("unit_wt_method", "robertson2009")
         gamma_predrill = kwargs.get("gamma_predrill", 17.0)
-        if gwl is None and cpt_gwl is not None:
-            gwl = cpt_gwl
+        if gwl is None and cpt.gwl is not None:
+            gwl = cpt.gwl
 
         if m_w is None:
             if magnitude is None:
@@ -379,29 +374,30 @@ class BoulangerIdriss2014(object):
             self.m_w = m_w
 
         unit_water_wt = self.s_g_water * 9.8
-        self.npts = len(depth)
-        self.depth = depth
-        self.q_c = q_c
-        self.f_s = f_s
-        self.u_2 = u_2
+        self.npts = len(cpt.depth)
+        self.depth = cpt.depth
+        self.cpt = cpt
+        # self.q_c = cpt.q_c
+        # self.f_s = cpt.f_s
+        # self.u_2 = cpt.u_2
         self.gwl = gwl
         self.pga = pga
-        self.a_ratio = a_ratio
-        if a_ratio is None:
+        self.a_ratio = cpt.a_ratio
+        if cpt.a_ratio is None:
             self.a_ratio = 0.8
         self.i_c_limit = i_c_limit
 
         self.cfc = cfc  # parameter of fines content, eq 2.29
-        self.q_t = calc_qt(self.q_c, self.a_ratio, self.u_2)  # kPa
+        self.q_t = calc_qt(self.cpt.q_c, self.a_ratio, self.cpt.u_2)  # kPa
 
         if saturation is None:
             self.saturation = np.where(self.depth < self.gwl, 0, 1)
         else:
             self.saturation = saturation
         if unit_wt_method == "robertson2009":
-            self.unit_wt = calc_unit_dry_weight(self.f_s, self.q_t, self.p_a, unit_water_wt)
+            self.unit_wt = calc_unit_dry_weight(self.cpt.f_s, self.q_t, self.p_a, unit_water_wt)
         elif unit_wt_method == 'void_ratio':
-            self.unit_dry_wt = calc_unit_dry_weight(self.f_s, self.q_t, self.p_a, unit_water_wt)
+            self.unit_dry_wt = calc_unit_dry_weight(self.cpt.f_s, self.q_t, self.p_a, unit_water_wt)
             self.e_curr = calc_void_ratio(self.unit_dry_wt, self.s_g, pw=unit_water_wt)
             self.unit_wt = calc_unit_weight(self.e_curr, self.s_g, self.saturation, pw=unit_water_wt)
         else:
@@ -412,18 +408,20 @@ class BoulangerIdriss2014(object):
         self.sigma_veff = calc_sigma_veff(self.sigma_v, self.pore_pressure)
         if self.sigma_veff[0] == 0.0:
             self.sigma_veff[0] = 1.0e-10
-        self.rd = calc_rd(depth, self.m_w)
+        self.rd = calc_rd(self.depth, self.m_w)
 
-        self.q_c1n_cs, self.q_c1n, self.fines_content, self.i_c, self.big_q = _calc_dependent_variables(self.sigma_v, self.sigma_veff, q_c,
-                                                                                            f_s, self.p_a,
+        self.q_c1n_cs, self.q_c1n, self.fines_content, self.i_c, self.big_q = _calc_dependent_variables(self.sigma_v,
+                                                                                                        self.sigma_veff,
+                                                                                                        self.cpt.q_c,
+                                                                                            self.cpt.f_s, self.p_a,
                                                                                             self.q_t,
                                                                                             self.cfc)
 
         np.clip(self.q_c1n_cs, None, 210., out=self.q_c1n_cs)
         self.k_sigma = calc_k_sigma(self.sigma_veff, self.q_c1n_cs)
         self.msf = calc_msf(self.m_w, self.q_c1n_cs)
-        self.csr = calc_csr(self.sigma_veff, self.sigma_v, pga, self.rd, gwl, depth)
-        self.crr_m7p5 = calc_crr_m7p5_from_qc1ncs_capped(self.q_c1n_cs, gwl, depth, self.i_c, self.i_c_limit, self.c_0)
+        self.csr = calc_csr(self.sigma_veff, self.sigma_v, pga, self.rd, gwl, self.depth)
+        self.crr_m7p5 = calc_crr_m7p5_from_qc1ncs_capped(self.q_c1n_cs, gwl, self.depth, self.i_c, self.i_c_limit, self.c_0)
         self.crr = crr_m(self.k_sigma, self.msf, self.crr_m7p5)  # CRR at set magnitude
         fs_unlimited = self.crr / self.csr
         # fs_fines_limited = np.where(self.fines_content > 71, 2.0, fs_unlimited)  # based on I_c=2.6
@@ -441,14 +439,33 @@ class BoulangerIdriss2014(object):
         return self.m_w
 
 
-class BoulangerIdriss2014CPT(BoulangerIdriss2014):
-    def __init__(self, cpt, pga=0.25, m_w=None, gwl=None, a_ratio=0.8, cfc=0.0, **kwargs):
-        self.cpt = cpt
-        cpt_gwl = cpt.gwl
+class BoulangerIdriss2014(BoulangerIdriss2014CPT):
+
+    def __init__(self, depth, q_c, f_s, u_2, cpt_gwl=None, pga=0.25, m_w=None, gwl=None, a_ratio=0.8, cfc=0.0, **kwargs):
+        """
+         depth: array_like m,
+            depths measured downwards from surface
+        q_c: array_like kPa,
+            cone tip resistance
+        f_s: array_like kPa,
+            skin friction
+        u_2: array_like kPa,
+            water pressure beneath cone tip
+        Parameters
+        ----------
+        cpt
+        pga
+        m_w
+        gwl
+        a_ratio
+        cfc
+        kwargs
+        """
+
         if gwl is None:
             gwl = cpt_gwl
-        super(BoulangerIdriss2014CPT, self).__init__(cpt.depth, cpt.q_c, cpt.f_s, cpt.u_2, cpt_gwl, gwl=gwl, pga=pga, m_w=m_w,
-                                                     a_ratio=a_ratio, cfc=cfc, **kwargs)
+        cpt = CPT(depth, q_c, f_s, u_2, gwl, a_ratio=a_ratio)
+        super(BoulangerIdriss2014CPT, self).__init__(cpt, gwl=gwl, pga=pga, m_w=m_w, cfc=cfc, **kwargs)
 
 
 class BoulangerIdriss2014SoilProfile(object):  # TODO: validate this properly
@@ -495,7 +512,8 @@ class BoulangerIdriss2014SoilProfile(object):  # TODO: validate this properly
         self.factor_of_safety = np.where(fs_unlimited > 2, 2, fs_unlimited)
 
 
-def run_bi2014(cpt, pga, m_w, gwl=None, cfc=0.0, **kwargs):
+def run_bi2014(cpt, pga, m_w, gwl=None, p_a=101., cfc=0.0, i_c_limit=2.6, gamma_predrill=17.0, c_0=2.8,
+               unit_wt_method='robertson2009', s_g=2.65, s_g_water=1.0, saturation=None):
     """
     Runs the Boulanger and Idriss (2014) triggering method.
 
@@ -509,35 +527,33 @@ def run_bi2014(cpt, pga, m_w, gwl=None, cfc=0.0, **kwargs):
         Earthquake magnitude
     gwl: float, m,
         depth to ground water from surface at time of earthquake
+    p_a: float, kPa, default=101
+        Atmospheric pressure
     cfc: float, -, default=0.0
         Fines content correction factor for Eq 2.29
     i_c_limit: float, -, default=2.6
         Limit of liquefiable material
+    gamma_predrill: float, kN/m3, default=17.0
+        Unit weight of soil above pre-drill depth
+    c_0: float, -, default=2.8
+        Factor that adjusts the CRR-vs-qc1ncs relationship
+    unit_wt_method: str, -, default='robertson2009'
+        Method used to determine unit weight
     s_g: float or array_like, -, default=2.65
         Specific gravity
     s_g_water: float, -, default=1.0
-            Specific gravity of water
-    p_a: float, kPa, default=101
-        Atmospheric pressure
-    gamma_predrill: float, kN/m3, default=17.0
-        Unit weight of pre-drilled material
+        Specific gravity of water
+    saturation: array_like or None
+        Saturation ratio for each depth increment
 
     Returns
     -------
-    BoulangerIdriss2014()
+    BoulangerIdriss2014CPT()
     """
-    i_c_limit = kwargs.get("i_c_limit", 2.6)
-    s_g = kwargs.get("s_g", 2.65)
-    s_g_water = kwargs.get("s_g_water", 1.0)
-    p_a = kwargs.get("p_a", 101.)  # kPa
-    saturation = kwargs.get("saturation", None)
-    unit_wt_method = kwargs.get("unit_wt_method", "robertson2009")
-    gamma_predrill = kwargs.get("gamma_predrill", 17.0)
-    c_0 = kwargs.get('c_0', 2.8)
 
-    return BoulangerIdriss2014CPT(cpt, gwl=gwl, pga=pga, m_w=m_w,
-                               a_ratio=cpt.a_ratio, cfc=cfc, i_c_limit=i_c_limit, s_g=s_g, s_g_water=s_g_water, p_a=p_a,
-                               saturation=saturation, unit_wt_method=unit_wt_method, gamma_predrill=gamma_predrill,
+    return BoulangerIdriss2014CPT(cpt, gwl=gwl, pga=pga, m_w=m_w, cfc=cfc, i_c_limit=i_c_limit, s_g=s_g,
+                                  s_g_water=s_g_water, p_a=p_a,
+                                  saturation=saturation, unit_wt_method=unit_wt_method, gamma_predrill=gamma_predrill,
                                   c_0=c_0)
 
 
