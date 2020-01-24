@@ -57,8 +57,8 @@ def est_case_1d_millen_et_al_2019(sp, asig, depth, xi, g_mod_red=1.0, trim=False
     time_at_depth = np.interp(depth, dis_depths, dis_time_from_surface)
     total_time = dis_time_from_surface[-1]
 
-    vs = scipy.interpolate.interp1d(dis_depths[:-1], dis_shear_vel, kind='previous')(depth)
-    rho = scipy.interpolate.interp1d(dis_depths[:-1], sp.split["unit_mass"], kind='previous')(depth)
+    vs = scipy.interpolate.interp1d(dis_depths[:-1], dis_shear_vel, kind='previous', fill_value='extrapolate')(depth)
+    rho = scipy.interpolate.interp1d(dis_depths[:-1], sp.split["unit_mass"], kind='previous', fill_value='extrapolate')(depth)
 
     g_mod = vs ** 2 * rho
 
