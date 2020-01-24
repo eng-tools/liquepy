@@ -68,6 +68,24 @@ def calc_relative_density_salgado_et_al_1997_cpt_values(q_c1n, c_dq=0.9):
     return 0.465 * np.sqrt(q_c1n / c_dq) - 1.063
 
 
+def calc_relative_density_boulanger_et_al_2014_cpt_values(q_c1n, c_dq=0.9):
+    """
+    Table 4.1 in PM4Sand v3.1 manual
+
+    Parameters
+    ----------
+    q_c1n: array_like
+        Normalised cone penetration resistance
+    c_dq: float, default=0.9 (from :cite:`Idriss:2008ua`)
+        Correlation factor, (range 0.64-155 from Salgado (1997)
+
+    Returns
+    -------
+    array_like
+    """
+    return 0.465 * (q_c1n / c_dq) ** 0.264 - 1.063
+
+
 def calc_g0_mod_boulanger_and_ziotopoulou_2015_spt_values(n_1_60):
     """
     Calculate the normalised shear modulus :cite:`Boulanger:2017pm4_v3p1`
