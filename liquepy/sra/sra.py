@@ -1,8 +1,4 @@
 import numpy as np
-try:
-    import pysra
-except ImportError as e:
-    raise ImportError(e)
 import sfsimodels as sm
 
 
@@ -14,6 +10,7 @@ def compute_pysra_tf(pysra_profile, pysra_freqs=None):
 
 
 def calc_pysra_tf(pysra_profile, pysra_freqs=None):
+    import pysra
     if pysra_freqs is None:
         pysra_freqs = np.logspace(-0.7, 1.5, num=200)
     m = pysra.motion.Motion(freqs=pysra_freqs)
@@ -46,6 +43,7 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0, base_shear_vel=None, 
     :param target_height:
     :return:
     """
+    import pysra
     if d_inc is None:
         d_inc = np.ones(sp.n_layers) * target_height
 
@@ -127,6 +125,7 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0, base_shear_vel=None, 
 
 
 def compute_pysra_strain_compatible_profile(soil_profile, in_sig, d_inc=None, cut_time=None, target_height=1.0):
+    import pysra
     m = pysra.motion.TimeSeriesMotion(filename=in_sig.label, description=None, time_step=in_sig.dt,
                                       accels=in_sig.values / 9.8)
     if d_inc is None:
@@ -170,6 +169,7 @@ def compute_pysra_strain_compatible_profile(soil_profile, in_sig, d_inc=None, cu
 
 
 def update_pysra_profile(pysra_profile, depths, xis=None, shear_vels=None):
+    import pysra
     layers = []
     for depth in pysra_profile.depth:
         try:

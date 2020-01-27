@@ -1,7 +1,5 @@
 import numpy as np
 import eqsig
-import scipy.integrate
-import scipy.interpolate
 
 
 def calc_energy_ratio_w_time(xi, total_time, time, av_period):
@@ -43,7 +41,7 @@ def est_case_1d_millen_et_al_2019(sp, asig, depth, xi, g_mod_red=1.0, trim=False
 
     :return:
     """
-
+    from scipy.interpolate import interp1d
     sp.gen_split(props=['shear_vel', 'unit_mass'], target=0.25)
     dis_depths = np.cumsum(sp.split["thickness"])
     split_depths = np.cumsum(sp.split["thickness"])
@@ -57,8 +55,8 @@ def est_case_1d_millen_et_al_2019(sp, asig, depth, xi, g_mod_red=1.0, trim=False
     time_at_depth = np.interp(depth, dis_depths, dis_time_from_surface)
     total_time = dis_time_from_surface[-1]
 
-    vs = scipy.interpolate.interp1d(dis_depths[:-1], dis_shear_vel, kind='previous', fill_value='extrapolate')(depth)
-    rho = scipy.interpolate.interp1d(dis_depths[:-1], sp.split["unit_mass"], kind='previous', fill_value='extrapolate')(depth)
+    vs = interp1d(dis_depths[:-1], dis_shear_vel, kind='previous', fill_value='extrapolate')(depth)
+    rho = interp1d(dis_depths[:-1], sp.split["unit_mass"], kind='previous', fill_value='extrapolate')(depth)
 
     g_mod = vs ** 2 * rho
 
@@ -204,6 +202,7 @@ class TimeShiftProfile(object):  # Under development
         return up_amp_red, down_amp_red, total_red
 
     def get_unit_energy_series(self, xi, energy):
+        from scipy.integrate import cumtrapz
         e_str = "{0}-{1}".format(xi, energy)
         if e_str in self.e_cache:
             return self.e_cache[e_str]
@@ -213,7 +212,7 @@ class TimeShiftProfile(object):  # Under development
             acc_series = down_amp_red * self.down_waves + up_amp_red * self.up_wave
         else:
             acc_series = - down_amp_red[:, np.newaxis] * self.down_waves + up_amp_red[:, np.newaxis] * self.up_wave
-        velocity = scipy.integrate.cumtrapz(acc_series, dx=self.asig.dt, initial=0)
+        velocity = cumtrapz(acc_series, dx=self.asig.dt, initial=0)
         unit_kinetic_energy = 0.5 * velocity * np.abs(velocity) * total_red[:, np.newaxis]
         self.e_cache[e_str] = unit_kinetic_energy
         return unit_kinetic_energy

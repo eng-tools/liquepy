@@ -10,6 +10,7 @@ History
 * Added method for detecting cyclic peaks using peak energy
 * removed examples folder from pip install of package
 * Added more FLAC based functions
+* Significant increase in package loading speeding
 
 0.6.9 (2019-12-6)
 --------------------

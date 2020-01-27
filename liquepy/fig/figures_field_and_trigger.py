@@ -1,7 +1,4 @@
-import matplotlib.pyplot as plt
-from matplotlib import patches as mpatches
 from collections import OrderedDict
-from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
 import itertools
 
@@ -31,9 +28,6 @@ FS_COLORS_W_NONLIQ = OrderedDict([
     ('FS_1p5_to_HIGH2', FS_1p5_to_HIGH),  # green
     ('FS_NON_LIQ', FS_NON_LIQ),  # green
 ])
-
-FS_CMAP = LinearSegmentedColormap.from_list('fs', [FS_COLORS[cname] for cname in FS_COLORS], N=5)
-FS_CMAP_W_NONLIQ = LinearSegmentedColormap.from_list('fs_w_nonliq', [FS_COLORS_W_NONLIQ[cname] for cname in FS_COLORS_W_NONLIQ], N=5)
 
 
 IC_VMIN = 0.0
@@ -81,14 +75,29 @@ IC_ALT_COLORS = OrderedDict([
     ('Plastic silt', IC_ALT_P_silt),  # light grey
 ])
 
-_incs = np.round(np.diff(IC_LIMITS) * 10).astype(int)
-_clist = list(itertools.chain(*[[IC_COLORS[cname]] * _incs[x] for x, cname in enumerate(IC_COLORS)]))
-IC_CMAP = LinearSegmentedColormap.from_list('mine', _clist, N=len(_clist))
-_clist = list(itertools.chain(*[[IC_COLORS_w_CONTRAST[cname]] * _incs[x] for x, cname in enumerate(IC_COLORS_w_CONTRAST)]))
-IC_CMAP_w_CONTRAST = LinearSegmentedColormap.from_list('mine', _clist, N=len(_clist))
+FS_CMAP = None
+FS_CMAP_W_NONLIQ = None
+IC_CMAP = None
+IC_CMAP_w_CONTRAST = None
+
+
+def build_cmaps():
+    from matplotlib.colors import LinearSegmentedColormap  # Importing this is slow
+    global FS_CMAP
+    global FS_CMAP_W_NONLIQ
+    global IC_CMAP
+    global IC_CMAP_w_CONTRAST
+    FS_CMAP = LinearSegmentedColormap.from_list('fs', [FS_COLORS[cname] for cname in FS_COLORS], N=5)
+    FS_CMAP_W_NONLIQ = LinearSegmentedColormap.from_list('fs_w_nonliq', [FS_COLORS_W_NONLIQ[cname] for cname in FS_COLORS_W_NONLIQ], N=5)
+    _incs = np.round(np.diff(IC_LIMITS) * 10).astype(int)
+    _clist = list(itertools.chain(*[[IC_COLORS[cname]] * _incs[x] for x, cname in enumerate(IC_COLORS)]))
+    IC_CMAP = LinearSegmentedColormap.from_list('mine', _clist, N=len(_clist))
+    _clist = list(itertools.chain(*[[IC_COLORS_w_CONTRAST[cname]] * _incs[x] for x, cname in enumerate(IC_COLORS_w_CONTRAST)]))
+    IC_CMAP_w_CONTRAST = LinearSegmentedColormap.from_list('mine', _clist, N=len(_clist))
 
 
 def add_ic_colours(subplot, col_dict='alt', ic_limits=None):
+    from matplotlib import patches as mpatches
     if ic_limits is None:
         ic_limits = IC_LIMITS
 
@@ -117,6 +126,7 @@ def make_ic_plot(subplot):
 
 
 def get_ic_legend_patches(col_dict):
+    from matplotlib import patches as mpatches
     if col_dict == 'alt':
         dd = IC_ALT_COLORS
     elif col_dict == 'main':
@@ -168,7 +178,6 @@ def make_cpt_plots(sps, cpt, c="gray", x_origin=True, y_origin=True):
     sps[0].set_xlabel("q_c [kPa]")
     sps[1].set_xlabel("f_s [kPa]")
     sps[2].set_xlabel("u_2 [kPa]")
-    plt.tight_layout()
 
 
 def make_bi2014_outputs_plot(sps, bi2014):
@@ -209,15 +218,3 @@ def make_bi2014_outputs_plot(sps, bi2014):
     sps[3].set_xlim([0, xlim[1]])
 
     sps[0].set_ylabel("Depth [m]")
-
-    plt.tight_layout()
-#
-# bf, sps = plt.subplots()
-# from matplotlib.patches import Rectangle
-#
-# for i, i_c in enumerate(IC_COLORS):
-#     print(i)
-#     rect = Rectangle((i, i), i + 1, i + 1, color=IC_COLORS[i_c])
-#     sps.add_patch(rect)
-# sps.plot(np.arange(5), np.arange(5))
-# plt.show()

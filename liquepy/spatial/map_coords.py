@@ -3,8 +3,6 @@ try:
     from geographiclib.geodesic import Geodesic
 except ImportError as e:
     raise ImportError(e)
-from scipy.spatial import cKDTree
-
 from liquepy._spatial_models import Coords
 
 
@@ -226,6 +224,7 @@ def compute_idw(xy_vals, z_vals, new_xys, num_near=6, eps=0.0, pow_dist=1, weigh
     -------
 
     """
+    from scipy.spatial import cKDTree
     kd_tree = cKDTree(xy_vals, leafsize=kd_leafsize)  # build nearest neighbour tree
     new_xys = np.asarray(new_xys)
     distances, tree_indy = kd_tree.query(new_xys, k=num_near, eps=eps)
