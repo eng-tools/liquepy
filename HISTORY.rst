@@ -11,6 +11,7 @@ History
 * removed examples folder from pip install of package
 * Added more FLAC based functions
 * Significant increase in package loading speeding
+* Added Equivalent Soil Profile method from Millen et al. (2020)
 
 0.6.9 (2019-12-6)
 --------------------
