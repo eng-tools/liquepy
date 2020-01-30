@@ -180,7 +180,7 @@ def make_cpt_plots(sps, cpt, c="gray", x_origin=True, y_origin=True):
     sps[2].set_xlabel("u_2 [kPa]")
 
 
-def make_bi2014_outputs_plot(sps, bi2014):
+def make_bi2014_outputs_plot(sps, bi2014, crr_cap=0.6):
 
     sps[0].plot(bi2014.pore_pressure, bi2014.depth, lw=1, c="b", label="Pore pressure")
     sps[0].plot(bi2014.sigma_v, bi2014.depth, lw=1, c="r", label="$\sigma_{v}$")
@@ -193,7 +193,7 @@ def make_bi2014_outputs_plot(sps, bi2014):
     # sps[1].legend()
     sps[1].set_xlabel("$I_c$")
 
-    sps[2].plot(bi2014.crr_m7p5, bi2014.depth, "o", lw=1, c="k", alpha=0.5, ms=3)
+    sps[2].plot(np.clip(bi2014.crr_m7p5, None, crr_cap), bi2014.depth, "o", lw=1, c="k", alpha=0.5, ms=3)
     sps[2].set_xlabel("$CRR_{m7.5}$")
     sps[2].set_xlim([0, 1.])
 

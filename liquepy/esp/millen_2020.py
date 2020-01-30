@@ -263,8 +263,8 @@ def create_profile_array(d_nonliqs, d_liqs, depth, layer_values, other_layers=2.
     profile = other_layers * np.ones_like(depth)
     depth_increment = depth[2] - depth[1]
     for ll in range(len(d_nonliqs)):
-        crust_i = int(d_nonliqs[ll] / depth_increment)
-        lower_i = int((d_liqs[ll]) / depth_increment)
+        crust_i = int(d_liqs[ll] / depth_increment)
+        lower_i = int((d_nonliqs[ll]) / depth_increment)
         profile[crust_i:lower_i] = layer_values[ll]
     return profile
 
@@ -709,8 +709,8 @@ class Equiv3LayerProfile(sm.CustomObject):
         return np.array([self.d_liq, self.d_end - self.d_nonliq])
 
     @property
-    def qc1ncs(self):
-        qc1ncs_vals = bi_functions.calculate_qc_1ncs_from_crr_7p5(self.crr_n15)
+    def q_c1n_cs(self):
+        qc1ncs_vals = bi_functions.calc_q_c1n_cs_from_crr_m7p5(self.crr_n15)
         if self._e3_q_c1n_cs is None:
             self._e3_q_c1n_cs = create_profile_array([self.d_nonliq], [self.d_liq], self.depth, [qc1ncs_vals])
         return self._e3_q_c1n_cs
@@ -727,9 +727,9 @@ class Equiv5LayerProfile(sm.CustomObject):
     base_type = 'soil_profile'
     type = 'equivalent_5layer'
     n_layers = 5
-    _q_c1ncs = None
+    _q_c1n_cs = None
 
-    def __init__(self, d_liqs, d_nonliqs, csr_n15s, gwl, norm_diff=None, depth=None, d_inc=None, d_start=None,
+    def __init__(self, d_liqs, d_nonliqs, crr_n15s, gwl, norm_diff=None, depth=None, d_inc=None, d_start=None,
                  d_end=None, surrogate=False, **kwargs):
 
         super(Equiv5LayerProfile, self).__init__()
@@ -740,10 +740,10 @@ class Equiv5LayerProfile(sm.CustomObject):
         self.depth = depth
         self.d_nonliqs = d_nonliqs
         self.d_liqs = d_liqs
-        self.csr_n15s = csr_n15s
+        self.crr_n15s = crr_n15s
         self.gwl = gwl
         self.norm_diff = norm_diff
-        self._extra_class_inputs = ['d_liqs', 'd_nonliqs', 'csr_n15s', 'gwl', 'norm_diff', 'd_inc', 'd_start', 'd_end']
+        self._extra_class_inputs = ['d_liqs', 'd_nonliqs', 'crr_n15s', 'gwl', 'norm_diff', 'd_inc', 'd_start', 'd_end']
         if surrogate:
             self.inputs = self._extra_class_inputs
         else:
@@ -774,15 +774,15 @@ class Equiv5LayerProfile(sm.CustomObject):
         return np.array([self.d_nonliqs[0] - self.d_liqs[0], self.d_nonliqs[1] - self.d_liqs[1]])
 
     @property
-    def q_c1ncs(self):
-        q_c1ncs_vals = bi_functions.calculate_qc_1ncs_from_crr_7p5(self.csr_n15s)
-        if self._q_c1ncs is None:
-            self._q_c1ncs = create_profile_array(self.d_nonliqs, self.d_liqs, self.depth, q_c1ncs_vals)
-        return self._q_c1ncs
+    def q_c1n_cs(self):
+        q_c1ncs_vals = bi_functions.calculate_qc_1ncs_from_crr_7p5(self.crr_n15s)
+        if self._q_c1n_cs is None:
+            self._q_c1n_cs = create_profile_array(self.d_nonliqs, self.d_liqs, self.depth, q_c1ncs_vals)
+        return self._q_c1n_cs
 
     @property
     def crr_m7p5(self):
-        return create_profile_array(self.d_nonliqs, self.d_liqs, self.depth, self.csr_n15s)
+        return create_profile_array(self.d_nonliqs, self.d_liqs, self.depth, self.crr_n15s)
 
     def ith(self, y_depth):
         return np.where(self.depth >= y_depth)[0][0]

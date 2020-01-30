@@ -137,7 +137,7 @@ def calc_csr(sigma_veff, sigma_v, pga, rd, gwl, depth):
     """
     Cyclic stress ratio from CPT, Eq 2.2,
     """
-    return np.where(depth <= gwl, 2, 0.65 * (sigma_v / sigma_veff) * rd * pga)
+    return 0.65 * (sigma_v / sigma_veff) * rd * pga
 
 
 def calc_cn_values(m, sigma_veff):
@@ -557,7 +557,7 @@ def run_bi2014(cpt, pga, m_w, gwl=None, p_a=101., cfc=0.0, i_c_limit=2.6, gamma_
                                   c_0=c_0)
 
 
-def calc_qc_1ncs_from_crr_m7p5(crr_7p5, c_0=2.8):
+def calc_q_c1n_cs_from_crr_m7p5(crr_7p5, c_0=2.8):
     """
     Solves the closed form solution to a quartic to invert the CRR_7p5-vs-q_c1n_cs relationship
 
@@ -605,8 +605,13 @@ def calc_qc_1ncs_from_crr_m7p5(crr_7p5, c_0=2.8):
         return np.where(big_b < 0, np.where(x1 < 0, x2, x1), np.where(x3 < 0, x4, x3))
 
 
+def calc_qc_1ncs_from_crr_m7p5(crr_7p5, c_0=2.8):
+    deprecation("Use calc_q_c1n_cs_from_crr_m7p5")
+    return calc_q_c1n_cs_from_crr_m7p5(crr_7p5, c_0)
+
+
 def calculate_qc_1ncs_from_crr_7p5(crr_7p5):
-    deprecation("Use calc_qc_1ncs_from_crr_m7p5")
+    deprecation("Use calc_q_c1n_cs_from_crr_m7p5")
     return calc_qc_1ncs_from_crr_m7p5(crr_7p5)
 
 
