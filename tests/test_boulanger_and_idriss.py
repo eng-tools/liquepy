@@ -22,8 +22,8 @@ def test_compare_fos_to_previous_version():
     cpt.a_ratio = 0.8
     bi2014 = liquepy.trigger.run_bi2014(cpt, pga=0.25, m_w=7.5, gwl=cpt.gwl, unit_wt_method='robertson2009')
     factor_safety_values = bi2014.factor_of_safety
-    new_version = "0p5p5"  # uncomment to generate new version if changed
-    np.savetxt(TEST_DATA_DIR + "standard_1_fos_lq%s.csv" % new_version, factor_safety_values)
+    new_version = "0p6p10"  # uncomment to generate new version if changed
+    # np.savetxt(TEST_DATA_DIR + "standard_1_fos_lq%s.csv" % new_version, factor_safety_values)
 
     fos_expected = np.loadtxt(TEST_DATA_DIR + "standard_1_fos_lq0p5p5.csv")
     assert np.isclose(fos_expected, factor_safety_values).all()

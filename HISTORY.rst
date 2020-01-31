@@ -2,7 +2,7 @@
 History
 =======
 
-0.6.X (2019-X-X)
+0.6.10 (2019-01-31)
 --------------------
 * Added .p_atm to Boulanger and Idriss (2014) method
 * Improved plotting colors for i_c
