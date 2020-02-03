@@ -426,3 +426,12 @@ def pip_freeze_to_run_loc(run_loc):
     ofile = open(run_loc + f'requirements_{dt}.txt', 'w')
     ofile.write('\n'.join(reqs))
     ofile.close()
+
+
+# see paper-lateral-spread/nonliq-soil/figure_calibrate_flac_hysteretic.py
+def calc_flac_default_l1_from_ip_millen_2020(i_p):
+    return 1.7 * i_p ** 0.5 - 3.6
+
+
+def calc_flac_default_l2_from_ip_millen_2020(i_p):
+    return -1.2 * i_p ** -0.25 + 2.25

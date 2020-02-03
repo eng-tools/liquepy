@@ -643,6 +643,15 @@ def calc_b_from_msf_max_bi2014(msf_max):
     return np.interp(msf_max, msf_max_vals, b_vals)
 
 
+def calc_lrc_from_qc1ncs_bi2014(q_c1n_cs, n_cycles):
+    crr_m7p5 = calc_crr_m7p5_from_qc1ncs(q_c1n_cs)
+    msf_m = 1.09 + (q_c1n_cs / 180) ** 3
+    msf_max = np.clip(msf_m, None, 2.2)
+    b = calc_b_from_msf_max_bi2014(msf_max)
+    n_m7p5 = calc_n_cycles_at_m7p5_bi2014(b)
+    return (n_m7p5 / n_cycles) ** b * crr_m7p5
+
+
 def calc_k_sigma_w_n1_60cs(sigma_eff, n1_60cs, pa=100):
     """
     Overburden correction factor, K_sigma
