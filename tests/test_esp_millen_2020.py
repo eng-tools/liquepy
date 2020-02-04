@@ -19,7 +19,7 @@ def test_fit_single_layer():
 
     assert np.isclose(d_liqs[1], 10), d_liqs[1]
     assert np.isclose(d_nonliqs[1], 10), d_nonliqs[1]
-    assert np.isclose(csr_n15s[1], 0.6), csr_n15s[1]
+    assert np.isclose(csr_n15s[1], 0.6, rtol=1e-3), csr_n15s[1]
 
 
 def test_fit_many():
@@ -50,17 +50,19 @@ def test_fit_adjacent_layers():
     crr[46: 60] = 0.4
     d_liqs, d_nonliqs, csr_n15s, normed_diff = lq.esp.millen_2020.fit_n_layer_profile(depths, crr, n=3)
     assert np.isclose(d_liqs[0], 3.8), d_liqs[0]
-    assert np.isclose(d_nonliqs[0], 5.9), d_nonliqs[0]
-    assert np.isclose(csr_n15s[0], 0.37619047619), csr_n15s[0]
+    assert np.isclose(d_nonliqs[0], 6.0), d_nonliqs[0]
+    assert np.isclose(csr_n15s[0], 0.377272727), csr_n15s[0]
 
-    d_liqs, d_nonliqs, csr_n15s, normed_diff = lq.esp.millen_2020.fit_n_layer_profile(depths, crr, n=5)
+    crr_opts = np.array([0.6, 0.35, 0.2])
+    d_liqs, d_nonliqs, csr_n15s, normed_diff = lq.esp.millen_2020.fit_n_layer_profile(depths, crr, n=5, crr_n15_opts=crr_opts)
+    print(d_liqs, d_nonliqs, csr_n15s, normed_diff)
     assert np.isclose(d_liqs[0], 3.8), d_liqs[0]
     assert np.isclose(d_nonliqs[0], 4.5), d_nonliqs[0]
     assert np.isclose(csr_n15s[0], 0.3), csr_n15s[0]
 
-    assert np.isclose(d_liqs[1], 10.0), d_liqs[1]  # TODO: unexpected
-    assert np.isclose(d_nonliqs[1], 10.0), d_nonliqs[1]
-    assert np.isclose(csr_n15s[1], 0.6), csr_n15s[1]
+    assert np.isclose(d_liqs[1], 4.6), d_liqs[1]
+    assert np.isclose(d_nonliqs[1], 6.0), d_nonliqs[1]
+    assert np.isclose(csr_n15s[1], 0.4), csr_n15s[1]
 
 
 def test_fit():
@@ -115,5 +117,5 @@ def disabled_test_fit_5layer_from_cpt():
 
 
 if __name__ == '__main__':
-    test_fit_5layer_from_cpt()
+    test_fit_adjacent_layers()
 

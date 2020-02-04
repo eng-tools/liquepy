@@ -11,7 +11,7 @@ from collections import OrderedDict
 # ESP_MODULE_DIR = os.path.dirname(os.path.abspath(__file__)) + "/"
 
 
-def fit_3_layer_profile(depths, crr_m7p5, fitting_values, crr_non_liq=0.6, max_depth=20):
+def fit_3_layer_profile(depths, crr_n15s, fitting_values, crr_non_liq=0.6, max_depth=20):
     """
     Determines the best 3-layer profile fit for a given parameter
 
@@ -24,12 +24,16 @@ def fit_3_layer_profile(depths, crr_m7p5, fitting_values, crr_non_liq=0.6, max_d
     while layers in between crr_liq and the non-liq limit incur an error proportional to the difference from the defined
     and calculated crr.
 
-    :param depths: array, distance from surface
-    :param crr_m7p5: array, actual values to fit to (note CRR_max=4)
-    :param h_liqs: array, possible thicknesses of layer 1
-    :param h_crusts: array, possible thicknesses of layer 2
-    :param fitting_values: array, possible values of layer 2
-    :param crr_non_liq: float, value for layers 1 and 3
+    Parameters
+    ----------
+    depths: array,
+        distance from surface
+    crr_n15s: array,
+        actual values to fit to (note CRR_max=4)
+    fitting_values: array,
+        possible values of layer 2
+    crr_non_liq: float,
+        value for layers 1 and 3
     :return:
     """
 
@@ -38,9 +42,9 @@ def fit_3_layer_profile(depths, crr_m7p5, fitting_values, crr_non_liq=0.6, max_d
     else:
         indy = len(depths)
     std_depths = depths[:indy]
-    std_crr_m7p5 = crr_m7p5[:indy]
+    std_crr_n15s = crr_n15s[:indy]
     n_depths = len(std_depths)
-    capped_values = np.where(std_crr_m7p5 > crr_non_liq, crr_non_liq, std_crr_m7p5)
+    capped_values = np.clip(std_crr_n15s, None, crr_non_liq)
     diffs = capped_values[:, np.newaxis] - fitting_values[np.newaxis, :]
     cdiffs = np.cumsum(np.abs(diffs), axis=0)
 
@@ -85,7 +89,7 @@ def fit_3_layer_profile(depths, crr_m7p5, fitting_values, crr_non_liq=0.6, max_d
     return h_crust, h_liq, p_value, normed_diff
 
 
-def fit_n_layer_profile(depths, crr_m7p5, n=3, up_b=0.6, low_b=0.06, max_depth=20, cap=None):
+def fit_n_layer_profile(depths, crr_n15s, n=3, crr_n15_opts=None, cap=0.6, max_depth=20):
     """
     Determines the best n-layer profile fit for a given parameter
 
@@ -103,14 +107,12 @@ def fit_n_layer_profile(depths, crr_m7p5, n=3, up_b=0.6, low_b=0.06, max_depth=2
     ----------
     depths: array
         Distance from surface
-    crr_m7p5: array
+    crr_n15s: array
         Actual values to fit to
     n: int (3 or 5)
         Number of layers to fit
-    up_b: float
-        Upper bound of fitted values
-    low_b: float
-        Lower bound of fitted values
+    crr_n15_opts: array_like
+        Possibly options for CRR_n15
     max_depth: float
         Maximum distance to consider in fitting
     cap: float
@@ -128,9 +130,9 @@ def fit_n_layer_profile(depths, crr_m7p5, n=3, up_b=0.6, low_b=0.06, max_depth=2
     n_liqs = int((n - 1) / 2)
 
     # prepare search array
-    init_fit_values = np.arange(up_b, low_b, -0.05)
-    if init_fit_values[-1] != low_b:
-        init_fit_values = np.insert(init_fit_values, len(init_fit_values), low_b)
+    if crr_n15_opts is None:
+        q_c1n_cs = np.arange(0, 180., 5.)
+        crr_n15_opts = bi_functions.calc_crr_m7p5_from_qc1ncs(q_c1n_cs)[::-1]
 
     # standardise depth
     if depths[-1] > max_depth:
@@ -138,16 +140,14 @@ def fit_n_layer_profile(depths, crr_m7p5, n=3, up_b=0.6, low_b=0.06, max_depth=2
     else:
         indy = len(depths)
     std_depths = depths[:indy]
-    std_crr_m7p5 = crr_m7p5[:indy]
+    std_crr_n15s = crr_n15s[:indy]
     n_depths = len(std_depths)
 
     # enforce cap
-    if cap is None:
-        cap = up_b
-    capped_values = np.clip(std_crr_m7p5, None, cap)
+    capped_values = np.clip(std_crr_n15s, None, cap)
 
     # compute difference between options and actual values
-    init_diffs = capped_values[:, np.newaxis] - init_fit_values[np.newaxis, :]
+    init_diffs = capped_values[:, np.newaxis] - crr_n15_opts[np.newaxis, :]
     init_cdiffs = np.cumsum(np.abs(init_diffs), axis=0)
 
     # prepare output arrays
@@ -157,11 +157,12 @@ def fit_n_layer_profile(depths, crr_m7p5, n=3, up_b=0.6, low_b=0.06, max_depth=2
     crrs = [[] for i in range(n_liqs)]
 
     # evaluate each option
-    for ii in range(len(init_fit_values)):
+    for ii in range(len(crr_n15_opts)):
         opts_lay = []
         eline = init_cdiffs[:, 0] - init_cdiffs[:, ii]
         peak_ids = eqsig.get_peak_array_indices(eline) + 1
-        if len(peak_ids) > 2:
+
+        if len(peak_ids) > 4 or (len(peak_ids) > 2 and n_liqs == 1):
             # continue
             if eline[peak_ids[1]] > 0:
                 peak_ids = peak_ids[:-1]
@@ -190,22 +191,25 @@ def fit_n_layer_profile(depths, crr_m7p5, n=3, up_b=0.6, low_b=0.06, max_depth=2
 
             elif n_liqs == 2:
                 opts_l1f = opts_lay[0].flatten()
-                top1_is = poss_i_tops[np.newaxis, :] * np.ones_like(opts_lay[0])
-                bot1_is = poss_i_bots[:, np.newaxis] * np.ones_like(opts_lay[0])
+                top1_is = poss_i_tops[np.newaxis, :] * np.ones_like(opts_lay[0], dtype=int)
+                bot1_is = poss_i_bots[:, np.newaxis] * np.ones_like(opts_lay[0], dtype=int)
 
                 opts_l2f = opts_lay[1].flatten()
-                top2_is = poss_i_tops[np.newaxis, 1:] * np.ones_like(opts_lay[1])
-                bot2_is = poss_i_bots[1:, np.newaxis] * np.ones_like(opts_lay[1])
+                top2_is = poss_i_tops[np.newaxis, 1:] * np.ones_like(opts_lay[1], dtype=int)
+                bot2_is = poss_i_bots[1:, np.newaxis] * np.ones_like(opts_lay[1], dtype=int)
 
                 opts = opts_l1f[np.newaxis, :] + opts_l2f[:, np.newaxis]
-                top1_is = top1_is.flatten()[np.newaxis, :] * np.ones_like(opts)
-                bot1_is = bot1_is.flatten()[np.newaxis, :] * np.ones_like(opts)
+                top1_is = top1_is.flatten()[np.newaxis, :] * np.ones_like(opts, dtype=int)
+                bot1_is = bot1_is.flatten()[np.newaxis, :] * np.ones_like(opts, dtype=int)
 
-                top2_is = top2_is.flatten()[:, np.newaxis] * np.ones_like(opts)
-                bot2_is = bot2_is.flatten()[:, np.newaxis] * np.ones_like(opts)
+                top2_is = top2_is.flatten()[:, np.newaxis] * np.ones_like(opts, dtype=int)
+                bot2_is = bot2_is.flatten()[:, np.newaxis] * np.ones_like(opts, dtype=int)
 
                 # remove cases where i_crust_l2 < i_liq_l1
-                opts = np.where(top2_is < bot1_is, 0, opts)
+                opts = np.where(top2_is < bot1_is, 1e10, opts)
+                # remove cases where i_crust_l2 > i_liq_l2
+                opts = np.where(top2_is > bot2_is, 1e10, opts)
+                opts = np.where(top2_is == len(std_depths) - 1, 1e10, opts)
 
                 lay1_i, lay2_i = np.unravel_index(opts.argmin(), opts.shape)
                 i_tops = [int(top1_is[lay1_i][lay2_i]), int(top2_is[lay1_i][lay2_i])]
@@ -214,18 +218,21 @@ def fit_n_layer_profile(depths, crr_m7p5, n=3, up_b=0.6, low_b=0.06, max_depth=2
             else:
                 raise ValueError("n_liqs must be either 1 or 2")
 
-            total_err = init_cdiffs[i_tops[0]][0]
+            # total_err = init_cdiffs[i_tops[0]][0]
+            crr_profile = np.ones_like(std_crr_n15s) * cap
             for ll in range(n_liqs):
                 d_liqs[ll].append(depths[i_tops[ll]])
                 d_nonliqs[ll].append(depths[i_bots[ll]])
                 if i_tops[ll] == i_bots[ll]:
-                    crrs[ll].append(up_b)
-                    err = 0
+                    crrs[ll].append(cap)
+                    # err = 0
                 else:
-                    crrs[ll].append(np.mean(capped_values[i_tops[ll]:i_bots[ll]]))
-                    err = np.sum(np.abs(capped_values[i_tops[ll]:i_bots[ll]] - crrs[ll][ii]))
-                total_err += err
-            total_err += (init_cdiffs[-1][0] - init_cdiffs[i_bots[-1]][0])
+                    crr_mean = np.mean(capped_values[i_tops[ll]:i_bots[ll]])
+                    crrs[ll].append(crr_mean)
+                    crr_profile[i_tops[ll]:i_bots[ll]] = crr_mean
+                # err = np.sum(np.abs(capped_values[i_tops[ll]:i_bots[ll]] - crrs[ll][ii]))
+                # total_err += err
+            total_err = np.sum(abs(std_crr_n15s - crr_profile))
 
             normed_diffs.append(total_err / n_depths)
 
@@ -233,8 +240,9 @@ def fit_n_layer_profile(depths, crr_m7p5, n=3, up_b=0.6, low_b=0.06, max_depth=2
             for ll in range(n_liqs):
                 d_liqs[ll].append(0)
                 d_nonliqs[ll].append(depths[-1])
-                crrs[ll].append(up_b)
+                crrs[ll].append(cap)
             normed_diffs.append(1e6)
+    normed_diffs = np.array(normed_diffs)
     d_liqs = np.array(d_liqs)
     d_nonliqs = np.array(d_nonliqs)
     crrs = np.array(crrs)
