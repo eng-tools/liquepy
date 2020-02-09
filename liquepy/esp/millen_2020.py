@@ -873,3 +873,44 @@ def build_soil_profile_from_bi2014_w_layer_dict(bi2014, layers_dict):
     sp.set_soil_ids_to_layers()
     return sp, i_ths
 
+
+def get_col_dict():
+    """Define a dictionary of colors of different ESP (strength-position pairs)"""
+    col_dict = OrderedDict([
+        ("WT", [(1.0, 0.5, 0.4), "Weak thin"]),
+        ("WM", [(1.0, 0.3, 0.25), "Weak mid-size"]),
+        ("WL", [(0.8, 0.0, 0.15), "Weak large"]),
+        ("MT", [(1.0, 0.9, 0.3), "Mid-strength thin"]),
+        ("MM", [(1.0, 0.75, 0.15), "Mid-strength mid-size"]),
+        ("ML", [(0.95, 0.55, 0.0), "Mid-strength large"]),
+        ("ST", [(0.3, 0.8, 0.3), "Strong thin"]),
+        ("SM", [(0.0, 0.6, 0.0), "Strong mid-size"]),
+        ("SL", [(0.1, 0.4, 0.1), "Strong large"]),
+        ("RX", [(0.6, 0.6, 0.6), "Resistant"]),
+    ])
+    return col_dict
+
+
+def get_hatch_dict():
+    """Define a dictionary of hatches for different ESP sizes"""
+    hatch_dict = OrderedDict([
+        ("S", [None, "Shallow"]),
+        ("M", ["...", "Mid-height"]),
+        ("D", ["o", "Deep"]),
+        ("X", ["*", "N/A"])
+        ])
+    return hatch_dict
+
+def get_esp_classes_legend_elements(include="all"):
+    from matplotlib.patches import Patch
+    hatch_dict = get_hatch_dict()
+    col_dict = get_col_dict()
+    legend_elements = []
+    for name in col_dict:
+        legend_elements.append(Patch(facecolor=col_dict[name][0],
+                                     label=col_dict[name][1]))
+    for name in hatch_dict:
+        legend_elements.append(Patch(facecolor="w", edgecolor='k',
+                                     label=hatch_dict[name][1], hatch=hatch_dict[name][0]))
+
+    return legend_elements
