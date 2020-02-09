@@ -75,9 +75,18 @@ def test_fit():
     crr[38: 50] = 0.3
     crr[45: 50] = 0.4
     d_liqs, d_nonliqs, csr_n15s, normed_diff = lq.esp.millen_2020.fit_n_layer_profile(depths, crr, n=3)
+    assert np.isclose(d_liqs[0], 3.8), d_liqs[0]
+    assert np.isclose(d_nonliqs[0], 5.0), d_nonliqs[0]
+    assert np.isclose(csr_n15s[0], 0.341667), csr_n15s[0]
+
+    crr = 0.6 * np.ones_like(depths)
+    crr[10:30] = 0.15
+    crr[38: 50] = 0.3
+    crr[45: 50] = 0.4
+    d_liqs, d_nonliqs, csr_n15s, normed_diff = lq.esp.millen_2020.fit_n_layer_profile(depths, crr, n=3)
     # h_crusth_liq, p_value, normed_diff
     assert np.isclose(d_liqs[0], 1.0), d_liqs[0]
-    assert np.isclose(d_nonliqs[0], 2.0), d_nonliqs[0]
+    assert np.isclose(d_nonliqs[0], 3.0), d_nonliqs[0]
     assert np.isclose(csr_n15s[0], 0.15), csr_n15s[0]
 
 

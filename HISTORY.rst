@@ -2,7 +2,12 @@
 History
 =======
 
-0.6.11 (2019-01-31)
+0.6.11 (2019-02-10)
+--------------------
+* Added MRD curves for clay
+* Fixed issue with fitting 5-layer equivalent soil profile (ESP)
+
+0.6.10 (2019-01-31)
 --------------------
 * Added .p_atm to Boulanger and Idriss (2014) method
 * Improved plotting colors for i_c
