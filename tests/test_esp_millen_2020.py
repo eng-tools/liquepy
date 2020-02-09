@@ -81,7 +81,7 @@ def test_fit():
 
     crr = 0.6 * np.ones_like(depths)
     crr[10:30] = 0.15
-    crr[38: 50] = 0.3
+    crr[43: 50] = 0.3
     crr[45: 50] = 0.4
     d_liqs, d_nonliqs, csr_n15s, normed_diff = lq.esp.millen_2020.fit_n_layer_profile(depths, crr, n=3)
     # h_crusth_liq, p_value, normed_diff
