@@ -2,6 +2,10 @@
 History
 =======
 
+0.6.12 (2019-02-21)
+--------------------
+* Fixed issue with fitting 3- and 5-layer ESPs now uses median to find value of least deviations
+
 0.6.11 (2019-02-10)
 --------------------
 * Added MRD curves for clay
