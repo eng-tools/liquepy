@@ -290,10 +290,10 @@ def create_profile_array(d_nonliqs, d_liqs, depth, layer_values, other_layers=2.
     :return: array, values
     """
     profile = other_layers * np.ones_like(depth)
-    depth_increment = depth[2] - depth[1]
+    inds = np.arange(len(depth))
     for ll in range(len(d_nonliqs)):
-        crust_i = int(d_liqs[ll] / depth_increment)
-        lower_i = int((d_nonliqs[ll]) / depth_increment)
+        crust_i = int(np.interp(d_liqs[ll], depth, inds))
+        lower_i = int(np.interp(d_nonliqs[ll], depth, inds))
         profile[crust_i:lower_i] = layer_values[ll]
     return profile
 
@@ -741,12 +741,12 @@ class Equiv3LayerProfile(sm.CustomObject):
     def q_c1n_cs(self):
         qc1ncs_vals = bi_functions.calc_q_c1n_cs_from_crr_m7p5(self.crr_n15)
         if self._e3_q_c1n_cs is None:
-            self._e3_q_c1n_cs = create_profile_array([self.d_nonliq], [self.d_liq], self.depth, [qc1ncs_vals])
+            self._e3_q_c1n_cs = create_profile_array([self.d_nonliq], [self.d_liq], self.depth, [qc1ncs_vals], 220.0)
         return self._e3_q_c1n_cs
 
     @property
     def crr_m7p5(self):
-        return create_profile_array([self.d_nonliq], [self.d_liq], self.depth, [self.crr_n15])
+        return create_profile_array([self.d_nonliq], [self.d_liq], self.depth, [self.crr_n15], 1.0)
 
     def ith(self, y_depth):
         return np.where(self.depth >= y_depth)[0][0]

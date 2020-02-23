@@ -2,6 +2,10 @@
 History
 =======
 
+0.6.13 (2019-02-24)
+--------------------
+* Fixed issue with creating ESP when cpt depths are irregular
+
 0.6.12 (2019-02-21)
 --------------------
 * Fixed issue with fitting 3- and 5-layer ESPs now uses median to find value of least deviations

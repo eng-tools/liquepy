@@ -129,6 +129,31 @@ def disabled_test_fit_5layer_from_cpt():
     assert np.isclose(csr_n15s[1], 0.154037, rtol=0.001), csr_n15s[1]
 
 
+def test_create_esp_from_single_layer():
+    z = np.arange(0, 10.1, 0.1)
+    crr = 0.6 * np.ones_like(z)
+    crr[10:25] = 0.15
+
+    class BItemp(object):
+        def __init__(self, depth, crr_m7p5, gwl):
+            self.depth = depth
+            self.crr_m7p5 = crr_m7p5
+            self.gwl = gwl
+
+    bi2014 = BItemp(z, crr, gwl=0)
+    eqp = lq.esp.millen_2020.compute_e3profile(bi2014)
+    assert np.isclose(eqp.h_crust, 1.0), eqp.h_crust
+    assert np.isclose(eqp.h_liq, 1.5), eqp.h_liq
+    assert np.isclose(eqp.crr_n15, 0.15), eqp.crr_n15
+    assert np.isclose(eqp.crr_m7p5[5], 1.0)
+    assert np.isclose(eqp.crr_m7p5[14], 0.15)
+    assert np.isclose(eqp.crr_m7p5[15], 0.15)
+    assert np.isclose(eqp.crr_m7p5[24], crr[24])
+    assert np.isclose(eqp.crr_m7p5[26], 1.0)
+    ind = np.argmin(abs(bi2014.depth - (eqp.h_crust + eqp.h_liq - 0.2)))
+    assert np.isclose(eqp.crr_m7p5[ind], eqp.crr_n15), eqp.crr_m7p5[ind]
+
+
 def run():
     cpt = lq.field.load_mpa_cpt_file(TEST_DATA_DIR + "standard_1.csv")
     bi2014 = lq.trigger.run_bi2014(cpt, pga=0.25, m_w=7.5, gwl=cpt.gwl, unit_wt_method='void_ratio')
@@ -146,5 +171,5 @@ def run():
     plt.show()
 
 if __name__ == '__main__':
-    run()
+    test_create_esp_from_single_layer()
 
