@@ -3,6 +3,7 @@ sphinx-autobuild
 
 # if using typehints
 sphinx-autodoc-typehints
+sphinxcontrib-bibtex
 
 mock
 autodoc
