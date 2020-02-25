@@ -1,54 +1,48 @@
-liquepy.trigger package
-=======================
+liquepy.trigger
+===============
 
-Submodules
-----------
+Stress-based triggering method
+------------------------------
 
-liquepy.trigger.boulanger\_and\_idriss\_2014 module
----------------------------------------------------
+liquepy.trigger.boulanger_and_idriss_2014
+*****************************************
 
 .. automodule:: liquepy.trigger.boulanger_and_idriss_2014
     :members:
     :undoc-members:
     :show-inheritance:
 
-liquepy.trigger.shear\_strain module
-------------------------------------
+Calculation of shear strain
+---------------------------
 
 .. automodule:: liquepy.trigger.shear_strain
     :members:
     :undoc-members:
     :show-inheritance:
 
-liquepy.trigger.triggering\_measures module
--------------------------------------------
-
-.. automodule:: liquepy.trigger.triggering_measures
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-liquepy.trigger.volumetric\_strain module
------------------------------------------
+Calculation of volumetric strain
+--------------------------------
 
 .. automodule:: liquepy.trigger.volumetric_strain
     :members:
     :undoc-members:
     :show-inheritance:
 
-liquepy.trigger.nses module
------------------------------------------
+Liquefaction triggering measures
+--------------------------------
 
-.. automodule:: liquepy.trigger.nses
+.. automodule:: liquepy.trigger.triggering_measures
     :members:
     :undoc-members:
     :show-inheritance:
 
 
-Module contents
----------------
+liquepy.trigger.nses
+--------------------
 
-.. automodule:: liquepy.trigger
+Nodal surface energy spectrum methods
+
+.. automodule:: liquepy.trigger.nses
     :members:
     :undoc-members:
     :show-inheritance:

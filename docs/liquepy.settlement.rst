@@ -1,22 +1,12 @@
-liquepy.settlement package
-==========================
+liquepy.settlement
+==================
 
-Submodules
-----------
 
-liquepy.settlement.methods module
----------------------------------
+liquepy.settlement
+------------------
 
 .. automodule:: liquepy.settlement.methods
     :members:
     :undoc-members:
     :show-inheritance:
 
-
-Module contents
----------------
-
-.. automodule:: liquepy.settlement
-    :members:
-    :undoc-members:
-    :show-inheritance:

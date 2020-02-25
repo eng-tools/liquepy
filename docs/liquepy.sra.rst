@@ -1,30 +1,11 @@
-liquepy.sra package
-===================
+liquepy.sra
+===========
 
-Submodules
-----------
-
-liquepy.sra.sra module
-----------------------
+liquepy.sra
+-----------
 
 .. automodule:: liquepy.sra.sra
     :members:
     :undoc-members:
     :show-inheritance:
 
-liquepy.sra.strain\_curves module
----------------------------------
-
-.. automodule:: liquepy.sra.strain_curves
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: liquepy.sra
-    :members:
-    :undoc-members:
-    :show-inheritance:

@@ -1,43 +1,30 @@
 liquepy package
 ===============
 
-Subpackages
------------
-
 .. toctree::
 
-    liquepy.element
     liquepy.field
-    liquepy.motion
+    liquepy.trigger
     liquepy.num
+    liquepy.element
+    liquepy.motion
     liquepy.settlement
     liquepy.sra
-    liquepy.trigger
+    liquepy.fig
 
-Submodules
-----------
 
-liquepy.exceptions module
--------------------------
-
-.. automodule:: liquepy.exceptions
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-liquepy.functions module
-------------------------
+liquepy additional functions
+----------------------------
 
 .. automodule:: liquepy.functions
     :members:
     :undoc-members:
     :show-inheritance:
 
+liquepy exceptions
+------------------
 
-Module contents
----------------
-
-.. automodule:: liquepy
+.. automodule:: liquepy.exceptions
     :members:
     :undoc-members:
     :show-inheritance:

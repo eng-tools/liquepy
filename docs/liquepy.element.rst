@@ -1,8 +1,6 @@
-liquepy.element package
-=======================
+liquepy.element
+===============
 
-Submodules
-----------
 
 liquepy.element.models module
 -----------------------------
@@ -16,15 +14,6 @@ liquepy.element.assess module
 -----------------------------
 
 .. automodule:: liquepy.element.assess
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: liquepy.element
     :members:
     :undoc-members:
     :show-inheritance:

@@ -1,8 +1,5 @@
-liquepy.motion package
+liquepy.motion
 ======================
-
-Submodules
-----------
 
 liquepy.motion.loader module
 ----------------------------
@@ -20,11 +17,3 @@ liquepy.motion.measures module
     :undoc-members:
     :show-inheritance:
 
-
-Module contents
----------------
-
-.. automodule:: liquepy.motion
-    :members:
-    :undoc-members:
-    :show-inheritance:
