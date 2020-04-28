@@ -59,9 +59,20 @@ class FlacSoil(sm.Soil):
         return self.required_parameters + self.optional_parameters
 
     def to_fis_mohr_coulomb(self):
+        mc_params = OrderedDict([
+            ("bulk", "bulk_mod"),
+            ("shear", "g_mod"),
+            ("friction", "phi"),
+            ("cohesion", "cohesion"),
+            ("tension", "tension"),
+            ("density", "density"),
+            ("dilation", "dilation_angle"),
+            ("por", "porosity"),
+            ("perm", "flac_permeability")
+        ])
         name = "'{0}'".format(self.name)
         para = ["model mohr notnull group %s" % name]
-        para.append(write_parameters_to_fis_models(self, self.all_flac_parameters,
+        para.append(write_parameters_to_fis_models(self, mc_params,
                                             ncols=1, not_null=True))
         return "\n".join(para)
 
@@ -320,6 +331,7 @@ def write_parameters_to_fis_models(obj, parameters, ncols=3, not_null=False, gro
 
 def write_obj_to_fis_str(obj, parameters, required=''):
     para = []
+    added = []
     for item in parameters:
         if hasattr(obj, "find_units"):
             units = obj.find_units(item)
@@ -334,13 +346,18 @@ def write_obj_to_fis_str(obj, parameters, required=''):
         else:
             ecp_name = item
         val = getattr(obj, ecp_name)
+        fis_name = f'fis_name = {obj.name}_{ecp_name}'
+        if fis_name not in added:
+            added.append(fis_name)
+        else:
+            continue
         if val is None:
             if item in required:
-                raise sm.ModelError("%s_%s is None" % (obj.name, ecp_name))
+                raise sm.ModelError(f"{fis_name} is None")
         elif isinstance(val, str):
-            para.append("  %s_%s=%s%s" % (obj.name, ecp_name, val, units_str))
+            para.append(f"  ={val}{units_str}")
         else:
-            para.append("  %s_%s=%.5g%s" % (obj.name, ecp_name, val, units_str))
+            para.append(f"  {obj.name}_{ecp_name}={val:.5g}{units_str}")
 
     return para
 
