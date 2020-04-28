@@ -32,12 +32,11 @@ def calc_lsn_increments(e_v, depth):
     :param depth: array, depth from surface
     :return: array, lsn increment at depth
     """
-    ds = depth[1:] - depth[:-1]
-    depth_av = (depth[1:] + depth[:-1]) / 2
-    av_e = (e_v[1:] + e_v[:-1]) / 2
-    # depth_av = np.insert(depth_av, len(depth_av), depth[-1])
-    lsn = (av_e * ds) / depth_av
-    lsn = np.insert(lsn, len(lsn), 0)
+    ds = np.zeros_like(depth)
+    ds[:-1] = depth[1:] - depth[:-1]
+    depth_av = np.array(depth)
+    depth_av[:-1] = (depth[1:] + depth[:-1]) / 2
+    lsn = (e_v * ds) / depth_av
     return lsn * 10
 
 

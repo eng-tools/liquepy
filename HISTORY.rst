@@ -2,6 +2,14 @@
 History
 =======
 
+
+0.6.14 (2019-04-29)
+--------------------
+* Added theory one and two layer transfer functions
+* Minor change to LSN calculation to not use the average depth between points
+* Added `run_pysra` to run a site response analysis and obtain ACCX, TAU, and STRS
+* Updated logic for handling FLAC fis file inputs
+
 0.6.13 (2019-02-24)
 --------------------
 * Fixed issue with creating ESP when cpt depths are irregular
