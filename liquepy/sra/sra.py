@@ -52,7 +52,8 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0, base_shear_vel=None, 
     layers = []
     cum_thickness = 0
     for i in range(sp.n_layers):
-
+        if sp.layer_depth(i + 1) >= sp.height:
+            break
         sl = sp.layer(i + 1)
         thickness = sp.layer_height(i + 1)
 
@@ -209,34 +210,58 @@ def update_pysra_profile(pysra_profile, depths, xis=None, shear_vels=None):
     return new_profile
 
 
-def run_pysra(soil_profile, asig, odepths, wave_field='outcrop'):
-    import pysra
-    pysra_profile = sm_profile_to_pysra(soil_profile, d_inc=[0.5] * soil_profile.n_layers)
-    # Should be input in g
-    pysra_m = pysra.motion.TimeSeriesMotion(asig.label, None, time_step=asig.dt, accels=asig.values / 9.8)
+class PysraAnalysis(object):
 
-    calc = pysra.propagation.EquivalentLinearCalculator()
+    def __init__(self, soil_profile, asig, odepths, wave_field='outcrop', atype='eqlin', outs=None):
 
-    od = {'ACCX': [], 'STRS': [], 'TAU': []}
-    outs = []
-    for i, depth in enumerate(odepths):
-        od['ACCX'].append(len(outs))
-        outs.append(pysra.output.AccelerationTSOutput(pysra.output.OutputLocation('within', depth=depth)))
-        od['STRS'].append(len(outs))
-        outs.append(pysra.output.StrainTSOutput(pysra.output.OutputLocation('within', depth=depth), in_percent=False))
-        od['TAU'].append(len(outs))
-        outs.append(pysra.output.StressTSOutput(pysra.output.OutputLocation('within', depth=depth),
-                                                normalized=False))
-    outputs = pysra.output.OutputCollection(outs)
-    calc(pysra_m, pysra_profile, pysra_profile.location(wave_field, depth=soil_profile.height))
-    outputs(calc)
+        import pysra
+        pysra_profile = sm_profile_to_pysra(soil_profile, d_inc=[0.5] * soil_profile.n_layers)
+        # Should be input in g
+        pysra_m = pysra.motion.TimeSeriesMotion(asig.label, None, time_step=asig.dt, accels=asig.values / 9.8)
 
-    out_series = {}
-    for mtype in od:
-        out_series[mtype] = []
-        for i in range(len(od[mtype])):
-            out_series[mtype].append(outputs[od[mtype][i]].values[:asig.npts])
-        out_series[mtype] = np.array(out_series[mtype])
-        if mtype == 'ACCX':
-            out_series[mtype] *= 9.8
-    return out_series
+        if atype == 'eqlin':
+            calc = pysra.propagation.EquivalentLinearCalculator()
+        else:
+            calc = pysra.propagation.LinearElasticCalculator()
+
+        if outs is None:
+            od = {'ACCX': [], 'STRS': [], 'TAU': []}
+        else:
+            od = {}
+            for item in outs:
+                od[item] = []
+        out_holder = []
+        for i, depth in enumerate(odepths):
+            if 'ACCX' in od:
+                od['ACCX'].append(len(out_holder))
+                out_holder.append(pysra.output.AccelerationTSOutput(pysra.output.OutputLocation('within', depth=depth)))
+            if 'ACCXup' in od:
+                od['ACCXup'].append(len(out_holder))
+                out_holder.append(pysra.output.AccelerationTSOutput(pysra.output.OutputLocation('incoming_only', depth=depth)))
+            if 'STRS' in od:
+                od['STRS'].append(len(out_holder))
+                out_holder.append(pysra.output.StrainTSOutput(pysra.output.OutputLocation('within', depth=depth), in_percent=False))
+            if 'TAU' in od:
+                od['TAU'].append(len(out_holder))
+                out_holder.append(pysra.output.StressTSOutput(pysra.output.OutputLocation('within', depth=depth),
+                                                    normalized=False))
+        outputs = pysra.output.OutputCollection(out_holder)
+        calc(pysra_m, pysra_profile, pysra_profile.location(wave_field, depth=soil_profile.height))
+        outputs(calc)
+
+        out_series = {}
+        for mtype in od:
+            out_series[mtype] = []
+            for i in range(len(od[mtype])):
+                out_series[mtype].append(outputs[od[mtype][i]].values[:asig.npts])
+            out_series[mtype] = np.array(out_series[mtype])
+            if mtype in ['ACCX', 'ACCXup']:
+                out_series[mtype] *= 9.8
+        self.out_series = out_series
+        self.pysra_profile = pysra_profile
+
+
+def run_pysra(soil_profile, asig, odepths, wave_field='outcrop', atype='eqlin', outs=None):
+    pa = PysraAnalysis(soil_profile, asig, odepths, wave_field=wave_field, atype=atype, outs=outs)
+    return pa.out_series
+
