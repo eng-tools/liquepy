@@ -212,7 +212,7 @@ def update_pysra_profile(pysra_profile, depths, xis=None, shear_vels=None):
 
 class PysraAnalysis(object):
 
-    def __init__(self, soil_profile, asig, odepths, wave_field='outcrop', atype='eqlin', outs=None):
+    def __init__(self, soil_profile, asig, odepths, wave_field='outcrop', atype='eqlin', outs=None, trim=False):
 
         import pysra
         pysra_profile = sm_profile_to_pysra(soil_profile, d_inc=[0.5] * soil_profile.n_layers)
@@ -248,15 +248,19 @@ class PysraAnalysis(object):
         outputs = pysra.output.OutputCollection(out_holder)
         calc(pysra_m, pysra_profile, pysra_profile.location(wave_field, depth=soil_profile.height))
         outputs(calc)
-
+        if trim:
+            n = asig.npts
+        else:
+            n = None
         out_series = {}
         for mtype in od:
             out_series[mtype] = []
             for i in range(len(od[mtype])):
-                out_series[mtype].append(outputs[od[mtype][i]].values[:asig.npts])
+                out_series[mtype].append(outputs[od[mtype][i]].values[:n])
             out_series[mtype] = np.array(out_series[mtype])
             if mtype in ['ACCX', 'ACCXup']:
                 out_series[mtype] *= 9.8
+        out_series['TIME'] = np.arange(0, len(out_series[list(out_series)[0]][0])) * asig.dt
         self.out_series = out_series
         self.pysra_profile = pysra_profile
 

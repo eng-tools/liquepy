@@ -4,6 +4,7 @@ from liquepy.num.models import StressDensityModel as StressDensityModelBase
 
 class PM4Sand(PM4SandBase):
     type = "pm4sand"
+    o3_type = 'pm4sand'
 
     def __init__(self, liq_mass_density=None, g=9.8, p_atm=101000.0, **kwargs):
         PM4SandBase.__init__(self, liq_mass_density=liq_mass_density, g=g, p_atm=p_atm, **kwargs)

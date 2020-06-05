@@ -2,28 +2,33 @@
 History
 =======
 
+0.6.15 (2020-XX-XX)
+--------------------
+* Added back-calc of n1_60 from crr_m7p5 using bi2014 `calc_n1_60cs_from_crr_m7p5`
+* Added `sra.PysraAnalysis` and `sra.run_pysra` as ways to run an equivalent linear
+  analysis using the PySRA package
 
-0.6.14 (2019-04-29)
+0.6.14 (2020-04-29)
 --------------------
 * Added theory one and two layer transfer functions
 * Minor change to LSN calculation to not use the average depth between points
 * Added `run_pysra` to run a site response analysis and obtain ACCX, TAU, and STRS
 * Updated logic for handling FLAC fis file inputs
 
-0.6.13 (2019-02-24)
+0.6.13 (2020-02-24)
 --------------------
 * Fixed issue with creating ESP when cpt depths are irregular
 
-0.6.12 (2019-02-21)
+0.6.12 (2020-02-21)
 --------------------
 * Fixed issue with fitting 3- and 5-layer ESPs now uses median to find value of least deviations
 
-0.6.11 (2019-02-10)
+0.6.11 (2020-02-10)
 --------------------
 * Added MRD curves for clay
 * Fixed issue with fitting 5-layer equivalent soil profile (ESP)
 
-0.6.10 (2019-01-31)
+0.6.10 (2020-01-31)
 --------------------
 * Added .p_atm to Boulanger and Idriss (2014) method
 * Improved plotting colors for i_c

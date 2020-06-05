@@ -254,14 +254,22 @@ def test_calculate_ic():
 def test_calculate_qc_1ncs_from_crr_7p5():
     q_c1n_cs_values = np.linspace(50, 220, 100)
     crr_values = bim14.calc_crr_m7p5_from_qc1ncs_capped(q_c1n_cs_values, depth=10, gwl=0, i_c=1.8)
-    q_c1n_cs_back = bim14.calc_qc_1ncs_from_crr_m7p5(crr_values)
+    q_c1n_cs_back = bim14.calc_q_c1n_cs_from_crr_m7p5(crr_values)
     error = np.sum(abs(q_c1n_cs_values - q_c1n_cs_back))
     assert error < 0.01, error
     q_c1n_cs_values = np.linspace(50, 220, 100)
     crr_values = bim14.calc_crr_m7p5_from_qc1ncs(q_c1n_cs_values, c_0=2.6)
-    q_c1n_cs_back = bim14.calc_qc_1ncs_from_crr_m7p5(crr_values, c_0=2.6)
+    q_c1n_cs_back = bim14.calc_q_c1n_cs_from_crr_m7p5(crr_values, c_0=2.6)
     error = np.sum(abs(q_c1n_cs_values - q_c1n_cs_back))
     assert error < 0.01, error
+
+
+def test_calculate_n1_60cs_from_crr_7p5():
+    n1_60_cs_values = np.linspace(1, 25, 10)
+    crr_values = bim14.calc_crr_m7p5_from_n1_60cs(n1_60_cs_values, c_0=2.6)
+    n1_60_cs_back = bim14.calc_n1_60cs_from_crr_m7p5(crr_values, c_0=2.6)
+    error = np.sum(abs(n1_60_cs_values - n1_60_cs_back))
+    assert error < 0.001, error
 
 
 def test_handles_predrill():

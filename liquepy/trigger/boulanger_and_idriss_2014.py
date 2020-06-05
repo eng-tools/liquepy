@@ -557,6 +557,32 @@ def run_bi2014(cpt, pga, m_w, gwl=None, p_a=101., cfc=0.0, i_c_limit=2.6, gamma_
                                   c_0=c_0)
 
 
+def _invert_crr_formula(a, b, c, d, e):
+
+    p = (8 * a * c - 3 * b ** 2) / (8 * a ** 2)
+    q = (b ** 3 - 4 * a * b * c + 8 * d * (a ** 2)) / (8 * a ** 3)
+    delta_zero = c ** 2 - 3 * b * d + 12 * a * e
+    delta_one = 2 * c ** 3 - 9 * b * c * d + 27 * e * (b ** 2) + 27 * a * (d ** 2) - 72 * a * c * e
+    big_q = ((delta_one + (delta_one ** 2 - 4 * delta_zero ** 3) ** 0.5) / 2) ** (1/3)
+    big_s = 0.5 * (- 2/3 * p + 1/(3 * a) * (big_q + (delta_zero / big_q))) ** 0.5
+    big_a = (- 4 * big_s ** 2 - 2 * p + q/big_s)
+    big_b = (- 4 * big_s ** 2 - 2 * p - q/big_s)
+    big_c = - b/(4 * a)
+
+    # Solutions
+    x1 = big_c - big_s + 0.5 * big_a ** 0.5
+    # x2 = C - big_s - 0.5 * big_a ** 0.5
+    x2 = -1  # q_c1ncs would be less than zero
+
+    import warnings  # These solutions are complex for negative
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        x3 = big_c + big_s + 0.5 * big_b ** 0.5
+        x4 = big_c + big_s - 0.5 * big_b ** 0.5
+
+        return np.where(big_b < 0, np.where(x1 < 0, x2, x1), np.where(x3 < 0, x4, x3))
+
+
 def calc_q_c1n_cs_from_crr_m7p5(crr_7p5, c_0=2.8):
     """
     Solves the closed form solution to a quartic to invert the CRR_7p5-vs-q_c1n_cs relationship
@@ -574,35 +600,37 @@ def calc_q_c1n_cs_from_crr_m7p5(crr_7p5, c_0=2.8):
     float or array_like
         value of normalised cone tip resistance corrected to clean sand behaviour
     """
-    x = 5
     a = (1 / 137) ** 4
     b = - (1 / 140) ** 3
     c = (1 / 1000) ** 2
     d = (1 / 113)
     e = - (np.log(crr_7p5) + c_0)
+    return _invert_crr_formula(a, b, c, d, e)
 
-    p = (8 * a * c - 3 * b ** 2) / (8 * a ** 2)
-    q = (b ** 3 - 4 * a *b *c + 8 * d * (a ** 2)) / (8 * a ** 3)
-    delta_zero = c ** 2 - 3 * b * d + 12 * a * e
-    delta_one = 2 * c ** 3 - 9 * b * c * d + 27 * e * (b ** 2) + 27 * a * (d ** 2) - 72 * a * c * e
-    big_q = ((delta_one + (delta_one ** 2 - 4 * delta_zero ** 3) ** 0.5) / 2) ** (1/3)
-    big_s = 0.5 * (- 2/3 * p + 1/(3 * a) * (big_q + (delta_zero / big_q))) ** 0.5
-    big_a = (- 4 * big_s ** 2 - 2 * p + q/big_s)
-    big_b = (- 4 * big_s ** 2 - 2 * p - q/big_s)
-    C = - b/(4 * a)
 
-    # Solutions
-    x1 = C - big_s + 0.5 * big_a ** 0.5
-    # x2 = C - big_s - 0.5 * big_a ** 0.5
-    x2 = -1  # q_c1ncs would be less than zero
+def calc_n1_60cs_from_crr_m7p5(crr_7p5, c_0=2.8):
+    """
+    Solves the closed form solution to a quartic to invert the CRR_7p5-vs-N1_60_cs relationship
 
-    import warnings  # These solutions are complex for negative
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        x3 = C + big_s + 0.5 * big_b ** 0.5
-        x4 = C + big_s - 0.5 * big_b ** 0.5
-
-        return np.where(big_b < 0, np.where(x1 < 0, x2, x1), np.where(x3 < 0, x4, x3))
+    Parameters
+    ----------
+    crr_7p5: float or array_like
+        values of cyclic resistance ratio at m_w 7.5
+    c_0: float (default=2.8)
+        Empirical fitting parameter.
+         - 2.8=16th percentile (commonly used)
+         - 2.6=median response
+    Returns
+    -------
+    float or array_like
+        value of normalised blow-count corrected to clean sand behaviour
+    """
+    a = (1 / 25.4) ** 4
+    b = - (1 / 23.6) ** 3
+    c = (1 / 126) ** 2
+    d = (1 / 14.1)
+    e = - (np.log(crr_7p5) + c_0)
+    return _invert_crr_formula(a, b, c, d, e)
 
 
 def calc_qc_1ncs_from_crr_m7p5(crr_7p5, c_0=2.8):
@@ -691,3 +719,10 @@ def calc_crr_m7p5_from_n1_60cs(n1_60cs, c_0=2.8):
 
     """
     return np.exp((n1_60cs / 14.1) + ((n1_60cs / 126) ** 2) - ((n1_60cs / 23.6) ** 3) + ((n1_60cs / 25.4) ** 4) - c_0)
+
+
+if __name__ == '__main__':
+    n1_60_cs_values = 3.
+    crr_values = calc_crr_m7p5_from_n1_60cs(n1_60_cs_values, c_0=2.6)
+    n1_60_cs_back = calc_n1_60cs_from_crr_m7p5(crr_values, c_0=2.6)
+    print(n1_60_cs_back)
