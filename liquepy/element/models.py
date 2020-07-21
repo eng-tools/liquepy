@@ -81,7 +81,7 @@ class ShearTest(object):
         epp = np.array(ru) * self.esig_v0
         self._pp = epp + hydrostatic
 
-    def set_i_liq(self, ru_limit=None, esig_v_limit=None, strain_limit=None, or_none=True):
+    def set_i_liq(self, ru_limit=None, esig_v_limit=None, strain_limit=None, da_strain_limit=None, or_none=True):
         if ru_limit is not None:
             self._ru_limit = ru_limit
             self._i_liq_pp = functions.determine_t_liq_index(self.ru, ru_limit, return_none=or_none)
@@ -90,12 +90,17 @@ class ShearTest(object):
             self._ru_limit = ru_limit
             self._i_liq_pp = functions.determine_t_liq_index(self.ru, ru_limit, return_none=or_none)
         elif strain_limit is None:
-            print("No limit set for set_i_liq")
+            pass
+            # print("No limit set for set_i_liq")
         if strain_limit is not None:
             self._i_liq_strain = functions.determine_t_liq_index(abs(self.strain), strain_limit, return_none=or_none)
+        elif da_strain_limit is not None:
+            roll_max = np.maximum.accumulate(self.strain)
+            roll_min = np.minimum.accumulate(self.strain)
+            self._i_liq_strain = functions.determine_t_liq_index(abs(roll_max - roll_min), da_strain_limit, return_none=or_none)
         if self._i_liq_pp is None:
             self._i_liq = self._i_liq_strain
-        if self._i_liq_strain is None:
+        elif self._i_liq_strain is None:
             self._i_liq = self._i_liq_pp
         else:
             self._i_liq = min(self._i_liq_pp, self._i_liq_strain)

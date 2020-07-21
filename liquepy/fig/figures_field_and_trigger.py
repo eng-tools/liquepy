@@ -95,6 +95,30 @@ def build_cmaps():
     _clist = list(itertools.chain(*[[IC_COLORS_w_CONTRAST[cname]] * _incs[x] for x, cname in enumerate(IC_COLORS_w_CONTRAST)]))
     IC_CMAP_w_CONTRAST = LinearSegmentedColormap.from_list('mine', _clist, N=len(_clist))
 
+def get_fs_cmap():
+    from matplotlib.colors import LinearSegmentedColormap  # Importing this is slow
+    return LinearSegmentedColormap.from_list('fs', [FS_COLORS[cname] for cname in FS_COLORS], N=5)
+
+
+def get_fs_w_nonliq_cmap():
+    from matplotlib.colors import LinearSegmentedColormap  # Importing this is slow
+    return LinearSegmentedColormap.from_list('fs_w_nonliq',
+                                             [FS_COLORS_W_NONLIQ[cname] for cname in FS_COLORS_W_NONLIQ], N=5)
+
+def get_ic_cmap():
+    from matplotlib.colors import LinearSegmentedColormap  # Importing this is slow
+    _incs = np.round(np.diff(IC_LIMITS) * 10).astype(int)
+    _clist = list(itertools.chain(*[[IC_COLORS[cname]] * _incs[x] for x, cname in enumerate(IC_COLORS)]))
+    return LinearSegmentedColormap.from_list('mine', _clist, N=len(_clist))
+
+
+def get_ic_w_contrast_cmap():
+    from matplotlib.colors import LinearSegmentedColormap  # Importing this is slow
+    _incs = np.round(np.diff(IC_LIMITS) * 10).astype(int)
+    _clist = list(itertools.chain(*[[IC_COLORS_w_CONTRAST[cname]] * _incs[x]
+                                    for x, cname in enumerate(IC_COLORS_w_CONTRAST)]))
+    return LinearSegmentedColormap.from_list('mine', _clist, N=len(_clist))
+
 
 def add_ic_colours(subplot, col_dict='alt', ic_limits=None):
     from matplotlib import patches as mpatches

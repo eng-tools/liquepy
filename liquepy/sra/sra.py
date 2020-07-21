@@ -266,6 +266,17 @@ class PysraAnalysis(object):
 
 
 def run_pysra(soil_profile, asig, odepths, wave_field='outcrop', atype='eqlin', outs=None):
+    """
+
+    :param soil_profile:
+    :param asig:
+    :param odepths:
+    :param wave_field: str
+        either - 'outcrop', 'within', 'incoming_only'
+    :param atype:
+    :param outs:
+    :return:
+    """
     pa = PysraAnalysis(soil_profile, asig, odepths, wave_field=wave_field, atype=atype, outs=outs)
     return pa.out_series
 

@@ -191,6 +191,17 @@ def calc_crr_m7p5_from_qc1ncs(q_c1n_cs, c_0=2.8):
                         ((q_c1n_cs / 140) ** 3) + ((q_c1n_cs / 137) ** 4) - c_0)
 
 
+def calc_crr_n15_from_qc1ncs(q_c1n_cs, c_0=2.8):
+    crr_m7p5 = calc_crr_m7p5_from_qc1ncs(q_c1ncs, c_0=c_0)
+    msf_m = 1.09 + (q_c1ncs / 180) ** 3
+    msf_max = np.clip(msf_m, None, 2.2)
+    b = calc_b_from_msf_max_bi2014(msf_max)
+    n_m7p5 = calc_n_cycles_at_m7p5_bi2014(b)
+    n_cyc_bi2014 = 15
+    msf = (n_m7p5 / n_cyc_bi2014) ** b
+    return msf * crr_m7p5
+
+
 def calc_crr_m7p5_from_qc1ncs_capped(q_c1n_cs, gwl, depth, i_c, i_c_limit=2.6, c_0=2.8):
     """
     cyclic resistance from CPT, Eq. 2.24
@@ -417,7 +428,7 @@ class BoulangerIdriss2014CPT(object):
                                                                                             self.q_t,
                                                                                             self.cfc)
 
-        np.clip(self.q_c1n_cs, None, 210., out=self.q_c1n_cs)
+        np.clip(self.q_c1n_cs, None, 211., out=self.q_c1n_cs)  # pg 11 of BI2014 report
         self.k_sigma = calc_k_sigma(self.sigma_veff, self.q_c1n_cs)
         self.msf = calc_msf(self.m_w, self.q_c1n_cs)
         self.csr = calc_csr(self.sigma_veff, self.sigma_v, pga, self.rd, gwl, self.depth)
@@ -720,6 +731,16 @@ def calc_crr_m7p5_from_n1_60cs(n1_60cs, c_0=2.8):
     """
     return np.exp((n1_60cs / 14.1) + ((n1_60cs / 126) ** 2) - ((n1_60cs / 23.6) ** 3) + ((n1_60cs / 25.4) ** 4) - c_0)
 
+
+def calc_crr_n15_from_n1_60cs(n1_60cs, c_0=2.8):
+    crr_m7p5 = calc_crr_m7p5_from_n1_60cs(n1_60cs, c_0=c_0)
+    msf_m = 1.09 + (n1_60cs / 31.5) ** 2
+    msf_max = np.clip(msf_m, None, 2.2)
+    b = calc_b_from_msf_max_bi2014(msf_max)
+    n_m7p5 = calc_n_cycles_at_m7p5_bi2014(b)
+    n_cyc_bi2014 = 15
+    msf = (n_m7p5 / n_cyc_bi2014) ** b
+    return msf * crr_m7p5
 
 if __name__ == '__main__':
     n1_60_cs_values = 3.

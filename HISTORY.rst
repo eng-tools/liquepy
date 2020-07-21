@@ -2,12 +2,12 @@
 History
 =======
 
-0.6.15 (2020-XX-XX)
+0.6.15 (2020-07-22)
 --------------------
 * Added back-calc of n1_60 from crr_m7p5 using bi2014 `calc_n1_60cs_from_crr_m7p5`
 * Added `sra.PysraAnalysis` and `sra.run_pysra` as ways to run an equivalent linear
   analysis using the PySRA package
-* Can set point of liquefaction in element test using strain criteria
+* Can set point of liquefaction in element test using single aplitude and double amplitude strain criteria
 
 0.6.14 (2020-04-29)
 --------------------
