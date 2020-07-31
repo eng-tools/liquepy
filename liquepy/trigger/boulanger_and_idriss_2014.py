@@ -191,7 +191,7 @@ def calc_crr_m7p5_from_qc1ncs(q_c1n_cs, c_0=2.8):
                         ((q_c1n_cs / 140) ** 3) + ((q_c1n_cs / 137) ** 4) - c_0)
 
 
-def calc_crr_n15_from_qc1ncs(q_c1n_cs, c_0=2.8):
+def calc_crr_n15_from_qc1ncs(q_c1ncs, c_0=2.8):
     crr_m7p5 = calc_crr_m7p5_from_qc1ncs(q_c1ncs, c_0=c_0)
     msf_m = 1.09 + (q_c1ncs / 180) ** 3
     msf_max = np.clip(msf_m, None, 2.2)

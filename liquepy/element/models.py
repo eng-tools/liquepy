@@ -1,5 +1,6 @@
 import numpy as np
 from liquepy import functions
+import eqsig
 
 
 class ShearTest(object):
@@ -95,9 +96,16 @@ class ShearTest(object):
         if strain_limit is not None:
             self._i_liq_strain = functions.determine_t_liq_index(abs(self.strain), strain_limit, return_none=or_none)
         elif da_strain_limit is not None:
-            roll_max = np.maximum.accumulate(self.strain)
-            roll_min = np.minimum.accumulate(self.strain)
-            self._i_liq_strain = functions.determine_t_liq_index(abs(roll_max - roll_min), da_strain_limit, return_none=or_none)
+            pinds = eqsig.get_switched_peak_array_indices(self.strain)
+            pstrains = self.strain[pinds]
+            da_strains = abs(np.diff(pstrains))
+            dind = np.where(da_strains > 0.05)
+            if len(dind[0]):
+                n_cyc = self.n_cycles[pinds[dind[0][0]]]
+                self._i_liq_strain = pinds[dind[0][0]]
+            # roll_max = np.maximum.accumulate(self.strain)
+            # roll_min = np.minimum.accumulate(self.strain)
+            # self._i_liq_strain = functions.determine_t_liq_index(abs(roll_max - roll_min), da_strain_limit, return_none=or_none)
         if self._i_liq_pp is None:
             self._i_liq = self._i_liq_strain
         elif self._i_liq_strain is None:
