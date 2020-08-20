@@ -96,3 +96,64 @@ def set_hyp_params_from_op_pimy_or_pdmy_model(sl, p_ref=100.0e3, hyp=True):
         sl.sra_type = "hyperbolic"
         sl.inputs += ['strain_curvature', 'xi_min', 'sra_type', 'strain_ref']
 
+
+def calc_gamma_ref_via_darendeli_2001(i_p, ocr, p_eff, p_atm=101.0e3):
+    """
+    Calculate the reference strain for a modulus reduction curve from :cite:`Darendeli:2001thesis`
+
+    :param i_p: float
+        Plasticity index (as a ratio not percentage)
+    :param ocr:
+    :param p_eff:
+    :return:
+    """
+    phi_1 = 0.0352
+    phi_2 = 0.0010
+    phi_3 = 0.3246
+    phi_4 = 0.3483
+    return (phi_1 + phi_2 * i_p * 100 * ocr ** phi_3) * (p_eff / p_atm) ** phi_4 / 100
+
+
+def calc_gamma_ref_via_menq_2003(c_u, p_eff, p_atm=101.0e3):
+    """
+    Calculate the reference strain for a modulus reduction curve from Menq
+
+    :param c_u: float
+        Uniformity coefficient (Grain size ratio d_60 / d_10)
+    :param p_eff:
+    :return:
+    """
+    big_a_gamma = 0.12 * c_u ** -0.6
+    n_gamma = 0.5 * c_u ** -0.15
+
+    return big_a_gamma * (p_eff / p_atm) ** n_gamma / 100
+
+
+def calc_min_damping_via_menq_2003(c_u, d_50, p_eff, p_atm=101.0e3):
+    """
+    Minimum damping for hyperbolic model according to Menq 2003
+    Parameters
+    ----------
+    c_u: float
+        Uniformity coefficient (Grain size ratio d_60 / d_10)
+    d_50: float
+        Median grain diameter in mm
+    p_eff
+    p_atm
+
+    Returns
+    -------
+
+    """
+
+    return (0.55 * c_u ** 0.1 * d_mean ** -0.3 * (p_eff / p_atm) ** -0.08) / 100
+
+
+def calc_alpha_via_menq_2003(p_eff, p_atm=101.0e3):
+    """
+    Calculate the reference strain for a modulus reduction curve from Menq
+
+    :param p_eff:
+    :return:
+    """
+    return 0.86 + 0.1 * np.log(p_eff / p_atm)

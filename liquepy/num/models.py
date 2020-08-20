@@ -171,6 +171,18 @@ class PM4Sand(sm.StressDependentSoil):
     #         return None
 
 
+def calc_peak_angle_for_pm4sand(d_r, p, p_atm=101.0e3, phi_cv=33.0, n_b=0.5, q_bolt=10, r_bolt=1.5):
+    dr_cs = r_bolt / (q_bolt - np.log(100 * p / p_atm))  # Eq 11
+    ksi_r = dr_cs - d_r  # Eq 10
+    phi_r = np.radians(phi_cv)
+    big_m = 2 * np.sin(phi_r)  # Eq 14
+    if ksi_r < 0:
+        m_b = big_m * np.exp(-n_b * ksi_r)  # Eq 13
+    else:
+        m_b = big_m * np.exp(-n_b / 4 * ksi_r)  # from source code ?
+    return np.degrees(np.arcsin(0.5 * m_b))  # Eq 46
+
+
 class StressDensityModel(sm.StressDependentSoil):
     _crr_n15 = None
     big_a = None

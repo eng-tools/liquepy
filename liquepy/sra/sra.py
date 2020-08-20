@@ -111,6 +111,11 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0, base_shear_vel=None, 
                 ip *= 100  # Input is in percentage
                 pysra_sl = pysra.site.DarendeliSoilType(unit_wt, plas_index=ip, ocr=1,
                                                         stress_mean=sl.darendeli_sigma_m_eff, strains=strains)
+            elif hasattr(sl, "sra_type") and getattr(sl, "sra_type") == "menq":
+                k0 = 0.5
+                s_v_eff = sp.vertical_effective_stress(cum_thickness)
+                sigma_m_eff = (s_v_eff * (1 + 2 * k0) / 3) * PA_TO_KPA
+                pysra_sl = pysra.site.MenqSoilType(unit_wt, uniformity_coeff=2, diam_mean=2, stress_mean=sigma_m_eff)
             elif hasattr(sl, "plasticity_index") and getattr(sl, "plasticity_index") is not None:
                 i_p = sl.plasticity_index
                 gamma_ref, curvature = vardanega_2013_to_modified_hyperbolic_parameters(i_p)

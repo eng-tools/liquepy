@@ -77,7 +77,7 @@ def calc_relative_density_boulanger_et_al_2014_cpt_values(q_c1n, c_dq=0.9):
     q_c1n: array_like
         Normalised cone penetration resistance
     c_dq: float, default=0.9 (from :cite:`Idriss:2008ua`)
-        Correlation factor, (range 0.64-155 from Salgado (1997)
+        Correlation factor, (range 0.64-1.55 from Salgado (1997)
 
     Returns
     -------
