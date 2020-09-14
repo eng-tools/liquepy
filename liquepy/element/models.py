@@ -14,6 +14,7 @@ class ShearTest(object):
     _n_points = 0
     _n_cycles = None
     _ru_limit = None
+    _da_strain = None
 
     def __init__(self, stress, strain, esig_v0=1, sl=None, pp=None, n_cycles=None):
         self._strain = np.array(strain)
@@ -97,15 +98,10 @@ class ShearTest(object):
             self._i_liq_strain = functions.determine_t_liq_index(abs(self.strain), strain_limit, return_none=or_none)
         elif da_strain_limit is not None:
             pinds = eqsig.get_switched_peak_array_indices(self.strain)
-            pstrains = self.strain[pinds]
-            da_strains = abs(np.diff(pstrains))
+            da_strains = self.get_da_strain_series()
             dind = np.where(da_strains > 0.05)
             if len(dind[0]):
-                n_cyc = self.n_cycles[pinds[dind[0][0]]]
-                self._i_liq_strain = pinds[dind[0][0]]
-            # roll_max = np.maximum.accumulate(self.strain)
-            # roll_min = np.minimum.accumulate(self.strain)
-            # self._i_liq_strain = functions.determine_t_liq_index(abs(roll_max - roll_min), da_strain_limit, return_none=or_none)
+                self._i_liq_strain = dind[0][0]
         if self._i_liq_pp is None:
             self._i_liq = self._i_liq_strain
         elif self._i_liq_strain is None:
@@ -129,3 +125,18 @@ class ShearTest(object):
         delta_strain = np.insert(delta_strain, 0, 0)
         return delta_strain
 
+    def get_da_strain_series(self):
+        if self._da_strain is not None:
+            return np.array(self._da_strain)
+        pinds = eqsig.get_switched_peak_array_indices(self.strain)
+        if pinds[-1] != len(self.strain) - 1:
+            pinds = np.insert(pinds, len(pinds), len(self.strain) - 1)
+        da_strains = [0]
+        for j in range(len(pinds) - 1):
+            curr_p_strain = self.strain[pinds[j]]
+            sgn = np.sign(curr_p_strain)
+            if sgn == 0 and j == 0:
+                sgn = -1 * np.sign(self.strain[pinds[j + 1]])
+            da_strains += list(sgn * -1 * (self.strain[pinds[j] + 1: pinds[j + 1] + 1] - curr_p_strain))
+        self._da_strain = np.array(da_strains)
+        return np.array(self._da_strain)

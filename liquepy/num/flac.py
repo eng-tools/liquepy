@@ -57,8 +57,14 @@ class FlacSoil(sm.Soil):
     @property
     def all_flac_parameters(self):
         return self.required_parameters + self.optional_parameters
+    
+    def sm_to_fis_name(self, sm_name):
+        for item in self.app2mod:
+            if self.app2mod[item] == sm_name:
+                return item
+        return None
 
-    def to_fis_mohr_coulomb(self):
+    def to_fis_mohr_coulomb(self, group_name=None, as_values=False):
         mc_params = OrderedDict([
             ("bulk", "bulk_mod"),
             ("shear", "g_mod"),
@@ -70,10 +76,11 @@ class FlacSoil(sm.Soil):
             ("por", "porosity"),
             ("perm", "flac_permeability")
         ])
-        name = "'{0}'".format(self.name)
-        para = ["model mohr notnull group %s" % name]
-        para.append(write_parameters_to_fis_models(self, mc_params,
-                                            ncols=1, not_null=True))
+        if group_name is None:
+            group_name = "'{0}'".format(self.name)
+        para = ["model mohr notnull group %s" % group_name]
+        para.append(write_parameters_to_fis_models(self, mc_params, ncols=1, not_null=True, group_name=group_name,
+                                                   as_values=as_values))
         return "\n".join(para)
 
     def set_prop_dict(self):
@@ -135,22 +142,22 @@ class PM4Sand(FlacSoil, PM4SandBase):
 
         additional_dict = OrderedDict([
             ("D_r", "relative_density"),
-            # ("h_po", "h_po"),
+            ("h_po", "h_po"),
             ("G_o", "g0_mod"),
-            # ("density", "density"),
-            # ("porosity", "porosity"),
-            # ("h_o", "h_o"),
-            # ("e_min", "e_min"),
-            # ("e_max", "e_max"),
-            # ("n_b", "n_b"),
-            # ("n_d", "n_d"),
-            # ("c_z", "c_z"),
-            # ("c_e", "c_e"),
-            # ("n_d", "n_d"),
+            ("density", "density"),
+            ("porosity", "porosity"),
+            ("h_o", "h_o"),
+            ("e_min", "e_min"),
+            ("e_max", "e_max"),
+            ("n_b", "n_b"),
+            ("n_d", "n_d"),
+            ("c_z", "c_z"),
+            ("c_e", "c_e"),
+            ("n_d", "n_d"),
             ("k11", "flac_permeability"),
             ("k22", "flac_permeability"),
             ("P_atm", "p_atm"),
-            # ("phi_cv", "phi_cv"),
+            ("phi_cv", "phi_cv"),
             ("pois", "poissons_ratio"),
             ("A_do", "a_do"),
             ("G_degr", "g_degr"),
@@ -158,13 +165,17 @@ class PM4Sand(FlacSoil, PM4SandBase):
             ("Q_bolt", "q_bolt"),
             ("R_bolt", "r_bolt"),
             ("MC_ratio", "mc_ratio"),
-            ("MC_c", "mc_c")
+            ("MC_c", "mc_c"),
+            ("z_max", "z_max"),
+            ("c_dr", "c_dr"),
+            ("m_par", "m_par"),
+            ("f_sed", "f_sed"),
+            ("p_sed", "p_sed")
         ])
         self.app2mod.update(additional_dict)
         self.pm4sand_parameters = self.app2mod  # deprecated
-        self.required_parameters += ['h_po', 'D_r', 'G_o']
-        self.optional_parameters += [
-            "P_atm",
+        self.required_parameters = ['h_po', 'D_r', 'G_o', "P_atm"]
+        self.optional_parameters = [
             "k11",
             "k22",
             "pois",
@@ -193,6 +204,15 @@ class PM4Sand(FlacSoil, PM4SandBase):
 
     def __str__(self):
         return "PM4SandFLAC Soil model, id=%i, phi=%.1f, Dr=%.2f" % (self.id, self.phi, self.relative_density)
+
+    def to_fis(self, group_name=None, as_values=False):
+        params = self.all_flac_parameters
+        if group_name is None:
+            group_name = "'{0}'".format(self.name)
+        para = [f"model pm4sand notnull group {group_name}"]
+        para.append(write_parameters_to_fis_models(self, params, ncols=1, not_null=True, group_name=group_name,
+                                                   as_values=as_values))
+        return para
 
 
 def load_element_test(ffp, esig_v0, hydrostatic=0):
@@ -302,7 +322,10 @@ def calc_pm4sand_h_po_from_crr_n15_and_relative_density_millen_et_al_2019(crr_n1
     return crr_n15 * (2.05 - 2.4 * d_r) / (1. - crr_n15 * (12.0 - (12.5 * d_r)))
 
 
-def write_parameters_to_fis_models(obj, parameters, ncols=3, not_null=False, group_suffix=''):
+def write_parameters_to_fis_models(obj, parameters, ncols=3, not_null=False, group_name=None, as_values=False):
+    if group_name is None:
+        group_name = obj.name
+        
     count = 0
     para = []
     pline = ["prop"]
@@ -311,15 +334,20 @@ def write_parameters_to_fis_models(obj, parameters, ncols=3, not_null=False, gro
             ecp_name = obj.app2mod[flac_name]
         else:
             ecp_name = flac_name
-        if getattr(obj, ecp_name) is None:
+        value = getattr(obj, ecp_name)
+        if value is None:
             continue
-        pline.append("{}={}_{}".format(flac_name, obj.name, ecp_name))
+        if as_values:
+            value = f'{value:.6g}'
+        else:
+            value = f'{obj.name}_{ecp_name}'
+        pline.append(f"{flac_name}={value}")
         count += 1
         if count == ncols:
             if not_null:
-                pline.append(f"notnull group {obj.name}{group_suffix}")
+                pline.append(f"notnull group {group_name}")
             else:
-                pline.append(f"group {obj.name}{group_suffix}")
+                pline.append(f"group {group_name}")
             para.append(" ".join(pline))
             pline = ["prop"]
             count = 0
