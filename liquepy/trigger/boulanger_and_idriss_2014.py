@@ -327,7 +327,7 @@ def _calc_dependent_variables(sigma_v, sigma_veff, q_c, f_s, p_a, q_t, cfc):
             if abs(q_c1n[dd] - temp_q_c1n) < 0.00001 and n_val_stable:
                 break
             temp_q_c1n = q_c1n[dd]
-    return q_c1n_cs, q_c1n, fines_content, i_c, big_q
+    return q_c1n_cs, q_c1n, fines_content, i_c, big_q, ft_values
 
 
 class BoulangerIdriss2014CPT(object):
@@ -421,7 +421,7 @@ class BoulangerIdriss2014CPT(object):
             self.sigma_veff[0] = 1.0e-10
         self.rd = calc_rd(self.depth, self.m_w)
 
-        self.q_c1n_cs, self.q_c1n, self.fines_content, self.i_c, self.big_q = _calc_dependent_variables(self.sigma_v,
+        self.q_c1n_cs, self.q_c1n, self.fines_content, self.i_c, self.big_q, self.big_f = _calc_dependent_variables(self.sigma_v,
                                                                                                         self.sigma_veff,
                                                                                                         self.cpt.q_c,
                                                                                             self.cpt.f_s, self.p_a,

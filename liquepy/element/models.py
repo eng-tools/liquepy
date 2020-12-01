@@ -47,6 +47,14 @@ class ShearTest(object):
         return self._i_liq
 
     @property
+    def i_liq_strain(self):
+        return self._i_liq_strain
+
+    @property
+    def i_liq_pp(self):
+        return self._i_liq_pp
+
+    @property
     def n_points(self):
         return self._n_points
 
@@ -78,6 +86,10 @@ class ShearTest(object):
             return self.epp / self.esig_v0
         except ValueError:
             return None
+
+    @n_cycles.setter
+    def n_cycles(self, values):
+        self._n_cycles = values
 
     def set_pp_via_ru(self, ru, hydrostatic):
         epp = np.array(ru) * self.esig_v0

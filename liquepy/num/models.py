@@ -155,6 +155,17 @@ class PM4Sand(sm.StressDependentSoil):
         k0 = 1 - np.sin(self.phi_r)
         self.g0_mod = g_mod / self.p_atm / (sigma_v_eff * (1 + k0) / 2 / self.p_atm) ** 0.5
 
+    def get_peak_angle(self, p):
+        n_b = self.n_b
+        if n_b is None:
+            n_b = 0.5
+        q_bolt = self.q_bolt
+        if q_bolt is None:
+            q_bolt = 10
+        r_bolt = self.r_bolt
+        if r_bolt is None:
+            r_bolt = 1.5
+        return calc_peak_angle_for_pm4sand(d_r, p, p_atm=self.p_atm, phi_cv=self.phi_cv, n_b=n_b, q_bolt=q_bolt, r_bolt=r_bolt)
 
     # def e_critical(self, p):
     #     p = float(p)
@@ -181,6 +192,87 @@ def calc_peak_angle_for_pm4sand(d_r, p, p_atm=101.0e3, phi_cv=33.0, n_b=0.5, q_b
     else:
         m_b = big_m * np.exp(-n_b / 4 * ksi_r)  # from source code ?
     return np.degrees(np.arcsin(0.5 * m_b))  # Eq 46
+
+
+class ManzariDafaliasModel(sm.StressDependentSoil):
+    crr_n15 = None
+    m_c = None
+    c_c = None
+    lambda_c = None
+    e_0 = None
+    ksi = None
+    m_yield = None
+    h_0 = None
+    c_h = None
+    n_b = None
+    n_d = None
+    a_o = None
+    z_max = None
+    c_z = None
+
+    # TODO: add non default inputs here
+    type = "manzaridafalias_model"
+
+    def __init__(self, pw=9800, liq_mass_density=None, g=9.8, p_atm=101000.0, **kwargs):
+        # Note: pw has deprecated
+        _gravity = g  # m/s2
+        if liq_mass_density:
+            _liq_mass_density = liq_mass_density  # kg/m3
+        elif pw is not None and _gravity is not None:
+            if pw == 9800 and g == 9.8:
+                _liq_mass_density = 1.0e3
+            else:
+                _liq_mass_density = pw / _gravity
+        else:
+            _liq_mass_density = None
+
+        sm.StressDependentSoil.__init__(self, liq_mass_density=_liq_mass_density, g=_gravity, **kwargs)
+        self._extra_class_inputs = [
+            "crr_n15",
+            "m_c",
+            "c_c",
+            "lambda_c",
+            "e_0",
+            "ksi",
+            "m_yield",
+            "h_0",
+            "c_h",
+            "n_b",
+            "n_d",
+            "a_o",
+            "z_max",
+            "c_z",
+        ]
+        self.p_atm = p_atm
+        self.inputs += self._extra_class_inputs
+
+        if not hasattr(self, "definitions"):
+            self.definitions = OrderedDict()
+        self.definitions["crr_n15"] = ["Cyclic resistance ratio for 15 cycles", "-"]
+        self.definitions["g0_mod"] = ["Normalised shear modulus factor", "-"]
+        self.definitions["p_atm"] = ["Atmospheric pressure", "Pa"]
+
+    def __repr__(self):
+        return "ManzariDafaliasModel Soil model, id=%i, phi=%.1f, Dr=%.2f" % (self.id, self.phi, self.relative_density)
+
+    def __str__(self):
+        return "ManzariDafaliasModel Soil model, id=%i, phi=%.1f, Dr=%.2f" % (self.id, self.phi, self.relative_density)
+
+    def get_peak_angle(self, p):
+        e_cs = self.e_0 - self.lambda_c * (p / self.p_atm) ** self.ksi
+        psi = e_cs - self.e_curr
+        m_b = self.m_c * np.exp(-self.n_b * psi)  # Eq 13
+        
+        return np.degrees(np.arcsin(0.5 * m_b))  # Eq 46
+    
+    def get_crit_angle(self):
+        phi_r = np.arcsin(self.big_m / 2)
+        return np.degrees(phi_r)
+    
+    def set_big_m_from_phi_cv(self, phi_cv):
+        phi_r = np.radians(phi_cv)
+        self.big_m = 2 * np.sin(phi_r)
+        
 
 
 class StressDensityModel(sm.StressDependentSoil):

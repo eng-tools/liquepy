@@ -1,5 +1,6 @@
 from liquepy.num.models import PM4Sand as PM4SandBase
 from liquepy.num.models import StressDensityModel as StressDensityModelBase
+from liquepy.num import models
 
 
 class PM4Sand(PM4SandBase):
@@ -21,6 +22,25 @@ class PM4Sand(PM4SandBase):
 
     def __str__(self):
         return "PM4SandO3 Soil model, id=%i, phi=%.1f, Dr=%.2f" % (self.id, self.phi, self.relative_density)
+
+
+class ManzariDafaliasModel(models.ManzariDafaliasModel):
+    o3_type = 'manzaridafalias_model'
+
+    def __init__(self, liq_mass_density=None, g=9.8, p_atm=101000.0, **kwargs):
+        models.ManzariDafaliasModel.__init__(self, liq_mass_density=liq_mass_density, g=g, p_atm=p_atm, **kwargs)
+        self._extra_class_inputs = []
+        self.app2mod = {
+            'g0': 'g0_mod',
+            'den': 'unit_moist_mass',
+            'nu': 'poissons_ratio'
+        }
+
+    def __repr__(self):
+        return f"ManzariDafaliasModelO3 Soil model, id={self.id}, m_c={self.m_c:.1f}, e_curr={self.e_curr:.2f}"
+
+    def __str__(self):
+        return f"ManzariDafaliasModelO3 Soil model, id={self.id}, m_c={self.m_c:.1f}, e_curr={self.e_curr:.2f}"
 
 
 class StressDensityModel(StressDensityModelBase):

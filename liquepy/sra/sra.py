@@ -92,9 +92,9 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0, base_shear_vel=None, 
                                                                  curvature=sl.strain_curvature,
                                                                  damping_min=sl.xi_min,
                                                                  strains=strains)
-            elif hasattr(sl, "darendeli"):
+            elif hasattr(sl, "darendeli") or hasattr(sl, "sra_type") and getattr(sl, "sra_type") == "darendeli":
                 assert isinstance(sp, sm.SoilProfile)
-                s_v_eff = sp.vertical_effective_stress(cum_thickness)
+                s_v_eff = sp.get_v_eff_stress_at_depth(cum_thickness)
                 k0 = 1 - np.sin(np.radians(sl.phi))
                 darendeli_sigma_m_eff = (s_v_eff * (1 + 2 * k0) / 3) * PA_TO_KPA  # Needs to be in kPa
                 # print("darendeli_sigma_m_eff: ", darendeli_sigma_m_eff)

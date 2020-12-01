@@ -174,7 +174,7 @@ class PM4Sand(FlacSoil, PM4SandBase):
         ])
         self.app2mod.update(additional_dict)
         self.pm4sand_parameters = self.app2mod  # deprecated
-        self.required_parameters = ['h_po', 'D_r', 'G_o', "P_atm"]
+        self.required_parameters = ['h_po', 'D_r', 'G_o', 'P_atm', 'density']
         self.optional_parameters = [
             "k11",
             "k22",
@@ -224,7 +224,6 @@ def load_element_test(ffp, esig_v0, hydrostatic=0):
     ru_flac = ele_data[:, 3]
     stest = ShearTest(tau, strs, esig_v0=esig_v0, n_cycles=n_count)
     stest.set_pp_via_ru(ru_flac, hydrostatic=hydrostatic)
-    stest.set_i_liq(esig_v_limit=5000)
     return stest
 
 

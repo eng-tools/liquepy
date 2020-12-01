@@ -44,7 +44,11 @@ def load_mpa_cpt_file(ffp, delimiter=",", a_ratio_override=None):
     lines = infile.readlines()
     for line in lines:
         if "Assumed GWL:" in line:
-            gwl = float(line.split(delimiter)[1])
+            gwl = line.split(delimiter)[1]
+            if gwl == '-':
+                gwl = None
+            else:
+                gwl = float(line.split(delimiter)[1])
         if "aratio" in line:
             try:
                 a_ratio = float(line.split(delimiter)[1])
