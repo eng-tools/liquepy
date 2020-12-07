@@ -2,7 +2,7 @@
 History
 =======
 
-0.6.16 (2020-12-08)
+0.6.17 (2020-12-08)
 --------------------
 * Can get set liquefaction criteria for element test using double or single  amplitude strain
 * Can deal with loading a cpt file when the gwl level is not set
