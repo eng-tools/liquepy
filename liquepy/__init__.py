@@ -15,3 +15,4 @@ try:
 except ImportError:
     pass
 from . import esp
+from . import soil

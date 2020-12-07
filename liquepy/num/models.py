@@ -165,7 +165,7 @@ class PM4Sand(sm.StressDependentSoil):
         r_bolt = self.r_bolt
         if r_bolt is None:
             r_bolt = 1.5
-        return calc_peak_angle_for_pm4sand(d_r, p, p_atm=self.p_atm, phi_cv=self.phi_cv, n_b=n_b, q_bolt=q_bolt, r_bolt=r_bolt)
+        return calc_peak_angle_for_pm4sand(self.relative_density, p, p_atm=self.p_atm, phi_cv=self.phi_cv, n_b=n_b, q_bolt=q_bolt, r_bolt=r_bolt)
 
     # def e_critical(self, p):
     #     p = float(p)
@@ -197,7 +197,7 @@ def calc_peak_angle_for_pm4sand(d_r, p, p_atm=101.0e3, phi_cv=33.0, n_b=0.5, q_b
 class ManzariDafaliasModel(sm.StressDependentSoil):
     crr_n15 = None
     m_c = None
-    c_c = None
+    c_c = None  # c = Me / Mc, the ratio of critical stress ratios in triaxial compression (Mc) and extension (Me)
     lambda_c = None
     e_0 = None
     ksi = None
@@ -209,6 +209,7 @@ class ManzariDafaliasModel(sm.StressDependentSoil):
     a_o = None
     z_max = None
     c_z = None
+    _g0 = None
 
     # TODO: add non default inputs here
     type = "manzaridafalias_model"
@@ -242,6 +243,7 @@ class ManzariDafaliasModel(sm.StressDependentSoil):
             "a_o",
             "z_max",
             "c_z",
+            "g0"
         ]
         self.p_atm = p_atm
         self.inputs += self._extra_class_inputs
@@ -249,7 +251,7 @@ class ManzariDafaliasModel(sm.StressDependentSoil):
         if not hasattr(self, "definitions"):
             self.definitions = OrderedDict()
         self.definitions["crr_n15"] = ["Cyclic resistance ratio for 15 cycles", "-"]
-        self.definitions["g0_mod"] = ["Normalised shear modulus factor", "-"]
+        self.definitions["g0"] = ["Normalised shear modulus factor", "-"]
         self.definitions["p_atm"] = ["Atmospheric pressure", "Pa"]
 
     def __repr__(self):
@@ -272,7 +274,29 @@ class ManzariDafaliasModel(sm.StressDependentSoil):
     def set_big_m_from_phi_cv(self, phi_cv):
         phi_r = np.radians(phi_cv)
         self.big_m = 2 * np.sin(phi_r)
-        
+
+    @property
+    def g0(self):
+        return self._g0
+
+    @g0.setter
+    def g0(self, g0):
+        # note g0 * (2.97 - e) ** 2 / (1 + e) = g0_mod
+        self._g0 = clean_float(g0)
+        if self.e_curr is not None:
+            self._g0_mod = g0 * (2.97 - self.e_curr) ** 2 / (1 + self.e_curr)
+
+    @property
+    def g0_mod(self):
+        return self._g0_mod
+
+    @g0_mod.setter
+    def g0_mod(self, value):
+        value = clean_float(value)
+        self._g0_mod = value
+        if self.e_curr is None:
+            raise ValueError('must set e_curr before setting g0_mod')
+        self._g0 = value * (1 + self.e_curr) / (2.97 - self.e_curr) ** 2
 
 
 class StressDensityModel(sm.StressDependentSoil):
@@ -389,4 +413,3 @@ class StressDensityModel(sm.StressDependentSoil):
         k0 = 1 - np.sin(self.phi_r)
         p = sigma_v_eff * (1 + k0) / 2
         self.g0_mod = g_mod / self.p_atm / (p / self.p_atm) ** self.a
-

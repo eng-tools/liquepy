@@ -2,12 +2,13 @@
 History
 =======
 
-0.6.XX (2020-XX-XX)
+0.6.16 (2020-12-08)
 --------------------
 * Can get set liquefaction criteria for element test using double or single  amplitude strain
 * Can deal with loading a cpt file when the gwl level is not set
 * Added the ManzariDafaliasModel soil model
 * `big_f` added as a parameter in Boulanger and Idriss CPT analysis
+* fixed function to allow crr_n15 to be computed from q_c1ncs according to BI2014
 
 0.6.15 (2020-07-22)
 --------------------

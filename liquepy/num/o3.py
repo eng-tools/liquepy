@@ -31,7 +31,6 @@ class ManzariDafaliasModel(models.ManzariDafaliasModel):
         models.ManzariDafaliasModel.__init__(self, liq_mass_density=liq_mass_density, g=g, p_atm=p_atm, **kwargs)
         self._extra_class_inputs = []
         self.app2mod = {
-            'g0': 'g0_mod',
             'den': 'unit_moist_mass',
             'nu': 'poissons_ratio'
         }
