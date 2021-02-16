@@ -57,6 +57,7 @@ class Loc(sm.CustomObject):
 
     def to_dict(self, extra=(), **kwargs):
         outputs = OrderedDict()
+        export_none = kwargs.get("export_none", True)
         skip_list = ["cpt", "soil_profile"]
         if hasattr(self, "inputs"):
             full_inputs = list(self.inputs) + list(extra)
@@ -65,7 +66,9 @@ class Loc(sm.CustomObject):
         for item in full_inputs:
             if item not in skip_list:
                 value = self.__getattribute__(item)
-                outputs[item] = sf.collect_serial_value(value)
+                if not export_none and value is None:
+                    continue
+                outputs[item] = sf.collect_serial_value(value, export_none=export_none)
         return outputs
 
     def add_to_dict(self, models_dict, parent_dict, **kwargs):
@@ -149,10 +152,10 @@ class Transect(sm.CustomObject):
                 outputs[item] = sf.collect_serial_value(value)
         return outputs
 
-    def add_to_dict(self, models_dict):
+    def add_to_dict(self, models_dict, **kwargs):
         if self.base_type not in models_dict:
             models_dict[self.base_type] = OrderedDict()
-        outputs = self.to_dict()
+        outputs = self.to_dict(**kwargs)
         models_dict[self.base_type][self.unique_hash] = outputs
         for loc_num in self.locs:
             self.locs[loc_num].add_to_dict(models_dict, parent_dict=models_dict[self.base_type][self.unique_hash])
@@ -186,6 +189,7 @@ class Transect(sm.CustomObject):
         return self._locs[x]
 
     def add_loc_by_coords(self, coords, loc):
+        from liquepy.spatial import map_coords
         if not sum(self.start) or not sum(self.end):
             raise ValueError("start and end coordinates must be set")
         loc.x = map_coords.calc_proj_line_dist(self.tran_line, coords)

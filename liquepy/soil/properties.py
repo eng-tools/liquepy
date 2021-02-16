@@ -12,6 +12,7 @@ def get_soil_params_dict():
                 'lambda_c': 0.019,  # fitted by Li and Wang (1998) data from Verdugo and Ishihara (1996)
                 'ksi': 0.7,  # fitted by Li and Wang (1998) data from Verdugo and Ishihara (1996)
                 'd_50': 0.53,  # Fioravante:2015ea
+                'm_c': 1.24,  # Been and Jefferies (2015) Table 2.1 (Golder Project files)
             },
         'ticino_sand':
             {
@@ -22,6 +23,7 @@ def get_soil_params_dict():
                 'lambda_c': 0.046,  # Fioravante:2015ea
                 'ksi': 0.5,  # Fioravante:2015ea
                 'd_50': 0.18,  # averaged from Fioravante:2015ea
+                'm_c': 1.14,  # TRISEE tests
             },
         'nevada_sand':
             {
@@ -31,6 +33,7 @@ def get_soil_params_dict():
                 'e_0': 0.843,  # Ling:2006jl
                 'lambda_c': 0.0287,  # Ling:2006jl
                 'ksi': 0.7,  # Ling:2006jl
+                'm_c': 1.09,  # gives phi_cv = 33.0
              },
         'fuji_river_sand_loose':
             {
@@ -52,8 +55,16 @@ def get_soil_params_dict():
             },
         'longstone_sand':
             {
-                'e_min': 0.614,  # From Tsomokos (2010)
-                'e_max': 0.995,  # From Tsomokos (2010)
+                'a_mod': 1000,  # Tsomokos:2010cd  # TODO: confirm
+                'e_min': 0.614,  # Tsomokos:2010cd
+                'e_max': 0.995,  # Tsomokos:2010cd
+                'specific_gravity': 2.64, # Tsomokos:2010cd
+                'm_c': 1.09,  # Tsomokos:2010cd failure line at 33deg
+                'd_50': 0.15, # mm, Gazetas DOI: 10.1007/s11012-014-9997-7
+                'c_u': 1.4,  # d60/d10 Gazetas DOI: 10.1007/s11012-014-9997-7
+                'e_0': 0.93,  # Back-calculate phi-peak from Gazetas (2014) using Manzari model
+                'lambda_c': 0.1,  # Back-calculate phi-peak from Gazetas (2014) using Manzari model
+                'ksi': 0.7,
             },
         'generic_sand':
             {

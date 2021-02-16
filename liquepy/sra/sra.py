@@ -32,7 +32,7 @@ def vardanega_2013_to_modified_hyperbolic_parameters(i_p):
     return gamma_ref, a
 
 
-def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0, base_shear_vel=None, base_unit_wt=None, base_xi=0.01):
+def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0, base_shear_vel=None, base_unit_wt=None, base_xi=0.01, vs_min=0):
     """
     Converts a soil profile from sfsimodels into a soil profile for pysra
 
@@ -78,19 +78,37 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0, base_shear_vel=None, 
             if hasattr(sl, "sra_type") and getattr(sl, "sra_type") == "hyperbolic":
                 name = "hyperbolic"
                 if hasattr(sl, 'strain_curvature') and hasattr(sl, 'strain_ref'):
+                    strain_curvature = sl.strain_curvature
+                    strain_ref = sl.strain_ref
+                    xi_min = sl.xi_min
                     pass
                 elif hasattr(sl, 'peak_strain'):
                     # Octahedral shear stress
                     p_ref = v_eff * 2. / 3
                     tau_f = (2 * np.sqrt(2.) * np.sin(sl.phi_r)) / (3 - np.sin(sl.phi_r)) * p_ref + 2 * np.sqrt(2.) / 3 * sl.cohesion
-                    sl.strain_curvature = 1.0
-                    sl.strain_ref = sl.peak_strain * tau_f / (g_mod * sl.peak_strain - tau_f)
-                    sl.inputs += ['strain_curvature', 'xi_min', 'sra_type', 'strain_ref']
+                    strain_curvature = 1.0
+                    strain_ref = sl.peak_strain * tau_f / (g_mod * sl.peak_strain - tau_f)
+                    xi_min = sl.xi_min
+                    # inputs += ['strain_curvature', 'xi_min', 'sra_type', 'strain_ref']
+                elif sl.type == 'pm4sand':
+                    from liquepy.num.models import calc_peak_angle_for_pm4sand
+                    curvature = 0.82
+                    ratio = 40
+                    k0 = 1.
+                    msig = (v_eff * (1 + 1 * k0) / 2)
+                    phi_peak = calc_peak_angle_for_pm4sand(sl.relative_density, msig)
+                    g_mod_min = vs_min ** 2 * unit_wt / 9.8
+                    g_mod0 = max(sl.get_g_mod_at_m_eff_stress(msig), g_mod_min)
+                    vs = np.sqrt(g_mod0 / rho)
+                    tau_max = v_eff * np.sin(np.radians(phi_peak))
+                    strain_curvature = curvature
+                    xi_min = 0.02
+                    strain_ref = tau_max * (1 + ratio ** strain_curvature) / (g_mod0 * ratio)
                 else:
                     raise ValueError('sl is missing .peak_strain')
-                pysra_sl = pysra.site.ModifiedHyperbolicSoilType(name, unit_wt, strain_ref=sl.strain_ref,
-                                                                 curvature=sl.strain_curvature,
-                                                                 damping_min=sl.xi_min,
+                pysra_sl = pysra.site.ModifiedHyperbolicSoilType(name, unit_wt, strain_ref=strain_ref,
+                                                                 curvature=strain_curvature,
+                                                                 damping_min=xi_min,
                                                                  strains=strains)
             elif hasattr(sl, "darendeli") or hasattr(sl, "sra_type") and getattr(sl, "sra_type") == "darendeli":
                 assert isinstance(sp, sm.SoilProfile)
@@ -226,8 +244,14 @@ class PysraAnalysis(object):
 
         if atype == 'eqlin':
             calc = pysra.propagation.EquivalentLinearCalculator()
-        else:
+        elif atype == 'fd':
+            calc = pysra.propagation.FrequencyDependentEqlCalculator(use_smooth_spectrum=False)
+        elif atype == 'fdk':  # k=Kausel
+            calc = pysra.propagation.FrequencyDependentEqlCalculator(use_smooth_spectrum=True)
+        elif atype == 'linear':
             calc = pysra.propagation.LinearElasticCalculator()
+        else:
+            raise ValueError(f'atype must: "eqlin", "fd", "fdk", "linear". Not {atype}')
 
         if outs is None:
             od = {'ACCX': [], 'STRS': [], 'TAU': []}
@@ -252,6 +276,67 @@ class PysraAnalysis(object):
                                                     normalized=False))
         outputs = pysra.output.OutputCollection(out_holder)
         calc(pysra_m, pysra_profile, pysra_profile.location(wave_field, depth=soil_profile.height))
+        outputs(calc)
+        if trim:
+            n = asig.npts
+        else:
+            n = None
+        out_series = {}
+        for mtype in od:
+            out_series[mtype] = []
+            for i in range(len(od[mtype])):
+                out_series[mtype].append(outputs[od[mtype][i]].values[:n])
+            out_series[mtype] = np.array(out_series[mtype])
+            if mtype in ['ACCX', 'ACCXup']:
+                out_series[mtype] *= 9.8
+        out_series['TIME'] = np.arange(0, len(out_series[list(out_series)[0]][0])) * asig.dt
+        self.out_series = out_series
+        self.pysra_profile = pysra_profile
+
+
+class PysraDeconvolutionAnalysis(object):
+
+    def __init__(self, soil_profile, asig, odepths, wave_field='outcrop', atype='eqlin', outs=None, trim=False):
+
+        import pysra
+        pysra_profile = lq.sra.sm_profile_to_pysra(soil_profile, d_inc=[0.5] * soil_profile.n_layers)
+        # Should be input in g
+        pysra_m = pysra.motion.TimeSeriesMotion(asig.label, None, time_step=asig.dt, accels=asig.values / 9.8)
+
+        if atype == 'eqlin':
+            calc = pysra.propagation.EquivalentLinearCalculator()
+        elif atype == 'fd':
+            calc = pysra.propagation.FrequencyDependentEqlCalculator(use_smooth_spectrum=False)
+        elif atype == 'fdk':
+            calc = pysra.propagation.FrequencyDependentEqlCalculator(use_smooth_spectrum=True)
+        elif atype == 'linear':
+            calc = pysra.propagation.LinearElasticCalculator()
+        else:
+            raise ValueError(f'atype must: "eqlin", "fd", "linear". Not {atype}')
+
+        if outs is None:
+            od = {'ACCX': [], 'STRS': [], 'TAU': []}
+        else:
+            od = {}
+            for item in outs:
+                od[item] = []
+        out_holder = []
+        for i, depth in enumerate(odepths):
+            if 'ACCX' in od:
+                od['ACCX'].append(len(out_holder))
+                out_holder.append(pysra.output.AccelerationTSOutput(pysra.output.OutputLocation('within', depth=depth)))
+            if 'ACCXup' in od:
+                od['ACCXup'].append(len(out_holder))
+                out_holder.append(pysra.output.AccelerationTSOutput(pysra.output.OutputLocation('incoming_only', depth=depth)))
+            if 'STRS' in od:
+                od['STRS'].append(len(out_holder))
+                out_holder.append(pysra.output.StrainTSOutput(pysra.output.OutputLocation('within', depth=depth), in_percent=False))
+            if 'TAU' in od:
+                od['TAU'].append(len(out_holder))
+                out_holder.append(pysra.output.StressTSOutput(pysra.output.OutputLocation('within', depth=depth),
+                                                    normalized=False))
+        outputs = pysra.output.OutputCollection(out_holder)
+        calc(pysra_m, pysra_profile, pysra_profile.location(wave_field, depth=0))
         outputs(calc)
         if trim:
             n = asig.npts

@@ -262,18 +262,18 @@ class ManzariDafaliasModel(sm.StressDependentSoil):
 
     def get_peak_angle(self, p):
         e_cs = self.e_0 - self.lambda_c * (p / self.p_atm) ** self.ksi
-        psi = e_cs - self.e_curr
+        psi = self.e_curr - e_cs
         m_b = self.m_c * np.exp(-self.n_b * psi)  # Eq 13
         
         return np.degrees(np.arcsin(0.5 * m_b))  # Eq 46
     
     def get_crit_angle(self):
-        phi_r = np.arcsin(self.big_m / 2)
+        phi_r = np.arcsin(self.m_c / 2)
         return np.degrees(phi_r)
     
     def set_big_m_from_phi_cv(self, phi_cv):
         phi_r = np.radians(phi_cv)
-        self.big_m = 2 * np.sin(phi_r)
+        self.m_c = 2 * np.sin(phi_r)
 
     @property
     def g0(self):

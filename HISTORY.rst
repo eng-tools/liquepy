@@ -2,6 +2,10 @@
 History
 =======
 
+Pre-release
+-----------
+* Can set min shear wave velocity in sra using `vs_min`.
+
 0.6.18 (2020-12-08)
 --------------------
 * Can get set liquefaction criteria for element test using double or single  amplitude strain

@@ -514,7 +514,7 @@ class BoulangerIdriss2014SoilProfile(object):  # TODO: validate this properly
         self.rd = calc_rd(self.depth, self.m_w)
         crr_unlimited = np.interp(self.depth, split_depths, self.sp.split['csr_n15'])
         self.crr_m7p5 = np.where(self.depth <= self.gwl, 4, crr_unlimited)
-        self.q_c1n_cs = calc_qc_1ncs_from_crr_m7p5(self.crr_m7p5)
+        self.q_c1n_cs = calc_q_c1n_cs_from_crr_m7p5(self.crr_m7p5)
         self.k_sigma = calc_k_sigma(self.sigma_veff, self.q_c1n_cs)
         self.msf = calc_msf(self.m_w, self.q_c1n_cs)
         self.crr = crr_m(self.k_sigma, self.msf, self.crr_m7p5)  # CRR at set magnitude
