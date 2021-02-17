@@ -210,24 +210,25 @@ class ManzariDafaliasModel(sm.StressDependentSoil):
     z_max = None
     c_z = None
     _g0 = None
+    int_scheme = None
 
     # TODO: add non default inputs here
     type = "manzaridafalias_model"
 
-    def __init__(self, pw=9800, liq_mass_density=None, g=9.8, p_atm=101000.0, **kwargs):
+    def __init__(self, pw=None, wmd=None, liq_mass_density=None, liq_sg=1, g=9.8, p_atm=101000.0, **kwargs):
         # Note: pw has deprecated
-        _gravity = g  # m/s2
-        if liq_mass_density:
-            _liq_mass_density = liq_mass_density  # kg/m3
-        elif pw is not None and _gravity is not None:
-            if pw == 9800 and g == 9.8:
-                _liq_mass_density = 1.0e3
-            else:
-                _liq_mass_density = pw / _gravity
-        else:
-            _liq_mass_density = None
+        # _gravity = g  # m/s2
+        # if liq_mass_density:
+        #     _liq_mass_density = liq_mass_density  # kg/m3
+        # elif pw is not None and _gravity is not None:
+        #     if pw == 9800 and g == 9.8:
+        #         _liq_mass_density = 1.0e3
+        #     else:
+        #         _liq_mass_density = pw / _gravity
+        # else:
+        #     _liq_mass_density = None
 
-        sm.StressDependentSoil.__init__(self, liq_mass_density=_liq_mass_density, g=_gravity, **kwargs)
+        sm.StressDependentSoil.__init__(self, pw=pw, wmd=wmd, liq_mass_density=liq_mass_density, liq_sg=liq_sg, g=g, **kwargs)
         self._extra_class_inputs = [
             "crr_n15",
             "m_c",
@@ -243,7 +244,8 @@ class ManzariDafaliasModel(sm.StressDependentSoil):
             "a_o",
             "z_max",
             "c_z",
-            "g0"
+            "g0",
+            'int_scheme'
         ]
         self.p_atm = p_atm
         self.inputs += self._extra_class_inputs

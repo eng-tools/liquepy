@@ -16,19 +16,19 @@ class FlacSoil(sm.Soil):
     def __str__(self):
         return "Base Soil model, id=%i, phi=%.1f" % (self.id, self.phi)
 
-    def __init__(self, pw=9800, liq_mass_density=None, g=9.8):
-        _gravity = g  # m/s2
-        if liq_mass_density:
-            _liq_mass_density = liq_mass_density  # kg/m3
-        elif pw is not None and _gravity is not None:
-            if pw == 9800 and g == 9.8:
-                _liq_mass_density = 1.0e3
-            else:
-                _liq_mass_density = pw / _gravity
-        else:
-            _liq_mass_density = None
+    def __init__(self, wmd=None, pw=None, liq_mass_density=None, liq_sg=1.0, g=9.8):
+        # _gravity = g  # m/s2
+        # if liq_mass_density:
+        #     _liq_mass_density = liq_mass_density  # kg/m3
+        # elif pw is not None and _gravity is not None:
+        #     if pw == 9800 and g == 9.8:
+        #         _liq_mass_density = 1.0e3
+        #     else:
+        #         _liq_mass_density = pw / _gravity
+        # else:
+        #     _liq_mass_density = None
         # run parent class initialiser function
-        super(FlacSoil, self).__init__(liq_mass_density=_liq_mass_density, g=_gravity)
+        super(FlacSoil, self).__init__(wmd=wmd, pw=pw, liq_mass_density=liq_mass_density, liq_sg=liq_sg, g=g)
         self._extra_class_inputs = ["tension"]
         self.inputs = self.inputs + self._extra_class_inputs
         self.app2mod = OrderedDict([
@@ -123,7 +123,7 @@ class PM4Sand(FlacSoil, PM4SandBase):
 
     type = "pm4sand"
 
-    def __init__(self, pw=9800, liq_mass_density=None, g=9.8, p_atm=101000.0, **kwargs):
+    def __init__(self, wmd=None, pw=None, liq_mass_density=None, liq_sg=1.0, g=9.8, p_atm=101000.0, **kwargs):
         # Note: pw has deprecated
         _gravity = g  # m/s2
         if liq_mass_density:
@@ -136,8 +136,8 @@ class PM4Sand(FlacSoil, PM4SandBase):
         else:
             _liq_mass_density = None
 
-        FlacSoil.__init__(self, liq_mass_density=_liq_mass_density, g=_gravity)
-        PM4SandBase.__init__(self, liq_mass_density=_liq_mass_density, g=_gravity, p_atm=p_atm, **kwargs)
+        FlacSoil.__init__(self, wmd=wmd, pw=pw, liq_mass_density=liq_mass_density, liq_sg=liq_sg, g=g)
+        PM4SandBase.__init__(self, wmd=wmd, pw=pw, liq_mass_density=liq_mass_density, liq_sg=liq_sg, g=g, p_atm=p_atm, **kwargs)
         self._extra_class_inputs = []
 
         additional_dict = OrderedDict([

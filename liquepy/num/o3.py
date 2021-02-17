@@ -7,8 +7,8 @@ class PM4Sand(PM4SandBase):
     type = "pm4sand"
     o3_type = 'pm4sand'
 
-    def __init__(self, liq_mass_density=None, g=9.8, p_atm=101000.0, **kwargs):
-        PM4SandBase.__init__(self, liq_mass_density=liq_mass_density, g=g, p_atm=p_atm, **kwargs)
+    def __init__(self, wmd=None, liq_mass_density=None, liq_sg=1.0, g=9.8, p_atm=101000.0, **kwargs):
+        PM4SandBase.__init__(self, wmd=wmd, liq_mass_density=liq_mass_density, liq_sg=liq_sg, g=g, p_atm=p_atm, **kwargs)
         self._extra_class_inputs = []
         self.app2mod = {
             'd_r': 'relative_density',
@@ -27,8 +27,8 @@ class PM4Sand(PM4SandBase):
 class ManzariDafaliasModel(models.ManzariDafaliasModel):
     o3_type = 'manzaridafalias_model'
 
-    def __init__(self, liq_mass_density=None, g=9.8, p_atm=101000.0, **kwargs):
-        models.ManzariDafaliasModel.__init__(self, liq_mass_density=liq_mass_density, g=g, p_atm=p_atm, **kwargs)
+    def __init__(self, wmd=None, liq_mass_density=None, liq_sg=1.0, g=9.8, p_atm=101000.0, **kwargs):
+        models.ManzariDafaliasModel.__init__(self, wmd=wmd, liq_mass_density=liq_mass_density, liq_sg=liq_sg, g=g, p_atm=p_atm, **kwargs)
         self._extra_class_inputs = []
         self.app2mod = {
             'den': 'unit_moist_mass',
@@ -45,8 +45,8 @@ class ManzariDafaliasModel(models.ManzariDafaliasModel):
 class StressDensityModel(StressDensityModelBase):
     type = "stress_density_model"
 
-    def __init__(self, liq_mass_density=None, g=9.8, p_atm=101000.0, **kwargs):
-        super(StressDensityModel, self).__init__(liq_mass_density=liq_mass_density, g=g, p_atm=p_atm, **kwargs)
+    def __init__(self, wmd=None, liq_mass_density=None, liq_sg=1.0, g=9.8, p_atm=101000.0, **kwargs):
+        super(StressDensityModel, self).__init__(wmd=wmd, liq_mass_density=liq_mass_density, liq_sg=liq_sg, g=g, p_atm=p_atm, **kwargs)
         self._extra_class_inputs = []
         self.app2mod = {
             'e_init': 'e_curr',
