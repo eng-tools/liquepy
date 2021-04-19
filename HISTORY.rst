@@ -2,15 +2,15 @@
 History
 =======
 
-0.6.21 (2021-04-19)
------------
+0.6.22 (2021-04-19)
+-------------------
 * Soils now define water mass density `wmd` and `liq_sg` instead of `liq_mass_density` to allow for not water liquids.
 * Can set min shear wave velocity in sra using `vs_min`.
 * Default k0 conditions now calculated using poisson ratio rather than friction angle.
 * Added the ELSA (Equivalent Linear Stockwell Analysis) method for performing site response analysis using time dependent transfer functions.
 
 0.6.18 (2020-12-08)
---------------------
+-------------------
 * Can get set liquefaction criteria for element test using double or single  amplitude strain
 * Can deal with loading a cpt file when the gwl level is not set
 * Added the ManzariDafaliasModel soil model
@@ -18,34 +18,34 @@ History
 * fixed function to allow crr_n15 to be computed from q_c1ncs according to BI2014
 
 0.6.15 (2020-07-22)
---------------------
+-------------------
 * Added back-calc of n1_60 from crr_m7p5 using bi2014 `calc_n1_60cs_from_crr_m7p5`
 * Added `sra.PysraAnalysis` and `sra.run_pysra` as ways to run an equivalent linear
   analysis using the PySRA package
 * Can set point of liquefaction in element test using single aplitude and double amplitude strain criteria
 
 0.6.14 (2020-04-29)
---------------------
+-------------------
 * Added theory one and two layer transfer functions
 * Minor change to LSN calculation to not use the average depth between points
 * Added `run_pysra` to run a site response analysis and obtain ACCX, TAU, and STRS
 * Updated logic for handling FLAC fis file inputs
 
 0.6.13 (2020-02-24)
---------------------
+-------------------
 * Fixed issue with creating ESP when cpt depths are irregular
 
 0.6.12 (2020-02-21)
---------------------
+-------------------
 * Fixed issue with fitting 3- and 5-layer ESPs now uses median to find value of least deviations
 
 0.6.11 (2020-02-10)
---------------------
+-------------------
 * Added MRD curves for clay
 * Fixed issue with fitting 5-layer equivalent soil profile (ESP)
 
 0.6.10 (2020-01-31)
---------------------
+-------------------
 * Added .p_atm to Boulanger and Idriss (2014) method
 * Improved plotting colors for i_c
 * Changed liquefaction factor of safety for high plasticity soil to be 2.25
@@ -56,14 +56,14 @@ History
 * Added Equivalent Soil Profile method from Millen et al. (2020)
 
 0.6.9 (2019-12-6)
---------------------
+-----------------
 * Added nzgd CPT file converter
 * Corrected error in `est_shear_vel_hegazy_and_mayne_2006`
 * Change modules (`sra`, `fig`, `spatial`) to be optional due to heavy dependencies. Only imported at base level if all
   dependencies are satisfied.
 
 0.6.7 (2019-11-12)
---------------------
+------------------
 * Updated docs
 * Updated names for PM4Sand FLAC
 * Refactored numerical models to be in generic num.models.py file and the inherited in application specific files
@@ -76,13 +76,13 @@ History
 * `determine_t_liq_index` now uses ru greater than or equal to limit, rather than just greater than
 
 0.6.3 (2019-10-31)
---------------------
+------------------
 * Added missing `import eqsig` at top of lq.element.assess.py file - used in
   `calc_stored_energy_abs_incs_fd_peaks_and_indices` function
 * Finalised NSES example
 
 0.6.2 (2019-10-30)
---------------------
+------------------
 
 * Fixed issue with Soil stack not working for overriding soil properties
 * Added h_po to PM4Sand obj
@@ -93,12 +93,12 @@ History
   as function `calc_case_peaks_and_indices_fd`
 
 0.6.1 (2019-10-7)
---------------------
+-----------------
 
 * Incremented numerical model inputs to make use of latest sfsimodels version
 
 0.6.0 (2019-08-23)
---------------------
+------------------
 
 * If CPT file contains key word 'Pre-Drill:' then CPT loads with pre-drilled depth removed
 * Can set depth limit to LDI calculation
