@@ -2,10 +2,12 @@
 History
 =======
 
-Pre-release
+0.6.19 (2021-04-19)
 -----------
 * Soils now define water mass density `wmd` and `liq_sg` instead of `liq_mass_density` to allow for not water liquids.
 * Can set min shear wave velocity in sra using `vs_min`.
+* Default k0 conditions now calculated using poisson ratio rather than friction angle.
+* Added the ELSA (Equivalent Linear Stockwell Analysis) method for performing site response analysis using time dependent transfer functions.
 
 0.6.18 (2020-12-08)
 --------------------

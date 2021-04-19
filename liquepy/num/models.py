@@ -147,12 +147,14 @@ class PM4Sand(sm.StressDependentSoil):
     def g_mod_at_v_eff_stress(self, sigma_v_eff):  # Override base function since k0 is different
         return self.get_g_mod_at_v_eff_stress(sigma_v_eff)
 
-    def get_g_mod_at_v_eff_stress(self, sigma_v_eff):  # Override base function since k0 is different
-        k0 = 1 - np.sin(self.phi_r)
+    def get_g_mod_at_v_eff_stress(self, sigma_v_eff, k0=None):  # Override base function since k0 is different
+        if k0 is None:
+            k0 = self.poissons_ratio / (1 - self.poissons_ratio)
         return self.g0_mod * self.p_atm * (sigma_v_eff * (1 + k0) / 2 / self.p_atm) ** 0.5
 
-    def set_g0_mod_from_g_mod_at_v_eff_stress(self, g_mod, sigma_v_eff):
-        k0 = 1 - np.sin(self.phi_r)
+    def set_g0_mod_from_g_mod_at_v_eff_stress(self, g_mod, sigma_v_eff, k0=None):
+        if k0 is None:
+            k0 = self.poissons_ratio / (1 - self.poissons_ratio)
         self.g0_mod = g_mod / self.p_atm / (sigma_v_eff * (1 + k0) / 2 / self.p_atm) ** 0.5
 
     def get_peak_angle(self, p):

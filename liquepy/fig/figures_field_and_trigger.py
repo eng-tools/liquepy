@@ -120,7 +120,7 @@ def get_ic_w_contrast_cmap():
     return LinearSegmentedColormap.from_list('mine', _clist, N=len(_clist))
 
 
-def add_ic_colours(subplot, col_dict='alt', ic_limits=None):
+def add_ic_colours(subplot, col_dict='alt', ic_limits=None, add_legend=False):
     from matplotlib import patches as mpatches
     if ic_limits is None:
         ic_limits = IC_LIMITS
@@ -138,11 +138,12 @@ def add_ic_colours(subplot, col_dict='alt', ic_limits=None):
     patches = []
     for col in dd:
         patches.append(mpatches.Patch(color=dd[col], label=col))
-    subplot.legend(patches + [(patches)], list(dd), loc=0, prop={'size': 8})
+    if add_legend:
+        subplot.legend(patches + [(patches)], list(dd), loc=0, prop={'size': 8})
 
     for i in range(len(ic_limits) - 1):
         subplot.axvspan(ic_limits[i], ic_limits[i + 1], alpha=1.0, color=colours[i])
-
+    return patches
 
 def make_ic_plot(subplot):
     add_ic_colours(subplot)
