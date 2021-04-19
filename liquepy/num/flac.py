@@ -263,7 +263,7 @@ def load_input_motion_and_dt(ffp):
     dt = data.dtype.names[0].split("_")[-1]
     dt = "." + dt[1:]
     dt = float(dt)
-    acc = data.astype(np.float)
+    acc = data.astype(float)
     return acc, dt
 
 

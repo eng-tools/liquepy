@@ -19,3 +19,4 @@ engformat
 
 # for tests
 xlrd
+openpyxl
