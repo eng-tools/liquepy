@@ -11,7 +11,7 @@ class EqlinStockwellAnalysis(object):
         """
         Equivalent linear Stockwell Analysis
 
-        This method performs the eight step procedure outlined in Millen et al. (2020) [TODO: update cite]
+        This method performs the eight step procedure outlined in Millen et al. (2021)
         to obtain the surface acceleration time series from an input motion at the base of a 1D soil profile.
 
         Note: a soil layer is a layer as defined in the soil_profile object, a slice is a layer from the pysra_profile.

@@ -24,7 +24,7 @@ import liquepy
 
 project = liquepy.__about__.__project__
 author = liquepy.__about__.__author__
-copyright = u'Copyright 2016 - {0} {1}'.format(date.today().year, author)
+copyright = u'Copyright 2016 - {0} {1}. Publisher: University of Canterbury, New Zealand'.format(date.today().year, author)
 
 # The short X.Y version
 version = liquepy.__about__.__version__
