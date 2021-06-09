@@ -2,6 +2,9 @@
 History
 =======
 
+
+* Fixed issue with conversion of NZGD file using `convert_raw02_xlsx_or_raw_03_xls` function
+
 0.6.22 (2021-04-19)
 -------------------
 * Soils now define water mass density `wmd` and `liq_sg` instead of `liq_mass_density` to allow for not water liquids.

@@ -1346,10 +1346,10 @@ def convert_raw02_xlsx_or_raw_03_xls(ffp, out_fp, verbose=0):
     df_data = trim_missing_at_end_data_df(df_data)
     if 'General' in sheet_names:
         df_top = pd.read_excel(ffp, sheet_name='General')
-        dd = []
-        for head in df_top.columns:
-            dd.append([head, df_top[head].iloc[0]])
-        df_top = pd.DataFrame(dd)
+        # dd = []
+        # for head in df_top.columns:
+        #     dd.append([head, df_top[head].iloc[0]])
+        # df_top = pd.DataFrame(dd)
     elif 'Header' in sheet_names:
         df_top = pd.read_excel(ffp, sheet_name='Header')
     else:

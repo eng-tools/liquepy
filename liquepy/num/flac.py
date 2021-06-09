@@ -234,6 +234,17 @@ def load_file_and_dt(fname):
     values = num_data_k[:, 1]
     return values, dt
 
+def load_file_dt_and_indices(fname):
+    num_data_k = np.loadtxt(fname, skiprows=4)
+    time = num_data_k[:, 0]  # This get the first column
+    dt = time[1] - time[0]
+    values = num_data_k[:, 1]
+    with open(fname) as ifile:
+        line = ifile.read().splitlines()
+        inds = line[2].split('(')[-1][:-1]
+        inds = [int(x) for x in inds.split(',')]
+    return values, dt, inds
+
 
 def load_file_and_time(fname):
     num_data_k = np.loadtxt(fname, skiprows=4)
