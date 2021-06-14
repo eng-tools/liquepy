@@ -2,8 +2,10 @@
 History
 =======
 
-
+Pre-release
+-----------
 * Fixed issue with conversion of NZGD file using `convert_raw02_xlsx_or_raw_03_xls` function
+* Added support for the PM4Silt constitutive model
 
 0.6.22 (2021-04-19)
 -------------------

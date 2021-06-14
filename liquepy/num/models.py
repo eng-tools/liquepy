@@ -169,6 +169,140 @@ class PM4Sand(sm.StressDependentSoil):
             r_bolt = 1.5
         return calc_peak_angle_for_pm4sand(self.relative_density, p, p_atm=self.p_atm, phi_cv=self.phi_cv, n_b=n_b, q_bolt=q_bolt, r_bolt=r_bolt)
 
+class PM4Silt(sm.StressDependentSoil):
+    _h_po = None
+    _crr_n15 = None
+    s_u = None
+    su_rat = None
+
+    e_o = None
+    h_o = None
+    n_bdry = None
+    n_bwet = None
+    n_d = None
+    a_do = None
+    ru_max = None
+    z_max = None
+    c_z = None
+    c_e = None
+    g_degr = None
+    c_kaf = None
+    mc_ratio = None
+    mc_c = None
+    cg_consol = None
+
+    type = "pm4silt"
+
+    def __init__(self, pw=9800, liq_mass_density=None, g=9.8, p_atm=101000.0, **kwargs):
+        # Note: pw has deprecated
+        _gravity = g  # m/s2
+        if liq_mass_density:
+            _liq_mass_density = liq_mass_density  # kg/m3
+        elif pw is not None and _gravity is not None:
+            if pw == 9800 and g == 9.8:
+                _liq_mass_density = 1.0e3
+            else:
+                _liq_mass_density = pw / _gravity
+        else:
+            _liq_mass_density = None
+
+        sm.StressDependentSoil.__init__(self, liq_mass_density=_liq_mass_density, g=_gravity, **kwargs)
+        self._extra_class_inputs = [
+            "s_u",
+            "su_rat",
+            "h_po",
+            "crr_n15",
+            "p_atm",
+            "g_exp",
+            "h_o",
+            "e_o",
+            "n_bwet",
+            "n_bdry",
+            "n_d",
+            "a_do",
+            "ru_max",
+            "z_max",
+            "c_z",
+            "c_e",
+            "g_degr",
+            "c_kaf",
+            "mc_ratio",
+            "mc_c",
+            "cg_consol"
+        ]
+        self.p_atm = p_atm
+        self.inputs += self._extra_class_inputs
+
+        if not hasattr(self, "definitions"):
+            self.definitions = OrderedDict()
+        self.definitions["crr_n15"] = ["Cyclic resistance ratio for 15 cycles", "-"]
+        self.definitions["h_po"] = ["Contraction rate parameter", "-"]
+        self.definitions["g0_mod"] = ["Normalised shear modulus factor", "-"]
+        self.definitions["p_atm"] = ["Atmospheric pressure", "Pa"]
+
+    def __repr__(self):
+        return f"PM4Silt Soil model, id={self.id}, G0={self.g0_mod:.0f}, su={self.s_u:.1}, su_rat={self.su_rat:.1}"
+
+    def __str__(self):
+        return f"PM4Silt Soil model, id={self.id}, G0={self.g0_mod:.0f}, su={self.s_u:.1}, su_rat={self.su_rat:.1}"
+
+    @property
+    def h_po(self):
+        return self._h_po
+
+    @h_po.setter
+    def h_po(self, value):
+        value = clean_float(value)
+        self._h_po = value
+        if value is not None:
+            self._add_to_stack("h_po", value)
+
+    @property
+    def g_exp(self):
+        return self.a
+
+    @g_exp.setter
+    def g_exp(self, value):
+        self.a = value
+
+    @g_exp.setter
+    def g_exp(self, value):
+        self.a = value
+
+    @property
+    def csr_n15(self):
+        return self._crr_n15
+
+    @property
+    def crr_n15(self):
+        return self._crr_n15
+
+    @crr_n15.setter
+    def crr_n15(self, value):
+        value = clean_float(value)
+        self._crr_n15 = value
+        if value is not None:
+            self._add_to_stack("crr_n15", value)
+
+    @csr_n15.setter
+    def csr_n15(self, value):
+        value = clean_float(value)
+        self._crr_n15 = value
+        if value is not None:
+            self._add_to_stack("crr_n15", value)
+
+    def g_mod_at_v_eff_stress(self, sigma_v_eff):  # Override base function since k0 is different
+        return self.get_g_mod_at_v_eff_stress(sigma_v_eff)
+
+    def get_g_mod_at_v_eff_stress(self, sigma_v_eff, k0=None):  # Override base function since k0 is different
+        if k0 is None:
+            k0 = self.poissons_ratio / (1 - self.poissons_ratio)
+        return self.g0_mod * self.p_atm * (sigma_v_eff * (1 + k0) / 2 / self.p_atm) ** 0.5
+
+    def set_g0_mod_from_g_mod_at_v_eff_stress(self, g_mod, sigma_v_eff, k0=None):
+        if k0 is None:
+            k0 = self.poissons_ratio / (1 - self.poissons_ratio)
+        self.g0_mod = g_mod / self.p_atm / (sigma_v_eff * (1 + k0) / 2 / self.p_atm) ** 0.5
     # def e_critical(self, p):
     #     p = float(p)
     #     return self.e_cr0 - self.lamb_crl * np.log(p / self.p_cr0)

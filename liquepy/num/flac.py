@@ -7,6 +7,7 @@ from sfsimodels.build_model_descriptions import build_parameter_descriptions
 from liquepy.element.models import ShearTest
 from liquepy.exceptions import deprecation
 from liquepy.num.models import PM4Sand as PM4SandBase
+from liquepy.num.models import PM4Silt as PM4SiltBase
 
 
 class FlacSoil(sm.Soil):
@@ -204,6 +205,92 @@ class PM4Sand(FlacSoil, PM4SandBase):
 
     def __str__(self):
         return "PM4SandFLAC Soil model, id=%i, phi=%.1f, Dr=%.2f" % (self.id, self.phi, self.relative_density)
+
+    def to_fis(self, group_name=None, as_values=False):
+        params = self.all_flac_parameters
+        if group_name is None:
+            group_name = "'{0}'".format(self.name)
+        para = [f"model pm4sand notnull group {group_name}"]
+        para.append(write_parameters_to_fis_models(self, params, ncols=1, not_null=True, group_name=group_name,
+                                                   as_values=as_values))
+        return para
+
+
+class PM4Silt(FlacSoil, PM4SiltBase):
+
+    type = "pm4silt"
+
+    def __init__(self, wmd=None, pw=None, liq_mass_density=None, liq_sg=1.0, g=9.8, p_atm=101000.0, **kwargs):
+        # Note: pw has deprecated
+        _gravity = g  # m/s2
+        if liq_mass_density:
+            _liq_mass_density = liq_mass_density  # kg/m3
+        elif pw is not None and _gravity is not None:
+            if pw == 9800 and g == 9.8:
+                _liq_mass_density = 1.0e3
+            else:
+                _liq_mass_density = pw / _gravity
+        else:
+            _liq_mass_density = None
+
+        FlacSoil.__init__(self, wmd=wmd, pw=pw, liq_mass_density=liq_mass_density, liq_sg=liq_sg, g=g)
+        PM4SiltBase.__init__(self, wmd=wmd, pw=pw, liq_mass_density=liq_mass_density, liq_sg=liq_sg, g=g, p_atm=p_atm, **kwargs)
+        self._extra_class_inputs = []
+
+        additional_dict = OrderedDict([
+            ("S_u", "s_u"),
+            ("Su_Rat", "su_rat"),
+            ("h_po", "h_po"),
+            ("G_o", "g0_mod"),
+            ("density", "density"),
+            ("porosity", "porosity"),
+            ("h_o", "h_o"),
+            ("e_o", "e_o"),
+            ("n_bdry", "n_bdry"),
+            ("n_bwet", "n_bwet"),
+            ("n_d", "n_d"),
+            ("c_z", "c_z"),
+            ("c_e", "c_e"),
+            ("n_d", "n_d"),
+            ("k11", "flac_permeability"),
+            ("k22", "flac_permeability"),
+            ("P_atm", "p_atm"),
+            ("pois", "poissons_ratio"),
+            ("A_do", "a_do"),
+            ("z_max", "z_max"),
+            ("ru_max", "ru_max"),
+            ("G_degr", "g_degr"),
+            ("Ckaf", "c_kaf"),
+            ("Q_bolt", "q_bolt"),
+            ("R_bolt", "r_bolt"),
+            ("MC_ratio", "mc_ratio"),
+            ("MC_c", "mc_c"),
+            ("CG_consol", 'cg_consol')
+        ])
+        self.app2mod.update(additional_dict)
+        self.pm4sand_parameters = self.app2mod  # deprecated
+        self.required_parameters = ['h_po', 'G_o', 'P_atm', 'density']
+        self.optional_parameters = [
+            "S_u",
+            "Su_rat",
+            "k11",
+            "k22",
+            "pois",
+            "h_o",
+            "n_bwet",
+            "n_bdry",
+            "n_d",
+            "A_do",
+            "ru_max",
+            "z_max",
+            "c_z",
+            "c_e",
+            "G_degr",
+            "Ckaf",
+            "MC_ratio",
+            "MC_c",
+            "CG_consol"
+        ]
 
     def to_fis(self, group_name=None, as_values=False):
         params = self.all_flac_parameters
@@ -494,3 +581,15 @@ def calc_flac_default_l1_from_ip_millen_2020(i_p):
 
 def calc_flac_default_l2_from_ip_millen_2020(i_p):
     return -1.2 * i_p ** -0.25 + 2.25
+
+
+def split_his_file(ffp):
+    with open(ffp) as ofile:
+        lines = ofile.read().splitlines()
+    inds = []
+    for i in range(len(lines)):
+        if 'History' in lines[i]:
+            inds.append(i - 1)
+    if len(inds) >= 2:
+        with open(ffp, 'w') as ofile:
+            ofile.write('\n'.join(lines[:inds[1]]))
