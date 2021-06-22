@@ -4,8 +4,12 @@ History
 
 Pre-release
 -----------
+
+0.6.23 (2021-06-23)
+-------------------
 * Fixed issue with conversion of NZGD file using `convert_raw02_xlsx_or_raw_03_xls` function
 * Added support for the PM4Silt constitutive model
+* Added missing `e_min` and `e_max` parameters to optional parameters for PM4Sand model
 
 0.6.22 (2021-04-19)
 -------------------

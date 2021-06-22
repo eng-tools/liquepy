@@ -177,6 +177,8 @@ class PM4Sand(FlacSoil, PM4SandBase):
         self.pm4sand_parameters = self.app2mod  # deprecated
         self.required_parameters = ['h_po', 'D_r', 'G_o', 'P_atm', 'density']
         self.optional_parameters = [
+            "e_min",
+            "e_max",
             "k11",
             "k22",
             "pois",
