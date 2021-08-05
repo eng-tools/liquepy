@@ -17,6 +17,19 @@ def calc_shear_vel_mcgann_2015_cpt(cpt):
     return 18.4 * cpt.q_c ** 0.144 * cpt.f_s ** 0.0832 * cpt.depth ** 0.278
 
 
+def calc_shear_vel_robertson_2009_cpt(i_c, esigv0, qt, p_atm=101.0e3):
+    return (10 ** (0.55 * i_c + 1.68) * (qt - esigv0) / p_atm) ** 0.5
+
+
+def calc_shear_vel_hegazy_and_mayne_2006_cpt(i_c, esigv0, big_qtn, p_atm=101.0e3):
+    return 0.0831 * big_qtn * np.exp(1.786 * i_c) * (esigv0 / p_atm) ** 0.25
+
+
+def calc_shear_vel_andrus_et_al_2007_cpt(i_c, depth, qt, stype='holocene-only'):
+    if stype == 'holocene-only':
+        return 2.27 * qt ** 0.412 * i_c ** 0.989 * depth ** 0.033
+
+
 def calc_shear_vel_andrus_and_stokoe_2000_spt_values(n_1_60):
     """
     Eq 98 in Pm4Sand v3.1 manual

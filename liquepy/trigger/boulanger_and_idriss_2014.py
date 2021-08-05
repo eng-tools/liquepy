@@ -369,6 +369,7 @@ class BoulangerIdriss2014CPT(object):
         self.s_g_water = kwargs.get("s_g_water", 1.0)
         self.p_a = kwargs.get("p_a", 101.)  # kPa
         self.c_0 = kwargs.get("c_0", 2.8)
+        self.unit_wt_clips = kwargs.get("unit_wt_clips", (None, None))
         saturation = kwargs.get("saturation", None)
         unit_wt_method = kwargs.get("unit_wt_method", "robertson2009")
         gamma_predrill = kwargs.get("gamma_predrill", 17.0)
@@ -408,12 +409,13 @@ class BoulangerIdriss2014CPT(object):
         if unit_wt_method == "robertson2009":
             self.unit_wt = calc_unit_dry_weight(self.cpt.f_s, self.q_t, self.p_a, unit_water_wt)
         elif unit_wt_method == 'void_ratio':
-            self.unit_dry_wt = calc_unit_dry_weight(self.cpt.f_s, self.q_t, self.p_a, unit_water_wt)
-            self.e_curr = calc_void_ratio(self.unit_dry_wt, self.s_g, pw=unit_water_wt)
+            uncorr_unit_dry_wt = calc_unit_dry_weight(self.cpt.f_s, self.q_t, self.p_a, unit_water_wt)
+            self.e_curr = calc_void_ratio(uncorr_unit_dry_wt, self.s_g, pw=unit_water_wt)
             self.unit_wt = calc_unit_weight(self.e_curr, self.s_g, self.saturation, pw=unit_water_wt)
         else:
             raise ValueError("unit_wt_method should be either: 'robertson2009' or 'void_ratio' not: %s" % unit_wt_method)
-
+        if self.unit_wt_clips[0] is not None or self.unit_wt_clips[1] is not None:
+            self.unit_wt = np.clip(self.unit_wt, self.unit_wt_clips[0], self.unit_wt_clips[1])
         self.sigma_v = calc_sigma_v(self.depth, self.unit_wt, gamma_predrill)
         self.pore_pressure = calc_pore_pressure(self.depth, self.gwl, unit_water_wt)
         self.sigma_veff = calc_sigma_veff(self.sigma_v, self.pore_pressure)
@@ -524,7 +526,7 @@ class BoulangerIdriss2014SoilProfile(object):  # TODO: validate this properly
 
 
 def run_bi2014(cpt, pga, m_w, gwl=None, p_a=101., cfc=0.0, i_c_limit=2.6, gamma_predrill=17.0, c_0=2.8,
-               unit_wt_method='robertson2009', s_g=2.65, s_g_water=1.0, saturation=None):
+               unit_wt_method='robertson2009', s_g=2.65, s_g_water=1.0, saturation=None, **kwargs):
     """
     Runs the Boulanger and Idriss (2014) triggering method.
 
@@ -565,7 +567,7 @@ def run_bi2014(cpt, pga, m_w, gwl=None, p_a=101., cfc=0.0, i_c_limit=2.6, gamma_
     return BoulangerIdriss2014CPT(cpt, gwl=gwl, pga=pga, m_w=m_w, cfc=cfc, i_c_limit=i_c_limit, s_g=s_g,
                                   s_g_water=s_g_water, p_a=p_a,
                                   saturation=saturation, unit_wt_method=unit_wt_method, gamma_predrill=gamma_predrill,
-                                  c_0=c_0)
+                                  c_0=c_0, **kwargs)
 
 
 def _invert_crr_formula(a, b, c, d, e):

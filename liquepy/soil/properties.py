@@ -34,6 +34,8 @@ def get_soil_params_dict():
                 'lambda_c': 0.0287,  # Ling:2006jl
                 'ksi': 0.7,  # Ling:2006jl
                 'm_c': 1.09,  # gives phi_cv = 33.0
+                'd_50': 0.15,  # mm, from Gajan (2003) SSG02
+                'c_u': 1.06,  # d60/d10, from Gajan (2003) SSG02
              },
         'fuji_river_sand_loose':
             {
@@ -65,6 +67,19 @@ def get_soil_params_dict():
                 'e_0': 0.93,  # Back-calculate phi-peak from Gazetas (2014) using Manzari model
                 'lambda_c': 0.1,  # Back-calculate phi-peak from Gazetas (2014) using Manzari model
                 'ksi': 0.7,
+            },
+        'karlsruhe_fine_sand':
+            {
+                'g0': 95,  # Liu:2020dg
+                'e_min': 0.577,  # Liu:2020dg
+                'e_max': 0.874,  # Liu:2020dg
+                'specific_gravity': 2.64, # Liu:2020dg
+                'm_c': 1.35,  # Liu:2020dg
+                'd_50': 0.55, # mm, Liu:2020dg
+                'c_u': 1.8,  # d60/d10 Liu:2020dg
+                'e_0': 1.035,  #  Liu:2020dg
+                'lambda_c': 0.055,  # Liu:2020dg
+                'ksi': 0.36,  # Liu:2020dg
             },
         'generic_sand':
             {

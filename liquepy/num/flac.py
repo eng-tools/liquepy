@@ -11,7 +11,6 @@ from liquepy.num.models import PM4Silt as PM4SiltBase
 
 
 class FlacSoil(sm.Soil):
-    _tension = 0.0  # default to zero
     hyst_str = ""
 
     def __str__(self):
@@ -30,6 +29,7 @@ class FlacSoil(sm.Soil):
         #     _liq_mass_density = None
         # run parent class initialiser function
         super(FlacSoil, self).__init__(wmd=wmd, pw=pw, liq_mass_density=liq_mass_density, liq_sg=liq_sg, g=g)
+        self._tension = 0.0  # default to zero
         self._extra_class_inputs = ["tension"]
         self.inputs = self.inputs + self._extra_class_inputs
         self.app2mod = OrderedDict([
@@ -110,6 +110,7 @@ class FlacSoil(sm.Soil):
     @tension.setter
     def tension(self, value):
         value = clean_float(value)
+        self._add_to_stack("tension", value)
         self._tension = value
 
     @property
@@ -274,7 +275,7 @@ class PM4Silt(FlacSoil, PM4SiltBase):
         self.required_parameters = ['h_po', 'G_o', 'P_atm', 'density']
         self.optional_parameters = [
             "S_u",
-            "Su_rat",
+            "Su_Rat",
             "k11",
             "k22",
             "pois",
@@ -298,7 +299,7 @@ class PM4Silt(FlacSoil, PM4SiltBase):
         params = self.all_flac_parameters
         if group_name is None:
             group_name = "'{0}'".format(self.name)
-        para = [f"model pm4sand notnull group {group_name}"]
+        para = [f"model pm4silt notnull group {group_name}"]
         para.append(write_parameters_to_fis_models(self, params, ncols=1, not_null=True, group_name=group_name,
                                                    as_values=as_values))
         return para
@@ -333,6 +334,14 @@ def load_file_dt_and_indices(fname):
         inds = line[2].split('(')[-1][:-1]
         inds = [int(x) for x in inds.split(',')]
     return values, dt, inds
+
+
+def load_indices(fname):
+    with open(fname) as ifile:
+        line = ifile.read().splitlines()
+        inds = line[2].split('(')[-1][:-1]
+        inds = [int(x) for x in inds.split(',')]
+    return inds
 
 
 def load_file_and_time(fname):

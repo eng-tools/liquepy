@@ -169,6 +169,76 @@ class PM4Sand(sm.StressDependentSoil):
             r_bolt = 1.5
         return calc_peak_angle_for_pm4sand(self.relative_density, p, p_atm=self.p_atm, phi_cv=self.phi_cv, n_b=n_b, q_bolt=q_bolt, r_bolt=r_bolt)
 
+    def get_dr_cs(self, p):
+        return self.r_bolt / (self.q_bolt - np.log(100 * p / self.p_atm))
+
+    def get_ksi_r(self, p):
+        return self.get_dr_cs(p) - self.relative_density
+
+    @property
+    def phi_r_cs(self):
+        if self.phi_cv is not None:
+            return np.radians(self.phi_cv)
+    
+    @property
+    def m_cs(self):
+        if self.phi_cv is not None:
+            return 2 * np.sin(self.phi_r_cs)  # Eq 14
+
+    def get_m_b(self, p):
+        return self.m_cs * np.exp(-self.n_b * self.get_ksi_r(p))
+
+    def get_m_d(self, p):
+        return self.m_cs * np.exp(self.n_d * self.get_ksi_r(p))
+
+
+
+    def set_all_default_pms(self, p, ops=True):
+        """
+        Set parameters according to the default settings
+
+        Parameters
+        ----------
+        p: float
+            mean effective confining stress
+        ops: bool
+            If true then set according to the OpenSees version (slightly different to manual)
+
+        Returns
+        -------
+
+        """
+        self.h_o = max([(0.25 + self.relative_density) / 2, 0.3])
+        self.e_min = 0.5
+        self.e_max = 0.8
+        self.n_b = 0.5
+        self.n_d = 0.1
+
+        self.c_z = 250.0
+        if ops:
+            self.c_e = np.clip(0.2, 0.55, 0.5 - (self.relative_density - 0.55) * 1.5)
+        else:
+            self.c_e = np.clip(1, 5, 5 - 4 * (self.relative_density - 0.35) / 0.4)
+        self.phi_cv = 33.0
+        self.poissons_ratio = 0.3
+        self.g_degr = 2.0
+        self.q_bolt = 10.0
+        self.r_bolt = 1.5
+        self.m_par = 0.01
+        ksi_r0 = self.get_ksi_r(p)
+        # dr_cs0 = self.get_dr_cs(p)
+        self.c_dr = min([5 + 25 * (self.relative_density - 0.35), 10])
+        self.z_max = min([0.7 * np.exp(-6.1 * ksi_r0), 20])
+        m_b = self.get_m_b(p)
+        m_d = self.get_m_d(p)
+        self.a_do = 1. / 0.4 * (np.arcsin(m_b / 2) - np.arcsin(self.m_cs)) / (m_b - m_d)
+        self.c_kaf = np.clip(4.0, 35.0, 5 + 220.0 * (self.relative_density - 0.26) ** 3)
+        self.f_sed = min([0.03 * np.exp(2.6 * self.relative_density), 0.99])
+        self.p_sedo = -self.p_atm / 5
+        self.mc_ratio = 0.005
+        self.mc_c = 0.0
+
+
 class PM4Silt(sm.StressDependentSoil):
     _h_po = None
     _crr_n15 = None
@@ -316,6 +386,47 @@ class PM4Silt(sm.StressDependentSoil):
     #         return (self.e_max - self.e_critical(p_mean)) / (self.e_max - self.e_min)
     #     except TypeError:
     #         return None
+
+    def get_peak_angle(self, p):
+
+
+        q_bolt = self.q_bolt
+        if q_bolt is None:
+            q_bolt = 10
+        r_bolt = self.r_bolt
+        if r_bolt is None:
+            r_bolt = 1.5
+
+        wet = True  # loose of critical state
+        if wet:
+            n_b = self.n_bwet  # TODO: default values
+        else:
+            n_b = self.n_bdry
+        if n_b is None:
+            n_b = 0.5
+        return calc_peak_angle_for_pm4sand(self.relative_density, p, p_atm=self.p_atm, phi_cv=self.phi_cv, n_b=n_b, q_bolt=q_bolt, r_bolt=r_bolt)
+
+    def get_dr_cs(self, p):
+        return self.r_bolt / (self.q_bolt - np.log(100 * p / self.p_atm))
+
+    def get_ksi_r(self, p):
+        return self.get_dr_cs(p) - self.relative_density
+
+    @property
+    def phi_r_cs(self):
+        if self.phi_cv is not None:
+            return np.radians(self.phi_cv)
+
+    @property
+    def m_cs(self):
+        if self.phi_cv is not None:
+            return 2 * np.sin(self.phi_r_cs)  # Eq 14
+
+    def get_m_b(self, p):
+        return self.m_cs * np.exp(-self.n_b * self.get_ksi_r(p))
+
+    def get_m_d(self, p):
+        return self.m_cs * np.exp(self.n_d * self.get_ksi_r(p))
 
 
 def calc_peak_angle_for_pm4sand(d_r, p, p_atm=101.0e3, phi_cv=33.0, n_b=0.5, q_bolt=10, r_bolt=1.5):
