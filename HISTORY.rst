@@ -4,6 +4,9 @@ History
 
 Pre-release
 -----------
+
+0.6.24 (2021-11-30)
+-------------------
 * Improvements for using PM4Silt
 * More shear wave velocity correlations added
 

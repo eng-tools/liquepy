@@ -32,7 +32,7 @@ def vardanega_2013_to_modified_hyperbolic_parameters(i_p):
     return gamma_ref, a
 
 
-def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0, base_shear_vel=None, base_unit_wt=None, base_xi=0.01, vs_min=0):
+def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0, base_shear_vel=None, base_unit_wt=None, base_xi=0.01, vs_min=0, k0=0.5):
     """
     Converts a soil profile from sfsimodels into a soil profile for pysra
 
@@ -94,7 +94,6 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0, base_shear_vel=None, 
                     from liquepy.num.models import calc_peak_angle_for_pm4sand
                     curvature = 0.82
                     ratio = 40
-                    k0 = 1.
                     msig = (v_eff * (1 + 1 * k0) / 2)
                     phi_peak = calc_peak_angle_for_pm4sand(sl.relative_density, msig)
                     g_mod_min = vs_min ** 2 * unit_wt / 9.8
@@ -104,6 +103,18 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0, base_shear_vel=None, 
                     strain_curvature = curvature
                     xi_min = 0.02
                     strain_ref = tau_max * (1 + ratio ** strain_curvature) / (g_mod0 * ratio)
+                elif sl.type == 'pm4silt':
+                    alpha = 0.919
+                    phi_cv = 32.0  # page 67 of manual
+                    tau_max = v_eff * np.sin(np.radians(phi_cv))
+                    msig = (v_eff * (1 + 1 * k0) / 2)
+                    g_mod_min = vs_min ** 2 * unit_wt / 9.8
+                    g_mod0 = max(sl.get_g_mod_at_m_eff_stress(msig), g_mod_min)
+                    vs = np.sqrt(g_mod0 / rho)
+                    ratio = 20
+                    xi_min = 0.02
+                    strain_curvature = alpha
+                    strain_ref = tau_max * (1 + ratio ** alpha) / (g_mod0 * ratio)
                 else:
                     raise ValueError('sl is missing .peak_strain')
                 pysra_sl = pysra.site.ModifiedHyperbolicSoilType(name, unit_wt, strain_ref=strain_ref,

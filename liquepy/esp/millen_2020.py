@@ -9,6 +9,8 @@ from liquepy.field import correlations as lq_field_correlations
 from collections import OrderedDict
 
 # ESP_MODULE_DIR = os.path.dirname(os.path.abspath(__file__)) + "/"
+from liquepy.trigger.boulanger_and_idriss_2014 import calc_rd, calc_q_c1n_cs_from_crr_m7p5, calc_k_sigma, calc_msf, \
+    crr_m, calc_csr
 
 
 def fit_3_layer_profile(depths, crr_n15s, fitting_values, crr_non_liq=0.6, max_depth=20):
@@ -918,3 +920,47 @@ def get_esp_classes_legend_elements(include="all"):
                                      label=hatch_dict[name][1], hatch=hatch_dict[name][0]))
 
     return legend_elements
+
+
+class BoulangerIdriss2014SoilProfile(object):  # TODO: validate this properly
+    def __init__(self, sp, pga=0.25, m_w=None, **kwargs):
+        self.sp = sp
+        assert isinstance(self.sp, sm.SoilProfile)
+        self.inc = 0.01
+        self.sp.gen_split(target=self.inc, props=['csr_n15'])
+        split_depths = np.cumsum(self.sp.split['thickness'])
+        self.depth = np.arange(0, sp.height + self.inc, self.inc)
+        self.npts = len(self.depth)
+
+        self.s_g = kwargs.get("s_g", 2.65)
+        self.s_g_water = kwargs.get("s_g_water", 1.0)
+        saturation = kwargs.get("saturation", None)
+
+        if m_w is None:
+            self.m_w = 7.5
+        else:
+            self.m_w = m_w
+
+        self.gwl = sp.gwl
+        self.pga = pga
+
+        if saturation is None:
+            self.saturation = np.where(self.depth < self.gwl, 0, 1)
+        else:
+            self.saturation = saturation
+
+        self.sigma_v = sp.get_v_total_stress_at_depth(self.depth) / 1e3
+        self.pore_pressure = sp.get_hydrostatic_pressure_at_depth(self.depth) / 1e3
+        self.sigma_veff = self.sigma_v - self.pore_pressure
+        if self.sigma_veff[0] == 0.0:
+            self.sigma_veff[0] = 1.0e-10
+        self.rd = calc_rd(self.depth, self.m_w)
+        crr_unlimited = np.interp(self.depth, split_depths, self.sp.split['csr_n15'])
+        self.crr_m7p5 = np.where(self.depth <= self.gwl, 4, crr_unlimited)
+        self.q_c1n_cs = calc_q_c1n_cs_from_crr_m7p5(self.crr_m7p5)
+        self.k_sigma = calc_k_sigma(self.sigma_veff, self.q_c1n_cs)
+        self.msf = calc_msf(self.m_w, self.q_c1n_cs)
+        self.crr = crr_m(self.k_sigma, self.msf, self.crr_m7p5)  # CRR at set magnitude
+        self.csr = calc_csr(self.sigma_veff, self.sigma_v, pga, self.rd, self.gwl, self.depth)
+        fs_unlimited = self.crr / self.csr
+        self.factor_of_safety = np.where(fs_unlimited > 2, 2, fs_unlimited)

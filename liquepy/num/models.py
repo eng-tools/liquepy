@@ -244,7 +244,7 @@ class PM4Silt(sm.StressDependentSoil):
     _crr_n15 = None
     s_u = None
     su_rat = None
-
+    _n_g = None
     e_o = None
     h_o = None
     n_bdry = None
@@ -361,18 +361,44 @@ class PM4Silt(sm.StressDependentSoil):
         if value is not None:
             self._add_to_stack("crr_n15", value)
 
+    # def get_n_g(self):
+    #     if self.n_g is not None:
+    #         return self.n_g
+    #     return 0.75  # default
+    @property
+    def n_g(self):
+        if self._n_g is not None:
+            return self._n_g
+        return None
+
+    @n_g.setter
+    def n_g(self, value):
+        self._n_g = value
+        self._a = value
+
+    @property
+    def a(self):
+        if self._n_g is not None:
+            return self._n_g
+        return 0.75  # default
+
+    @a.setter
+    def a(self, value):
+        self.n_g = value
+        self._a = value
+
     def g_mod_at_v_eff_stress(self, sigma_v_eff):  # Override base function since k0 is different
         return self.get_g_mod_at_v_eff_stress(sigma_v_eff)
 
     def get_g_mod_at_v_eff_stress(self, sigma_v_eff, k0=None):  # Override base function since k0 is different
         if k0 is None:
             k0 = self.poissons_ratio / (1 - self.poissons_ratio)
-        return self.g0_mod * self.p_atm * (sigma_v_eff * (1 + k0) / 2 / self.p_atm) ** 0.5
+        return self.g0_mod * self.p_atm * (sigma_v_eff * (1 + k0) / 2 / self.p_atm) ** self.a
 
     def set_g0_mod_from_g_mod_at_v_eff_stress(self, g_mod, sigma_v_eff, k0=None):
         if k0 is None:
             k0 = self.poissons_ratio / (1 - self.poissons_ratio)
-        self.g0_mod = g_mod / self.p_atm / (sigma_v_eff * (1 + k0) / 2 / self.p_atm) ** 0.5
+        self.g0_mod = g_mod / self.p_atm / (sigma_v_eff * (1 + k0) / 2 / self.p_atm) ** self.a
     # def e_critical(self, p):
     #     p = float(p)
     #     return self.e_cr0 - self.lamb_crl * np.log(p / self.p_cr0)
@@ -528,13 +554,25 @@ class ManzariDafaliasModel(sm.StressDependentSoil):
     def g0(self):
         return self._g0
 
+    def recompute_g0_mod(self):
+        if self.e_curr is not None and self.g0 is not None:
+            self._g0_mod = self.g0 * (2.97 - self.e_curr) ** 2 / (1 + self.e_curr)
+
     @g0.setter
     def g0(self, g0):
         # note g0 * (2.97 - e) ** 2 / (1 + e) = g0_mod
         self._g0 = clean_float(g0)
-        if self.e_curr is not None:
-            self._g0_mod = g0 * (2.97 - self.e_curr) ** 2 / (1 + self.e_curr)
+        self.recompute_g0_mod()
 
+
+    @property
+    def a_0(self):
+        return self.a_o
+    
+    @a_0.setter
+    def a_0(self, value):
+        self.a_o = value
+    
     @property
     def g0_mod(self):
         return self._g0_mod
@@ -546,6 +584,10 @@ class ManzariDafaliasModel(sm.StressDependentSoil):
         if self.e_curr is None:
             raise ValueError('must set e_curr before setting g0_mod')
         self._g0 = value * (1 + self.e_curr) / (2.97 - self.e_curr) ** 2
+
+    def recompute_all_weights_and_void(self):
+        sm.StressDependentSoil.recompute_all_weights_and_void(self)
+        self.recompute_g0_mod()
 
 
 class StressDensityModel(sm.StressDependentSoil):

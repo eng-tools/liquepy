@@ -65,7 +65,7 @@ class FlacSoil(sm.Soil):
                 return item
         return None
 
-    def to_fis_mohr_coulomb(self, group_name=None, as_values=False):
+    def to_fis_mohr_coulomb(self, group_name=None, as_values=False, g_mod_red=1.0):
         mc_params = OrderedDict([
             ("bulk", "bulk_mod"),
             ("shear", "g_mod"),
@@ -81,7 +81,23 @@ class FlacSoil(sm.Soil):
             group_name = "'{0}'".format(self.name)
         para = ["model mohr notnull group %s" % group_name]
         para.append(write_parameters_to_fis_models(self, mc_params, ncols=1, not_null=True, group_name=group_name,
-                                                   as_values=as_values))
+                                                   as_values=as_values, g_mod_red=g_mod_red))
+        return "\n".join(para)
+
+
+    def to_fis_elastic(self, group_name=None, as_values=False, g_mod_red=1.0):
+        el_params = OrderedDict([
+            ("bulk", "bulk_mod"),
+            ("shear", "g_mod"),
+            ("density", "density"),
+            ("por", "porosity"),
+            ("perm", "flac_permeability")
+        ])
+        if group_name is None:
+            group_name = "'{0}'".format(self.name)
+        para = ["model elastic notnull group %s" % group_name]
+        para.append(write_parameters_to_fis_models(self, el_params, ncols=1, not_null=True, group_name=group_name,
+                                                   as_values=as_values, g_mod_red=g_mod_red))
         return "\n".join(para)
 
     def set_prop_dict(self):
@@ -321,8 +337,19 @@ def load_file_and_dt(fname):
     num_data_k = np.loadtxt(fname, skiprows=4)
     time = num_data_k[:, 0]  # This get the first column
     dt = time[1] - time[0]
+    dt = (time[-1] - time[0]) / (len(time) - 1)
     values = num_data_k[:, 1]
     return values, dt
+
+def load_values_and_dt_w_interp(fname):
+    num_data_k = np.loadtxt(fname, skiprows=4)
+    time = num_data_k[:, 0]  # This get the first column
+    time -= time[0]
+    dt = (time[-1] - time[0]) / (len(time) - 1)
+    new_times = np.linspace(0, time[-1], len(time))
+    values = num_data_k[:, 1]
+    new_values = np.interp(new_times, time, values)
+    return new_values, dt
 
 def load_file_dt_and_indices(fname):
     num_data_k = np.loadtxt(fname, skiprows=4)
@@ -426,11 +453,15 @@ def calc_hp0_from_crr_n15_and_relative_density_millen_et_al_2019(crr_n15, d_r):
     return crr_n15 * (2.05 - 2.4 * d_r) / (1. - crr_n15 * (12.0 - (12.5 * d_r)))
 
 
+def calc_g0_mod_pm4sand_millen_et_al_2019(crr_n15, d_r):
+    return crr_n15 * (2.05 - 2.4 * d_r) / (1. - crr_n15 * (12.0 - (12.5 * d_r)))
+
+
 def calc_pm4sand_h_po_from_crr_n15_and_relative_density_millen_et_al_2019(crr_n15, d_r):
     return crr_n15 * (2.05 - 2.4 * d_r) / (1. - crr_n15 * (12.0 - (12.5 * d_r)))
 
 
-def write_parameters_to_fis_models(obj, parameters, ncols=3, not_null=False, group_name=None, as_values=False):
+def write_parameters_to_fis_models(obj, parameters, ncols=3, not_null=False, group_name=None, as_values=False, g_mod_red=1.0):
     if group_name is None:
         group_name = obj.name
         
@@ -445,6 +476,8 @@ def write_parameters_to_fis_models(obj, parameters, ncols=3, not_null=False, gro
         value = getattr(obj, ecp_name)
         if value is None:
             continue
+        if ecp_name in ['g_mod', 'bulk_mod']:
+            value *= g_mod_red
         if as_values:
             value = f'{value:.6g}'
         else:

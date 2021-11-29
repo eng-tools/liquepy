@@ -1,6 +1,5 @@
 import numpy as np
 from liquepy.exceptions import deprecation
-import sfsimodels as sm
 from liquepy.field import CPT
 
 
@@ -262,8 +261,9 @@ def calc_k_sigma(sigma_eff, q_c1ncs, pa=100):
     :param pa: atmospheric pressure in kPa
     :return:
     """
-    c_sigma_unrestricted = 1. / (37.3 - 8.27 * (q_c1ncs ** 0.264))
-    c_sigma = np.where(c_sigma_unrestricted <= 0.3, c_sigma_unrestricted, 0.3)
+    qvals = np.clip(q_c1ncs, None, 211.)  # pg 11 of BI2014 report
+    c_sigma = 1. / (37.3 - 8.27 * (qvals ** 0.264))
+    # c_sigma = np.where(c_sigma_unrestricted <= 0.3, c_sigma_unrestricted, 0.3)
     k_sigma_unrestricted = 1 - c_sigma * np.log(sigma_eff / pa)
     k_sigma = np.where(k_sigma_unrestricted <= 1.1, k_sigma_unrestricted, 1.1)
     return k_sigma
@@ -430,7 +430,7 @@ class BoulangerIdriss2014CPT(object):
                                                                                             self.q_t,
                                                                                             self.cfc)
 
-        np.clip(self.q_c1n_cs, None, 211., out=self.q_c1n_cs)  # pg 11 of BI2014 report
+
         self.k_sigma = calc_k_sigma(self.sigma_veff, self.q_c1n_cs)
         self.msf = calc_msf(self.m_w, self.q_c1n_cs)
         self.csr = calc_csr(self.sigma_veff, self.sigma_v, pga, self.rd, gwl, self.depth)
@@ -479,50 +479,6 @@ class BoulangerIdriss2014(BoulangerIdriss2014CPT):
             gwl = cpt_gwl
         cpt = CPT(depth, q_c, f_s, u_2, gwl, a_ratio=a_ratio)
         super(BoulangerIdriss2014CPT, self).__init__(cpt, gwl=gwl, pga=pga, m_w=m_w, cfc=cfc, **kwargs)
-
-
-class BoulangerIdriss2014SoilProfile(object):  # TODO: validate this properly
-    def __init__(self, sp, pga=0.25, m_w=None, **kwargs):
-        self.sp = sp
-        assert isinstance(self.sp, sm.SoilProfile)
-        self.inc = 0.01
-        self.sp.gen_split(target=self.inc, props=['csr_n15'])
-        split_depths = np.cumsum(self.sp.split['thickness'])
-        self.depth = np.arange(0, sp.height + self.inc, self.inc)
-        self.npts = len(self.depth)
-
-        self.s_g = kwargs.get("s_g", 2.65)
-        self.s_g_water = kwargs.get("s_g_water", 1.0)
-        saturation = kwargs.get("saturation", None)
-
-        if m_w is None:
-            self.m_w = 7.5
-        else:
-            self.m_w = m_w
-
-        self.gwl = sp.gwl
-        self.pga = pga
-
-        if saturation is None:
-            self.saturation = np.where(self.depth < self.gwl, 0, 1)
-        else:
-            self.saturation = saturation
-
-        self.sigma_v = sp.get_v_total_stress_at_depth(self.depth) / 1e3
-        self.pore_pressure = sp.get_hydrostatic_pressure_at_depth(self.depth) / 1e3
-        self.sigma_veff = self.sigma_v - self.pore_pressure
-        if self.sigma_veff[0] == 0.0:
-            self.sigma_veff[0] = 1.0e-10
-        self.rd = calc_rd(self.depth, self.m_w)
-        crr_unlimited = np.interp(self.depth, split_depths, self.sp.split['csr_n15'])
-        self.crr_m7p5 = np.where(self.depth <= self.gwl, 4, crr_unlimited)
-        self.q_c1n_cs = calc_q_c1n_cs_from_crr_m7p5(self.crr_m7p5)
-        self.k_sigma = calc_k_sigma(self.sigma_veff, self.q_c1n_cs)
-        self.msf = calc_msf(self.m_w, self.q_c1n_cs)
-        self.crr = crr_m(self.k_sigma, self.msf, self.crr_m7p5)  # CRR at set magnitude
-        self.csr = calc_csr(self.sigma_veff, self.sigma_v, pga, self.rd, self.gwl, self.depth)
-        fs_unlimited = self.crr / self.csr
-        self.factor_of_safety = np.where(fs_unlimited > 2, 2, fs_unlimited)
 
 
 def run_bi2014(cpt, pga, m_w, gwl=None, p_a=101., cfc=0.0, i_c_limit=2.6, gamma_predrill=17.0, c_0=2.8,

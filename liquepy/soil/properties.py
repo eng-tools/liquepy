@@ -25,18 +25,30 @@ def get_soil_params_dict():
                 'd_50': 0.18,  # averaged from Fioravante:2015ea
                 'm_c': 1.14,  # TRISEE tests
             },
+        # 'nevada_sand':
+        #     {
+        #         'e_min': 0.516,  # Arulmoli et al. (1992)
+        #         'e_max': 0.894,  # Arulmoli et al. (1992)
+        #         'specific_gravity': 2.68,  # Arulmoli et al. (1992) calculated from numbers in Leshchinsky:2018ca
+        #         'e_0': 0.843,  # Ling:2006jl
+        #         'lambda_c': 0.0287,  # Ling:2006jl
+        #         'ksi': 0.7,  # Ling:2006jl
+        #         'm_c': 1.2,  # 
+        #         'd_50': 0.15,  # mm, from Gajan (2003) SSG02
+        #         'c_u': 1.06,  # d60/d10, from Gajan (2003) SSG02
+        #      },
         'nevada_sand':
             {
                 'e_min': 0.516,  # Arulmoli et al. (1992)
                 'e_max': 0.894,  # Arulmoli et al. (1992)
-                'specific_gravity': 2.68,  # Arulmoli et al. (1992) calculated from numbers in Leshchinsky:2018ca
-                'e_0': 0.843,  # Ling:2006jl
-                'lambda_c': 0.0287,  # Ling:2006jl
+                'specific_gravity': 2.67,  # Arulmoli et al. (1992)
+                'e_0': 0.85,  # Ling:2006jl
+                'lambda_c': 0.015,  # Ling:2006jl
                 'ksi': 0.7,  # Ling:2006jl
-                'm_c': 1.09,  # gives phi_cv = 33.0
+                'm_c': 1.2,  # 
                 'd_50': 0.15,  # mm, from Gajan (2003) SSG02
                 'c_u': 1.06,  # d60/d10, from Gajan (2003) SSG02
-             },
+            },
         'fuji_river_sand_loose':
             {
                 'e_min': 0,
@@ -61,7 +73,8 @@ def get_soil_params_dict():
                 'e_min': 0.614,  # Tsomokos:2010cd
                 'e_max': 0.995,  # Tsomokos:2010cd
                 'specific_gravity': 2.64, # Tsomokos:2010cd
-                'm_c': 1.09,  # Tsomokos:2010cd failure line at 33deg
+                # 'm_c': 1.09,  # Tsomokos:2010cd failure line at 33deg
+                'm_c': 1.2,
                 'd_50': 0.15, # mm, Gazetas DOI: 10.1007/s11012-014-9997-7
                 'c_u': 1.4,  # d60/d10 Gazetas DOI: 10.1007/s11012-014-9997-7
                 'e_0': 0.93,  # Back-calculate phi-peak from Gazetas (2014) using Manzari model
