@@ -62,7 +62,10 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0, base_shear_vel=None, 
         slice_thickness = float(thickness) / n_slices
         for j in range(n_slices):
             cum_thickness += slice_thickness
-            rho = sl.unit_dry_weight / 9.8
+            if cum_thickness > sp.gwl:
+                rho = sl.unit_sat_mass
+            else:
+                rho = sl.unit_dry_mass
             v_eff = sp.get_v_eff_stress_at_depth(cum_thickness)
             if hasattr(sl, "get_g_mod_at_v_eff_stress"):
                 g_mod = sl.get_g_mod_at_v_eff_stress(v_eff)
@@ -75,7 +78,9 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0, base_shear_vel=None, 
                 unit_wt = sl.unit_sat_weight
             else:
                 unit_wt = sl.unit_dry_weight
-            if hasattr(sl, "sra_type") and getattr(sl, "sra_type") == "hyperbolic":
+            if not hasattr(sl, "sra_type"):
+                raise ValueError(f'sr_type missing on soil ({i+1})')
+            if getattr(sl, "sra_type") == "hyperbolic":
                 name = "hyperbolic"
                 if hasattr(sl, 'strain_curvature') and hasattr(sl, 'strain_ref'):
                     strain_curvature = sl.strain_curvature
@@ -101,60 +106,127 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0, base_shear_vel=None, 
                     vs = np.sqrt(g_mod0 / rho)
                     tau_max = v_eff * np.sin(np.radians(phi_peak))
                     strain_curvature = curvature
-                    xi_min = 0.02
+                    xi_min = 0.015
                     strain_ref = tau_max * (1 + ratio ** strain_curvature) / (g_mod0 * ratio)
                 elif sl.type == 'pm4silt':
                     alpha = 0.919
+                    ratio = 20
+                    # alpha = 0.88
+                    # ratio = 30
                     phi_cv = 32.0  # page 67 of manual
-                    tau_max = v_eff * np.sin(np.radians(phi_cv))
+                    phi_rat =  np.sin(np.radians(phi_cv))
+                    if sl.su_rat is None:
+                        if sl.su is None:
+                            raise ValueError('Must set either su or su_rat')
+                        sur = sl.su / esig_v0
+                    else:
+                        sur = sl.su_rat
+                    tau_max = min([phi_rat, sur]) * v_eff
                     msig = (v_eff * (1 + 1 * k0) / 2)
                     g_mod_min = vs_min ** 2 * unit_wt / 9.8
                     g_mod0 = max(sl.get_g_mod_at_m_eff_stress(msig), g_mod_min)
                     vs = np.sqrt(g_mod0 / rho)
-                    ratio = 20
-                    xi_min = 0.02
+
+                    xi_min = 0.015
                     strain_curvature = alpha
                     strain_ref = tau_max * (1 + ratio ** alpha) / (g_mod0 * ratio)
+                elif hasattr(sl, "plasticity_index") and getattr(sl, "plasticity_index") is not None:
+                    i_p = sl.plasticity_index
+                    strain_ref, strain_curvature = vardanega_2013_to_modified_hyperbolic_parameters(i_p)
+                    xi_min = 0.02
+                    name = "vardanega (2013) I_p = %.2f" % i_p
                 else:
-                    raise ValueError('sl is missing .peak_strain')
+                    raise ValueError(f'Cannot build modified hyperbolic for soil ({i+1})')
                 pysra_sl = pysra.site.ModifiedHyperbolicSoilType(name, unit_wt, strain_ref=strain_ref,
                                                                  curvature=strain_curvature,
                                                                  damping_min=xi_min,
                                                                  strains=strains)
-            elif hasattr(sl, "darendeli") or hasattr(sl, "sra_type") and getattr(sl, "sra_type") == "darendeli":
-                assert isinstance(sp, sm.SoilProfile)
-                s_v_eff = sp.get_v_eff_stress_at_depth(cum_thickness)
-                k0 = 1 - np.sin(np.radians(sl.phi))
-                darendeli_sigma_m_eff = (s_v_eff * (1 + 2 * k0) / 3) * PA_TO_KPA  # Needs to be in kPa
-                # print("darendeli_sigma_m_eff: ", darendeli_sigma_m_eff)
-                ip = sl.plasticity_index
-                if ip is None:
-                    ip = 0.0
-                ip *= 100  # Input is in percentage
-                pysra_sl = pysra.site.DarendeliSoilType(unit_wt, plas_index=ip, ocr=1,
+            elif getattr(sl, "sra_type") == "darendeli":
+                if hasattr(sl, "darendeli_sigma_m_eff"):
+                    ip = sl.plasticity_index
+                    if ip is None:
+                        ip = 0.0
+                    ip *= 100  # Input is in percentage
+                    pysra_sl = pysra.site.DarendeliSoilType(unit_wt, plas_index=ip, ocr=1,
+                                                            stress_mean=sl.darendeli_sigma_m_eff, strains=strains)
+                else:
+                    assert isinstance(sp, sm.SoilProfile)
+
+                    s_v_eff = sp.get_v_eff_stress_at_depth(cum_thickness)
+                    k0 = 1 - np.sin(np.radians(sl.phi))
+                    darendeli_sigma_m_eff = (s_v_eff * (1 + 2 * k0) / 3) * PA_TO_KPA  # Needs to be in kPa
+                    # print("darendeli_sigma_m_eff: ", darendeli_sigma_m_eff)
+                    ip = sl.plasticity_index
+                    if ip is None:
+                        ip = 0.0
+                    ip *= 100  # Input is in percentage
+                    pysra_sl = pysra.site.DarendeliSoilType(unit_wt, plas_index=ip, ocr=1,
                                                         stress_mean=darendeli_sigma_m_eff, strains=strains)
-            elif hasattr(sl, "darendeli_sigma_m_eff"):
-                ip = sl.plasticity_index
-                if ip is None:
-                    ip = 0.0
-                ip *= 100  # Input is in percentage
-                pysra_sl = pysra.site.DarendeliSoilType(unit_wt, plas_index=ip, ocr=1,
-                                                        stress_mean=sl.darendeli_sigma_m_eff, strains=strains)
-            elif hasattr(sl, "sra_type") and getattr(sl, "sra_type") == "menq":
+
+            elif getattr(sl, "sra_type") == "menq":
                 k0 = 0.5
                 s_v_eff = sp.vertical_effective_stress(cum_thickness)
                 sigma_m_eff = (s_v_eff * (1 + 2 * k0) / 3) * PA_TO_KPA
                 pysra_sl = pysra.site.MenqSoilType(unit_wt, uniformity_coeff=2, diam_mean=2, stress_mean=sigma_m_eff)
-            elif hasattr(sl, "plasticity_index") and getattr(sl, "plasticity_index") is not None:
-                i_p = sl.plasticity_index
-                gamma_ref, curvature = vardanega_2013_to_modified_hyperbolic_parameters(i_p)
-                name = "vardanega (2013) I_p = %.2f" % i_p
-                pysra_sl = pysra.site.ModifiedHyperbolicSoilType(name, unit_wt, strain_ref=gamma_ref,
-                                                                 curvature=curvature,
-                                                                 damping_min=0.02,
-                                                                 strains=strains)
-            else:
+
+            elif getattr(sl, "sra_type") == "linear":
                 pysra_sl = pysra.site.SoilType(sl.name, unit_wt, None, sl.xi)
+            elif getattr(sl, 'sra_type') == 'direct':
+                if sl.type == 'pm4sand':
+                    name = 'pm4sand-direct'
+                    from liquepy.num.models import calc_peak_angle_for_pm4sand
+                    curvature = 0.82
+                    ratio = 40
+                    msig = (v_eff * (1 + 1 * k0) / 2)
+                    phi_peak = calc_peak_angle_for_pm4sand(sl.relative_density, msig)
+                    g_mod_min = vs_min ** 2 * unit_wt / 9.8
+                    g_mod0 = max(sl.get_g_mod_at_m_eff_stress(msig), g_mod_min)
+                    vs = np.sqrt(g_mod0 / rho)
+                    tau_max = v_eff * np.sin(np.radians(phi_peak))
+                    strain_curvature = curvature
+                    xi_min = 0.007
+                    strain_ref = tau_max * (1 + ratio ** strain_curvature) / (g_mod0 * ratio)
+                    pysra_sl = pysra.site.ModifiedHyperbolicSoilType(name, unit_wt, strain_ref=strain_ref,
+                                                                     curvature=strain_curvature,
+                                                                     damping_min=xi_min,
+                                                                     strains=strains)
+                    pysra_d_damping = pysra.site.NonlinearProperty('', strains, 1.3 * pysra_sl.damping.values, 'damping')
+                    pysra_strains = pysra_sl.mod_reduc.strains
+                    pysra_g_o_gmax = pysra_sl.mod_reduc
+                    pysra_sl = pysra.site.SoilType(name, unit_wt, pysra_g_o_gmax, pysra_d_damping)
+                elif sl.type == 'pm4silt':
+                    name = 'pm4silt-direct'
+                    alpha = 0.919
+                    ratio = 20
+                    # alpha = 0.88
+                    # ratio = 30
+                    phi_cv = 32.0  # page 67 of manual
+                    phi_rat =  np.sin(np.radians(phi_cv))
+                    if sl.su_rat is None:
+                        if sl.su is None:
+                            raise ValueError('Must set either su or su_rat')
+                        sur = sl.su / esig_v0
+                    else:
+                        sur = sl.su_rat
+                    tau_max = min([phi_rat, sur]) * v_eff
+                    msig = (v_eff * (1 + 1 * k0) / 2)
+                    g_mod_min = vs_min ** 2 * unit_wt / 9.8
+                    g_mod0 = max(sl.get_g_mod_at_m_eff_stress(msig), g_mod_min)
+                    vs = np.sqrt(g_mod0 / rho)
+
+                    xi_min = 0.007
+                    strain_curvature = alpha
+                    strain_ref = tau_max * (1 + ratio ** alpha) / (g_mod0 * ratio)
+                    pysra_sl = pysra.site.ModifiedHyperbolicSoilType(name, unit_wt, strain_ref=strain_ref,
+                                                                     curvature=strain_curvature,
+                                                                     damping_min=xi_min,
+                                                                     strains=strains)
+                    pysra_d_damping = pysra.site.NonlinearProperty('', strains, 1.3 * pysra_sl.damping.values, 'damping')
+                    pysra_strains = pysra_sl.mod_reduc.strains
+                    pysra_g_o_gmax = pysra_sl.mod_reduc
+                    pysra_sl = pysra.site.SoilType(name, unit_wt, pysra_g_o_gmax, pysra_d_damping)
+            else:
+                raise ValueError(f'sra_type = {sl.sra_type} not recognised for soil: {i+1}')
             lay = pysra.site.Layer(pysra_sl, slice_thickness, vs)
             layers.append(lay)
     # add one more since it is applied at top of layer, but make it elastic
@@ -246,19 +318,21 @@ def update_pysra_profile(pysra_profile, depths, xis=None, shear_vels=None):
 
 class PysraAnalysis(object):
 
-    def __init__(self, soil_profile, asig, odepths, wave_field='outcrop', atype='eqlin', outs=None, trim=False):
+    def __init__(self, soil_profile, asig, odepths, wave_field='outcrop', atype='eqlin', outs=None, trim=False, strain_ratio=None):
 
         import pysra
         pysra_profile = sm_profile_to_pysra(soil_profile, d_inc=[0.5] * soil_profile.n_layers)
         # Should be input in g
         pysra_m = pysra.motion.TimeSeriesMotion(asig.label, None, time_step=asig.dt, accels=asig.values / 9.8)
-
+        kw = {}
+        if strain_ratio is not None:
+            kw['strain_ratio'] = strain_ratio
         if atype == 'eqlin':
-            calc = pysra.propagation.EquivalentLinearCalculator()
+            calc = pysra.propagation.EquivalentLinearCalculator(**kw)
         elif atype == 'fd':
-            calc = pysra.propagation.FrequencyDependentEqlCalculator(use_smooth_spectrum=False)
+            calc = pysra.propagation.FrequencyDependentEqlCalculator(use_smooth_spectrum=False, **kw)
         elif atype == 'fdk':  # k=Kausel
-            calc = pysra.propagation.FrequencyDependentEqlCalculator(use_smooth_spectrum=True)
+            calc = pysra.propagation.FrequencyDependentEqlCalculator(use_smooth_spectrum=True, **kw)
         elif atype == 'linear':
             calc = pysra.propagation.LinearElasticCalculator()
         else:
@@ -303,23 +377,26 @@ class PysraAnalysis(object):
         out_series['TIME'] = np.arange(0, len(out_series[list(out_series)[0]][0])) * asig.dt
         self.out_series = out_series
         self.pysra_profile = pysra_profile
+        self.calc = calc
 
 
 class PysraDeconvolutionAnalysis(object):
 
-    def __init__(self, soil_profile, asig, odepths, wave_field='outcrop', atype='eqlin', outs=None, trim=False):
+    def __init__(self, soil_profile, asig, odepths, wave_field='outcrop', atype='eqlin', outs=None, trim=False, strain_ratio=None):
 
         import pysra
         pysra_profile = lq.sra.sm_profile_to_pysra(soil_profile, d_inc=[0.5] * soil_profile.n_layers)
         # Should be input in g
         pysra_m = pysra.motion.TimeSeriesMotion(asig.label, None, time_step=asig.dt, accels=asig.values / 9.8)
-
+        kw = {}
+        if strain_ratio is not None:
+            kw['strain_ratio'] = strain_ratio
         if atype == 'eqlin':
-            calc = pysra.propagation.EquivalentLinearCalculator()
+            calc = pysra.propagation.EquivalentLinearCalculator(**kw)
         elif atype == 'fd':
-            calc = pysra.propagation.FrequencyDependentEqlCalculator(use_smooth_spectrum=False)
+            calc = pysra.propagation.FrequencyDependentEqlCalculator(use_smooth_spectrum=False, **kw)
         elif atype == 'fdk':
-            calc = pysra.propagation.FrequencyDependentEqlCalculator(use_smooth_spectrum=True)
+            calc = pysra.propagation.FrequencyDependentEqlCalculator(use_smooth_spectrum=True, **kw)
         elif atype == 'linear':
             calc = pysra.propagation.LinearElasticCalculator()
         else:
@@ -364,9 +441,10 @@ class PysraDeconvolutionAnalysis(object):
         out_series['TIME'] = np.arange(0, len(out_series[list(out_series)[0]][0])) * asig.dt
         self.out_series = out_series
         self.pysra_profile = pysra_profile
+        self.calc = calc
 
 
-def run_pysra(soil_profile, asig, odepths, wave_field='outcrop', atype='eqlin', outs=None):
+def run_pysra(soil_profile, asig, odepths, wave_field='outcrop', atype='eqlin', outs=None, strain_ratio=None):
     """
 
     :param soil_profile:
@@ -378,6 +456,6 @@ def run_pysra(soil_profile, asig, odepths, wave_field='outcrop', atype='eqlin', 
     :param outs:
     :return:
     """
-    pa = PysraAnalysis(soil_profile, asig, odepths, wave_field=wave_field, atype=atype, outs=outs)
+    pa = PysraAnalysis(soil_profile, asig, odepths, wave_field=wave_field, atype=atype, outs=outs, strain_ratio=strain_ratio)
     return pa.out_series
 

@@ -192,7 +192,7 @@ class EqlinStockwellAnalysis(object):
             self.surf_sig.smooth_freqs = np.linspace(0.2, 1 / (4 * in_sig.dt), 30)
 
 
-def compute_pysra_strain_time_series(soil_profile, in_sig, d_inc=None, target_height=1.0, wave_field='outcrop'):
+def compute_pysra_strain_time_series(soil_profile, in_sig, d_inc=None, target_height=1.0, wave_field='outcrop', in_loc=-1, atype='eqlin'):
     """
     Perform an equivalent linear analysis and obtain the strain time series at many depths
 
@@ -207,6 +207,8 @@ def compute_pysra_strain_time_series(soil_profile, in_sig, d_inc=None, target_he
         Target depth increment for whole soil profile
     wave_field: str
             If input motion should be used as an `outcrop` or '`within` motion.
+    in_loc: int
+        If -1 then input motion at base, if 0 then input motion at surface
 
     Returns
     -------
@@ -218,9 +220,25 @@ def compute_pysra_strain_time_series(soil_profile, in_sig, d_inc=None, target_he
     if d_inc is None:
         d_inc = 1.0 * np.ones(soil_profile.n_layers)
     profile = lq.sra.sm_profile_to_pysra(soil_profile, target_height=target_height, d_inc=d_inc)
-
-    calc = pysra.propagation.EquivalentLinearCalculator()
-    calc(m, profile, profile.location(wave_field, depth=soil_profile.height))
+    strain_ratio = None
+    kw = {}
+    if strain_ratio is not None:
+        kw['strain_ratio'] = strain_ratio
+    if atype == 'eqlin':
+        calc = pysra.propagation.EquivalentLinearCalculator(**kw)
+    elif atype == 'fd':
+        calc = pysra.propagation.FrequencyDependentEqlCalculator(use_smooth_spectrum=False, **kw)
+    elif atype == 'fdk':  # k=Kausel
+        calc = pysra.propagation.FrequencyDependentEqlCalculator(use_smooth_spectrum=True, **kw)
+    elif atype == 'linear':
+        calc = pysra.propagation.LinearElasticCalculator()
+    else:
+        raise ValueError(f'atype must: "eqlin", "fd", "fdk", "linear". Not {atype}')
+    if in_loc == -1:
+        in_depth = soil_profile.height
+    else:
+        in_depth = 0.0
+    calc(m, profile, profile.location(wave_field, depth=in_depth))
 
     outs = []
     for i, depth in enumerate(profile.depth):

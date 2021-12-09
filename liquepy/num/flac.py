@@ -310,6 +310,12 @@ class PM4Silt(FlacSoil, PM4SiltBase):
             "MC_c",
             "CG_consol"
         ]
+        
+    def __repr__(self):
+        return f"PM4Silt (FLAC) Soil model, id={self.id}, G0={self.g0_mod:.0f}, su={self.s_u:.1}, su_rat={self.su_rat:.1}"
+
+    def __str__(self):
+        return f"PM4Silt (FLAC) Soil model, id={self.id}, G0={self.g0_mod:.0f}, su={self.s_u:.1}, su_rat={self.su_rat:.1}"
 
     def to_fis(self, group_name=None, as_values=False):
         params = self.all_flac_parameters
@@ -576,6 +582,15 @@ def calc_rayleigh_damping_params(f1, f2, d):
     fmin = wmin / (2 * np.pi)
 
     return emin, fmin
+
+
+def calc_rayleigh_damping_alpha_and_beta(f1, f2, d):
+    w1 = 2 * np.pi * f1
+    w2 = 2 * np.pi * f2
+
+    beta = 2 * (((w1 * d) - (w2 * d)) / ((w1 ** 2) - (w2 ** 2)))
+    alpha = beta * w1 * w2
+    return alpha, beta
 
 
 def check_max_char_limit(fnames, run_loc):

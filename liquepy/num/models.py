@@ -413,31 +413,6 @@ class PM4Silt(sm.StressDependentSoil):
     #     except TypeError:
     #         return None
 
-    def get_peak_angle(self, p):
-
-
-        q_bolt = self.q_bolt
-        if q_bolt is None:
-            q_bolt = 10
-        r_bolt = self.r_bolt
-        if r_bolt is None:
-            r_bolt = 1.5
-
-        wet = True  # loose of critical state
-        if wet:
-            n_b = self.n_bwet  # TODO: default values
-        else:
-            n_b = self.n_bdry
-        if n_b is None:
-            n_b = 0.5
-        return calc_peak_angle_for_pm4sand(self.relative_density, p, p_atm=self.p_atm, phi_cv=self.phi_cv, n_b=n_b, q_bolt=q_bolt, r_bolt=r_bolt)
-
-    def get_dr_cs(self, p):
-        return self.r_bolt / (self.q_bolt - np.log(100 * p / self.p_atm))
-
-    def get_ksi_r(self, p):
-        return self.get_dr_cs(p) - self.relative_density
-
     @property
     def phi_r_cs(self):
         if self.phi_cv is not None:
