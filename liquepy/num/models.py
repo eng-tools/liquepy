@@ -144,18 +144,18 @@ class PM4Sand(sm.StressDependentSoil):
         if value is not None:
             self._add_to_stack("h_po", value)
 
-    def g_mod_at_v_eff_stress(self, sigma_v_eff):  # Override base function since k0 is different
-        return self.get_g_mod_at_v_eff_stress(sigma_v_eff)
+    def g_mod_at_v_eff_stress(self, v_eff_stress):  # Override base function since k0 is different
+        return self.get_g_mod_at_v_eff_stress(v_eff_stress)
 
-    def get_g_mod_at_v_eff_stress(self, sigma_v_eff, k0=None):  # Override base function since k0 is different
+    def get_g_mod_at_v_eff_stress(self, v_eff_stress, k0=None):  # Override base function since k0 is different
         if k0 is None:
             k0 = self.poissons_ratio / (1 - self.poissons_ratio)
-        return self.g0_mod * self.p_atm * (sigma_v_eff * (1 + k0) / 2 / self.p_atm) ** 0.5
+        return self.g0_mod * self.p_atm * (v_eff_stress * (1 + k0) / 2 / self.p_atm) ** 0.5
 
-    def set_g0_mod_from_g_mod_at_v_eff_stress(self, g_mod, sigma_v_eff, k0=None):
+    def set_g0_mod_from_g_mod_at_v_eff_stress(self, g_mod, v_eff_stress, k0=None):
         if k0 is None:
             k0 = self.poissons_ratio / (1 - self.poissons_ratio)
-        self.g0_mod = g_mod / self.p_atm / (sigma_v_eff * (1 + k0) / 2 / self.p_atm) ** 0.5
+        self.g0_mod = g_mod / self.p_atm / (v_eff_stress * (1 + k0) / 2 / self.p_atm) ** 0.5
 
     def get_peak_angle(self, p):
         n_b = self.n_b
@@ -209,34 +209,53 @@ class PM4Sand(sm.StressDependentSoil):
 
         """
         self.h_o = max([(0.25 + self.relative_density) / 2, 0.3])
-        self.e_min = 0.5
-        self.e_max = 0.8
-        self.n_b = 0.5
-        self.n_d = 0.1
-
-        self.c_z = 250.0
-        if ops:
-            self.c_e = np.clip(0.2, 0.55, 0.5 - (self.relative_density - 0.55) * 1.5)
-        else:
-            self.c_e = np.clip(1, 5, 5 - 4 * (self.relative_density - 0.35) / 0.4)
-        self.phi_cv = 33.0
-        self.poissons_ratio = 0.3
-        self.g_degr = 2.0
-        self.q_bolt = 10.0
-        self.r_bolt = 1.5
-        self.m_par = 0.01
+        if self.e_min is None:
+            self.e_min = 0.5
+        if self.e_max is None:
+            self.e_max = 0.8
+        if self.n_b is None:
+            self.n_b = 0.5
+        if self.n_d is None:
+            self.n_d = 0.1
+        if self.c_z is None:
+            self.c_z = 250.0
+        if self.c_e is None:
+            if ops:
+                self.c_e = np.clip(0.2, 0.55, 0.5 - (self.relative_density - 0.55) * 1.5)
+            else:
+                self.c_e = np.clip(1, 5, 5 - 4 * (self.relative_density - 0.35) / 0.4)
+        if self.phi_cv is None:
+            self.phi_cv = 33.0
+        if self.poissons_ratio is None:
+            self.poissons_ratio = 0.3
+        if self.g_degr is None:
+            self.g_degr = 2.0
+        if self.q_bolt is None:
+            self.q_bolt = 10.0
+        if self.r_bolt is None:
+            self.r_bolt = 1.5
+        if self.m_par is None:
+            self.m_par = 0.01
         ksi_r0 = self.get_ksi_r(p)
         # dr_cs0 = self.get_dr_cs(p)
-        self.c_dr = min([5 + 25 * (self.relative_density - 0.35), 10])
-        self.z_max = min([0.7 * np.exp(-6.1 * ksi_r0), 20])
+        if self.c_dr is None:
+            self.c_dr = min([5 + 25 * (self.relative_density - 0.35), 10])
+        if self.z_max is None:
+            self.z_max = min([0.7 * np.exp(-6.1 * ksi_r0), 20])
         m_b = self.get_m_b(p)
         m_d = self.get_m_d(p)
-        self.a_do = 1. / 0.4 * (np.arcsin(m_b / 2) - np.arcsin(self.m_cs)) / (m_b - m_d)
-        self.c_kaf = np.clip(4.0, 35.0, 5 + 220.0 * (self.relative_density - 0.26) ** 3)
-        self.f_sed = min([0.03 * np.exp(2.6 * self.relative_density), 0.99])
-        self.p_sedo = -self.p_atm / 5
-        self.mc_ratio = 0.005
-        self.mc_c = 0.0
+        if self.a_do is None:
+            self.a_do = 1. / 0.4 * (np.arcsin(m_b / 2) - np.arcsin(self.m_cs)) / (m_b - m_d)
+        if self.c_kaf is None:
+            self.c_kaf = np.clip(4.0, 35.0, 5 + 220.0 * (self.relative_density - 0.26) ** 3)
+        if self.f_sed is None:
+            self.f_sed = min([0.03 * np.exp(2.6 * self.relative_density), 0.99])
+        if self.p_sed is None:
+            self.p_sed = -self.p_atm / 5
+        if self.mc_ratio is None:
+            self.mc_ratio = 0.005
+        if self.mc_c is None:
+            self.mc_c = 0.0
 
 
 class PM4Silt(sm.StressDependentSoil):
@@ -387,18 +406,18 @@ class PM4Silt(sm.StressDependentSoil):
         self.n_g = value
         self._a = value
 
-    def g_mod_at_v_eff_stress(self, sigma_v_eff):  # Override base function since k0 is different
-        return self.get_g_mod_at_v_eff_stress(sigma_v_eff)
+    def g_mod_at_v_eff_stress(self, v_eff_stress):  # Override base function since k0 is different
+        return self.get_g_mod_at_v_eff_stress(v_eff_stress)
 
-    def get_g_mod_at_v_eff_stress(self, sigma_v_eff, k0=None):  # Override base function since k0 is different
+    def get_g_mod_at_v_eff_stress(self, v_eff_stress, k0=None):  # Override base function since k0 is different
         if k0 is None:
             k0 = self.poissons_ratio / (1 - self.poissons_ratio)
-        return self.g0_mod * self.p_atm * (sigma_v_eff * (1 + k0) / 2 / self.p_atm) ** self.a
+        return self.g0_mod * self.p_atm * (v_eff_stress * (1 + k0) / 2 / self.p_atm) ** self.a
 
-    def set_g0_mod_from_g_mod_at_v_eff_stress(self, g_mod, sigma_v_eff, k0=None):
+    def set_g0_mod_from_g_mod_at_v_eff_stress(self, g_mod, v_eff_stress, k0=None):
         if k0 is None:
             k0 = self.poissons_ratio / (1 - self.poissons_ratio)
-        self.g0_mod = g_mod / self.p_atm / (sigma_v_eff * (1 + k0) / 2 / self.p_atm) ** self.a
+        self.g0_mod = g_mod / self.p_atm / (v_eff_stress * (1 + k0) / 2 / self.p_atm) ** self.a
     # def e_critical(self, p):
     #     p = float(p)
     #     return self.e_cr0 - self.lamb_crl * np.log(p / self.p_cr0)
@@ -454,7 +473,7 @@ class ManzariDafaliasModel(sm.StressDependentSoil):
     c_h = None
     n_b = None
     n_d = None
-    a_o = None
+    _a_o = None
     z_max = None
     c_z = None
     _g0 = None
@@ -510,12 +529,17 @@ class ManzariDafaliasModel(sm.StressDependentSoil):
     def __str__(self):
         return "ManzariDafaliasModel Soil model, id=%i, phi=%.1f, Dr=%.2f" % (self.id, self.phi, self.relative_density)
 
-    def get_peak_angle(self, p):
+    def get_peak_angle(self, p, opt):
         e_cs = self.e_0 - self.lambda_c * (p / self.p_atm) ** self.ksi
         psi = self.e_curr - e_cs
-        m_b = self.m_c * np.exp(-self.n_b * psi)  # Eq 13
-        
-        return np.degrees(np.arcsin(0.5 * m_b))  # Eq 46
+        m_b_txc = self.m_c * np.exp(-self.n_b * psi)  # Eq 13
+        if opt == 'txc':
+            return np.degrees(np.arcsin(3 * m_b_txc / (m_b_txc + 6)))
+        elif opt == 'ps':
+            theta = np.pi / 6
+            g = 2 * self.c_c / ((1 + self.c_c) - (1 - self.c_c) * np.cos(3 * theta))
+            m_b = g * m_b_txc
+            return np.degrees(np.arcsin(0.5 * m_b))  # Eq 46
     
     def get_crit_angle(self):
         phi_r = np.arcsin(self.m_c / 2)
@@ -523,7 +547,9 @@ class ManzariDafaliasModel(sm.StressDependentSoil):
     
     def set_big_m_from_phi_cv(self, phi_cv):
         phi_r = np.radians(phi_cv)
-        self.m_c = 2 * np.sin(phi_r)
+        self.m_c = 6 * np.sin(np.radians(phi_cv)) / (3 - np.sin(np.radians(phi_cv)))
+        self._add_to_stack("m_c", self.m_c)
+
 
     @property
     def g0(self):
@@ -534,11 +560,22 @@ class ManzariDafaliasModel(sm.StressDependentSoil):
             self._g0_mod = self.g0 * (2.97 - self.e_curr) ** 2 / (1 + self.e_curr)
 
     @g0.setter
-    def g0(self, g0):
+    def g0(self, value):
         # note g0 * (2.97 - e) ** 2 / (1 + e) = g0_mod
-        self._g0 = clean_float(g0)
+        self._g0 = clean_float(value)
         self.recompute_g0_mod()
+        if value is not None:
+            self._add_to_stack("g0", value)
 
+    @property
+    def a_o(self):
+        return self._a_o
+
+    @a_o.setter
+    def a_o(self, value):
+        self._a_o = value
+        if value is not None:
+            self._add_to_stack("a_o", value)
 
     @property
     def a_0(self):
@@ -547,6 +584,8 @@ class ManzariDafaliasModel(sm.StressDependentSoil):
     @a_0.setter
     def a_0(self, value):
         self.a_o = value
+        if value is not None:
+            self._add_to_stack("a_o", value)
     
     @property
     def g0_mod(self):
@@ -556,13 +595,30 @@ class ManzariDafaliasModel(sm.StressDependentSoil):
     def g0_mod(self, value):
         value = clean_float(value)
         self._g0_mod = value
-        if self.e_curr is None:
-            raise ValueError('must set e_curr before setting g0_mod')
-        self._g0 = value * (1 + self.e_curr) / (2.97 - self.e_curr) ** 2
+        if value is not None:
+            self._add_to_stack("g0_mod", value)
+        # if self.e_curr is None:
+        #     raise ValueError('must set e_curr before setting g0_mod')
+        if self.e_curr is not None:
+            self._g0 = value * (1 + self.e_curr) / (2.97 - self.e_curr) ** 2
 
     def recompute_all_weights_and_void(self):
-        sm.StressDependentSoil.recompute_all_weights_and_void(self)
+        super(sm.StressDependentSoil, self).recompute_all_weights_and_void()
         self.recompute_g0_mod()
+
+    @property
+    def e_curr(self):
+        """The current void ratio of the soil"""
+        return self._e_curr
+
+    @e_curr.setter
+    def e_curr(self, value):
+        sm.StressDependentSoil.e_curr.fset(self, value)
+        # super(sm.StressDependentSoil, self).e_curr = value
+        if self.g0 is not None:
+            self._g0_mod = self.g0 * (2.97 - self.e_curr) ** 2 / (1 + self.e_curr)
+        elif self.g0_mod is not None:
+            self._g0 = self.g0_mod * (1 + self.e_curr) / (2.97 - self.e_curr) ** 2
 
 
 class StressDensityModel(sm.StressDependentSoil):
@@ -666,16 +722,18 @@ class StressDensityModel(sm.StressDependentSoil):
         value = clean_float(value)
         self._g0_mod = None
         self.big_a = value * (1 + self.e_curr) / (2.17 - self.e_curr) ** 2
+        if value is not None:
+            self._add_to_stack("big_a", value)
 
-    def g_mod_at_v_eff_stress(self, sigma_v_eff):  # Override base function since k0 is different
-        return self.get_g_mod_at_v_eff_stress(sigma_v_eff)
+    def g_mod_at_v_eff_stress(self, v_eff_stress):  # Override base function since k0 is different
+        return self.get_g_mod_at_v_eff_stress(v_eff_stress)
 
-    def get_g_mod_at_v_eff_stress(self, sigma_v_eff):  # Override base function since k0 is different
+    def get_g_mod_at_v_eff_stress(self, v_eff_stress):  # Override base function since k0 is different
         k0 = 1 - np.sin(self.phi_r)
-        p = sigma_v_eff * (1 + k0) / 2
+        p = v_eff_stress * (1 + k0) / 2
         return self.g0_mod * self.p_atm * (p / self.p_atm) ** self.a
 
-    def set_g0_mod_from_g_mod_at_v_eff_stress(self, g_mod, sigma_v_eff):
+    def set_g0_mod_from_g_mod_at_v_eff_stress(self, g_mod, v_eff_stress):
         k0 = 1 - np.sin(self.phi_r)
-        p = sigma_v_eff * (1 + k0) / 2
+        p = v_eff_stress * (1 + k0) / 2
         self.g0_mod = g_mod / self.p_atm / (p / self.p_atm) ** self.a
