@@ -186,7 +186,7 @@ def calc_case_peaks_and_indices_fd(forces, disps):
     return cum_work, peak_indices
 
 
-def calc_case_fd(forces, disps, stepped=False, peaks_from='disp'):
+def calc_case_fd(forces, disps, stepped=False, peaks_from='disp', direct=True):
     """
     Calculates the cumulative change in stored energy for an oscillating system.
 
@@ -208,7 +208,10 @@ def calc_case_fd(forces, disps, stepped=False, peaks_from='disp'):
         if false then values are interpolated between peaks
     :return: array_like
     """
-
+    if direct:
+        se = forces * abs(disps) * 0.5
+        diff = np.diff(se, axis=-1, prepend=0)
+        return np.cumsum(np.abs(diff), axis=-1)
     peak_abs_delta_work, peak_indices = calc_stored_energy_abs_incs_fd_peaks_and_indices(forces, disps,
                                                                                          peaks_from=peaks_from)
     if stepped:

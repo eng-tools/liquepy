@@ -167,7 +167,8 @@ class PM4Sand(sm.StressDependentSoil):
         r_bolt = self.r_bolt
         if r_bolt is None:
             r_bolt = 1.5
-        return calc_peak_angle_for_pm4sand(self.relative_density, p, p_atm=self.p_atm, phi_cv=self.phi_cv, n_b=n_b, q_bolt=q_bolt, r_bolt=r_bolt)
+        return calc_peak_angle_for_pm4sand(self.relative_density, p, p_atm=self.p_atm, phi_cv=self.phi_cv, n_b=n_b,
+                                           q_bolt=q_bolt, r_bolt=r_bolt)
 
     def get_dr_cs(self, p):
         return self.r_bolt / (self.q_bolt - np.log(100 * p / self.p_atm))
@@ -179,7 +180,7 @@ class PM4Sand(sm.StressDependentSoil):
     def phi_r_cs(self):
         if self.phi_cv is not None:
             return np.radians(self.phi_cv)
-    
+
     @property
     def m_cs(self):
         if self.phi_cv is not None:
@@ -190,8 +191,6 @@ class PM4Sand(sm.StressDependentSoil):
 
     def get_m_d(self, p):
         return self.m_cs * np.exp(self.n_d * self.get_ksi_r(p))
-
-
 
     def set_all_default_pms(self, p, ops=True):
         """
@@ -330,10 +329,24 @@ class PM4Silt(sm.StressDependentSoil):
         self.definitions["p_atm"] = ["Atmospheric pressure", "Pa"]
 
     def __repr__(self):
-        return f"PM4Silt Soil model, id={self.id}, G0={self.g0_mod:.0f}, su={self.s_u:.1}, su_rat={self.su_rat:.1}"
+        sus = ['s_u', 'su_rat']
+        ss = []
+        for sitem in sus:
+            val = getattr(self, sitem)
+            if val is not None:
+                ss.append(f'{sitem}={val:.f}')
+        sus_str = ', '.join(ss)
+        return f"PM4Silt Soil model, id={self.id}, G0={self.g0_mod:.0f}, {sus_str}"
 
     def __str__(self):
-        return f"PM4Silt Soil model, id={self.id}, G0={self.g0_mod:.0f}, su={self.s_u:.1}, su_rat={self.su_rat:.1}"
+        sus = ['s_u', 'su_rat']
+        ss = []
+        for sitem in sus:
+            val = getattr(self, sitem)
+            if val is not None:
+                ss.append(f'{sitem}={val:.f}')
+        sus_str = ', '.join(ss)
+        return f"PM4Silt Soil model, id={self.id}, G0={self.g0_mod:.0f}, {sus_str}"
 
     @property
     def h_po(self):
@@ -540,11 +553,11 @@ class ManzariDafaliasModel(sm.StressDependentSoil):
             g = 2 * self.c_c / ((1 + self.c_c) - (1 - self.c_c) * np.cos(3 * theta))
             m_b = g * m_b_txc
             return np.degrees(np.arcsin(0.5 * m_b))  # Eq 46
-    
+
     def get_crit_angle(self):
         phi_r = np.arcsin(self.m_c / 2)
         return np.degrees(phi_r)
-    
+
     def set_big_m_from_phi_cv(self, phi_cv):
         phi_r = np.radians(phi_cv)
         self.m_c = 6 * np.sin(np.radians(phi_cv)) / (3 - np.sin(np.radians(phi_cv)))
@@ -580,13 +593,13 @@ class ManzariDafaliasModel(sm.StressDependentSoil):
     @property
     def a_0(self):
         return self.a_o
-    
+
     @a_0.setter
     def a_0(self, value):
         self.a_o = value
         if value is not None:
             self._add_to_stack("a_o", value)
-    
+
     @property
     def g0_mod(self):
         return self._g0_mod
@@ -728,12 +741,15 @@ class StressDensityModel(sm.StressDependentSoil):
     def g_mod_at_v_eff_stress(self, v_eff_stress):  # Override base function since k0 is different
         return self.get_g_mod_at_v_eff_stress(v_eff_stress)
 
-    def get_g_mod_at_v_eff_stress(self, v_eff_stress):  # Override base function since k0 is different
-        k0 = 1 - np.sin(self.phi_r)
+    def get_g_mod_at_v_eff_stress(self, v_eff_stress, k0=None):  # Override base function since k0 is different
+        # k0 = 1 - np.sin(self.phi_r)
+        if k0 is None:
+            k0 = self.poissons_ratio / (1 - self.poissons_ratio)
         p = v_eff_stress * (1 + k0) / 2
         return self.g0_mod * self.p_atm * (p / self.p_atm) ** self.a
 
-    def set_g0_mod_from_g_mod_at_v_eff_stress(self, g_mod, v_eff_stress):
-        k0 = 1 - np.sin(self.phi_r)
-        p = v_eff_stress * (1 + k0) / 2
+    def set_g0_mod_from_g_mod_at_v_eff_stress(self, g_mod, sigma_v_eff, k0=None):
+        if k0 is None:
+            k0 = self.poissons_ratio / (1 - self.poissons_ratio)
+        p = sigma_v_eff * (1 + k0) / 2
         self.g0_mod = g_mod / self.p_atm / (p / self.p_atm) ** self.a

@@ -11,8 +11,18 @@ def calc_energy_ratio_w_time(xi, total_time, time, av_period):
 
 def est_case_1d_millen_et_al_2019(sp, asig, depth, xi, g_mod_red=1.0, trim=False, start=False, period=0.5, exact=False,
                                    in_loc=1, g_scale_limit=1e3, nodal=True, cace=True):
+    return est_case_1d_millen_et_al_2020(sp, asig, depth, xi, g_mod_red=g_mod_red, trim=trim, start=False, period=period,
+                                      exact=exact, in_loc=in_loc, g_scale_limit=g_scale_limit, nodal=nodal, cace=cace)
+
+
+def est_case_1d_millen_et_al_2020(sp, asig, depth, xi, g_mod_red=1.0, trim=False, start=False, period=0.5, exact=False,
+                                   in_loc=1, g_scale_limit=1e3, nodal=True, cace=True):
     """
-    Calculates the Cumulative absolute change in strain energy according to Millen et al. (2019)
+    Calculates the Cumulative absolute change in strain energy according to Millen et al. (2020)
+
+    Millen, M. D. L., Rios, S., Quintero, J., & Viana da Fonseca, A. (2020).
+    Prediction of time of liquefaction using kinetic and strain energy.
+    Soil Dynamics and Earthquake Engineering, 128, 105898. http://doi.org/10.1016/j.soildyn.2019.105898
 
     Parameters
     ----------

@@ -312,10 +312,24 @@ class PM4Silt(FlacSoil, PM4SiltBase):
         ]
         
     def __repr__(self):
-        return f"PM4Silt (FLAC) Soil model, id={self.id}, G0={self.g0_mod:.0f}, su={self.s_u:.1}, su_rat={self.su_rat:.1}"
+        sus = ['s_u', 'su_rat']
+        ss = []
+        for sitem in sus:
+            val = getattr(self, sitem)
+            if val is not None:
+                ss.append(f'{sitem}={val:.f}')
+        sus_str = ', '.join(ss)
+        return f"PM4Silt (FLAC) Soil model, id={self.id}, G0={self.g0_mod:.0f}, {sus_str}"
 
     def __str__(self):
-        return f"PM4Silt (FLAC) Soil model, id={self.id}, G0={self.g0_mod:.0f}, su={self.s_u:.1}, su_rat={self.su_rat:.1}"
+        sus = ['s_u', 'su_rat']
+        ss = []
+        for sitem in sus:
+            val = getattr(self, sitem)
+            if val is not None:
+                ss.append(f'{sitem}={val:.2f}')
+        sus_str = ', '.join(ss)
+        return f"PM4Silt (FLAC) Soil model, id={self.id}, G0={self.g0_mod:.0f}, {sus_str}"
 
     def to_fis(self, group_name=None, as_values=False):
         params = self.all_flac_parameters

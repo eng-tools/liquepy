@@ -79,7 +79,7 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0, base_shear_vel=None, 
             else:
                 unit_wt = sl.unit_dry_weight
             if not hasattr(sl, "sra_type"):
-                raise ValueError(f'sr_type missing on soil ({i+1})')
+                raise ValueError(f'sra_type missing on soil ({i+1})')
             if getattr(sl, "sra_type") == "hyperbolic":
                 name = "hyperbolic"
                 if hasattr(sl, 'strain_curvature') and hasattr(sl, 'strain_ref'):
@@ -97,8 +97,8 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0, base_shear_vel=None, 
                     # inputs += ['strain_curvature', 'xi_min', 'sra_type', 'strain_ref']
                 elif sl.type == 'pm4sand':
                     from liquepy.num.models import calc_peak_angle_for_pm4sand
-                    curvature = 0.82
-                    ratio = 40
+                    curvature = 0.75
+                    ratio = 60
                     msig = (v_eff * (1 + 1 * k0) / 2)
                     phi_peak = calc_peak_angle_for_pm4sand(sl.relative_density, msig)
                     g_mod_min = vs_min ** 2 * unit_wt / 9.8
@@ -114,11 +114,11 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0, base_shear_vel=None, 
                     # alpha = 0.88
                     # ratio = 30
                     phi_cv = 32.0  # page 67 of manual
-                    phi_rat =  np.sin(np.radians(phi_cv))
+                    phi_rat = np.sin(np.radians(phi_cv))
                     if sl.su_rat is None:
                         if sl.su is None:
                             raise ValueError('Must set either su or su_rat')
-                        sur = sl.su / esig_v0
+                        sur = sl.su / v_eff
                     else:
                         sur = sl.su_rat
                     tau_max = min([phi_rat, sur]) * v_eff
@@ -170,13 +170,19 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0, base_shear_vel=None, 
                 pysra_sl = pysra.site.MenqSoilType(unit_wt, uniformity_coeff=2, diam_mean=2, stress_mean=sigma_m_eff)
 
             elif getattr(sl, "sra_type") == "linear":
-                pysra_sl = pysra.site.SoilType(sl.name, unit_wt, None, sl.xi)
+                if hasattr(sl, 'xi'):
+                    xi = sl.xi
+                elif hasattr(sl, 'xi_min'):
+                    xi = sl.xi_min
+                else:
+                    raise ValueError('must set xi_min or xi for linear analysis')
+                pysra_sl = pysra.site.SoilType(sl.name, unit_wt, None, xi)
             elif getattr(sl, 'sra_type') == 'direct':
                 if sl.type == 'pm4sand':
                     name = 'pm4sand-direct'
                     from liquepy.num.models import calc_peak_angle_for_pm4sand
-                    curvature = 0.82
-                    ratio = 40
+                    curvature = 0.75
+                    ratio = 60
                     msig = (v_eff * (1 + 1 * k0) / 2)
                     phi_peak = calc_peak_angle_for_pm4sand(sl.relative_density, msig)
                     g_mod_min = vs_min ** 2 * unit_wt / 9.8
@@ -184,7 +190,7 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0, base_shear_vel=None, 
                     vs = np.sqrt(g_mod0 / rho)
                     tau_max = v_eff * np.sin(np.radians(phi_peak))
                     strain_curvature = curvature
-                    xi_min = 0.007
+                    xi_min = 0.02
                     strain_ref = tau_max * (1 + ratio ** strain_curvature) / (g_mod0 * ratio)
                     pysra_sl = pysra.site.ModifiedHyperbolicSoilType(name, unit_wt, strain_ref=strain_ref,
                                                                      curvature=strain_curvature,
@@ -205,7 +211,7 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0, base_shear_vel=None, 
                     if sl.su_rat is None:
                         if sl.su is None:
                             raise ValueError('Must set either su or su_rat')
-                        sur = sl.su / esig_v0
+                        sur = sl.su / v_eff
                     else:
                         sur = sl.su_rat
                     tau_max = min([phi_rat, sur]) * v_eff
@@ -214,7 +220,7 @@ def sm_profile_to_pysra(sp, d_inc=None, target_height=1.0, base_shear_vel=None, 
                     g_mod0 = max(sl.get_g_mod_at_m_eff_stress(msig), g_mod_min)
                     vs = np.sqrt(g_mod0 / rho)
 
-                    xi_min = 0.007
+                    xi_min = 0.02
                     strain_curvature = alpha
                     strain_ref = tau_max * (1 + ratio ** alpha) / (g_mod0 * ratio)
                     pysra_sl = pysra.site.ModifiedHyperbolicSoilType(name, unit_wt, strain_ref=strain_ref,
