@@ -194,7 +194,7 @@ class Transect(sm.CustomObject):
             raise ValueError("start and end coordinates must be set")
         loc.x = map_coords.calc_proj_line_dist(self.tran_line, coords)
         loc.offset = map_coords.calc_line_offset(self.tran_line, coords)
-        loc.off_dir = map_coords.calc_line_off_dir(self.tran_line, coords)
+        loc.off_dir = map_coords.calc_line_off_dir(self.tran_line, coords)  # moving from start to end
         self._locs[loc.x] = loc
         self._sort_locs()
         return self._locs[loc.x]

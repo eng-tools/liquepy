@@ -72,6 +72,7 @@ def _off_dir_wgs84(line_c0, line_c1, cx):
     c0_to_coord = Geodesic.WGS84.Inverse(line_c0[0], line_c0[1], cx[0], cx[1])
     proj_angle = line["azi1"] - c0_to_coord["azi1"]
     # azi between 0 and 180, or 0 and -180
+
     if line["azi1"] >= 0 and c0_to_coord["azi1"] >= 0:
         if c0_to_coord["azi1"] > line["azi1"]:
             return "R"
@@ -87,7 +88,7 @@ def _off_dir_wgs84(line_c0, line_c1, cx):
             return "L"
         else:
             return "R"
-    if line["azi1"] >= 0 and c0_to_coord["azi1"] >= 0:
+    elif line["azi1"] <= 0 and c0_to_coord["azi1"] <= 0:
         if c0_to_coord["azi1"] + 180 > line["azi1"] + 180:
             return "R"
         else:
