@@ -612,8 +612,8 @@ class ManzariDafaliasModel(sm.StressDependentSoil):
             self._add_to_stack("g0_mod", value)
         # if self.e_curr is None:
         #     raise ValueError('must set e_curr before setting g0_mod')
-        if self.e_curr is not None:
-            self._g0 = value * (1 + self.e_curr) / (2.97 - self.e_curr) ** 2
+            if self.e_curr is not None:
+                self._g0 = value * (1 + self.e_curr) / (2.97 - self.e_curr) ** 2
 
     def recompute_all_weights_and_void(self):
         super(sm.StressDependentSoil, self).recompute_all_weights_and_void()

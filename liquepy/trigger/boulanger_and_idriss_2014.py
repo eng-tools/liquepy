@@ -375,6 +375,7 @@ class BoulangerIdriss2014CPT(object):
         gamma_predrill = kwargs.get("gamma_predrill", 17.0)
         if gwl is None and cpt.gwl is not None:
             gwl = cpt.gwl
+        gwl = max(0, gwl)
 
         if m_w is None:
             if magnitude is None:
@@ -638,6 +639,13 @@ def calc_b_from_msf_max_bi2014(msf_max):
     b_vals = [0.080, 0.101, 0.121, 0.147, 0.170, 0.191, 0.211, 0.250, 0.290, 0.312, 0.333, 0.353, 0.374, 0.399]
     msf_max_vals = [1.000, 1.019, 1.045, 1.084, 1.130, 1.184, 1.242, 1.373, 1.540, 1.651, 1.768, 1.891, 2.025, 2.215]
     return np.interp(msf_max, msf_max_vals, b_vals)
+
+
+def calc_b_from_q_c1ncs(q_c1n_cs):
+    msf_m = 1.09 + (q_c1n_cs / 180) ** 3
+    msf_max = np.clip(msf_m, None, 2.2)
+    b = calc_b_from_msf_max_bi2014(msf_max)
+    return b
 
 
 def calc_lrc_from_qc1ncs_bi2014(q_c1n_cs, n_cycles):

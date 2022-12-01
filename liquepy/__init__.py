@@ -2,11 +2,11 @@ from liquepy import trigger
 from liquepy import field
 from liquepy import element
 from liquepy import motion
-try:
-    from liquepy import sra
-    # from liquepy.sra import elsa
-except ImportError:
-    pass
+# try:
+#     from liquepy import sra
+#     # from liquepy.sra import elsa
+# except ImportError:
+#     pass
 from liquepy import num
 from liquepy.functions import *
 from liquepy import fig
