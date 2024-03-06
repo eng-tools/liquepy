@@ -132,7 +132,7 @@ def calc_rd(depth, magnitude):
     return rd
 
 
-def calc_csr(sigma_veff, sigma_v, pga, rd, gwl, depth):
+def calc_csr(sigma_veff, sigma_v, pga, rd):
     """
     Cyclic stress ratio from CPT, Eq 2.2,
     """
@@ -434,7 +434,7 @@ class BoulangerIdriss2014CPT(object):
 
         self.k_sigma = calc_k_sigma(self.sigma_veff, self.q_c1n_cs)
         self.msf = calc_msf(self.m_w, self.q_c1n_cs)
-        self.csr = calc_csr(self.sigma_veff, self.sigma_v, pga, self.rd, gwl, self.depth)
+        self.csr = calc_csr(self.sigma_veff, self.sigma_v, pga, self.rd)
         self.crr_m7p5 = calc_crr_m7p5_from_qc1ncs_capped(self.q_c1n_cs, gwl, self.depth, self.i_c, self.i_c_limit, self.c_0)
         self.crr = crr_m(self.k_sigma, self.msf, self.crr_m7p5)  # CRR at set magnitude
         fs_unlimited = self.crr / self.csr
@@ -632,6 +632,8 @@ def calc_b_from_msf_max_bi2014(msf_max):
     Equivalent b value for a given magnitude scaling factor from Fig A.16 in BI2014
 
     Where b is the power coefficient for the CSR-vs-n_cycles liquefaction resistance relationship
+
+    # Note: Eq 4 from Ntritsos CPT effective stress paper - the coffecient c3 should be +ve not -ve.
 
     :param msf_max:
     :return:
