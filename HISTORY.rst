@@ -5,7 +5,7 @@ History
 Pre-release
 -----------
 
-0.6.26 (2024-03-28)
+0.6.27 (2024-03-28)
 -------------------
 * Add PM4Silt to o3
 * Fixed wrong date on Zhang method

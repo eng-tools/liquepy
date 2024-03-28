@@ -104,6 +104,8 @@ def test_determine_cum_stored_energy_series_simple_up_down():
     gamma = np.array([0., 1., 0.5])
     tau = np.array([0., 1., 0])
     expected_delta_e = 0.75  # two triangles (1x1x0.5 + 1x0.5x0.5)
+    energy = assess.calc_case_fd(tau, gamma)
+    assert energy[-1] == expected_delta_e, energy
     et = ShearTest(tau, gamma)
     energy = assess.calc_case_et(et)
     assert energy[-1] == expected_delta_e, energy

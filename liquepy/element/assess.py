@@ -186,7 +186,7 @@ def calc_case_peaks_and_indices_fd(forces, disps):
     return cum_work, peak_indices
 
 
-def calc_case_fd(forces, disps, stepped=False, peaks_from='disp', direct=True):
+def calc_case_fd(forces, disps, stepped=False, peaks_from='disp', direct=False):
     """
     Calculates the cumulative change in stored energy for an oscillating system.
 
@@ -295,15 +295,19 @@ def get_energy_peaks_for_cyclic_loading(forces, disps):
     return np.array(inds)
 
 
-
 if __name__ == '__main__':
-    fs = np.array([0, 1., 2., 3., 4., 5., 5.5, 5.5, 4., 3., 2.5, 2.0, 1., 0., -1, -2, -5, 1, 3, 3.5,
-                   2.5, 3.5, 2.5, -1, -3])
-    ds = np.array([0, 0.5, 1., 1.5, 2.5, 3., 4.25, 5.5, 5.5, 5.25, 5.5, 5.25, 4., 3., 1.5, 0.5, -3, -2, -1, -0.5,
-                   -0.75, 1.5, 1., -1.5, -5])
-    inds = get_energy_peaks_for_cyclic_loading(-fs, -ds)
-    print(inds)
-    import matplotlib.pyplot as plt
-    plt.plot(ds, fs)
-    plt.plot(ds[inds], fs[inds], 'o')
-    plt.show()
+    gamma = np.array([0., 1., 0.5])
+    tau = np.array([0., 1., 0])
+    expected_delta_e = 0.75  # two triangles (1x1x0.5 + 1x0.5x0.5)
+    energy = calc_case_fd(tau, gamma)
+    assert energy[-1] == expected_delta_e, energy
+    # fs = np.array([0, 1., 2., 3., 4., 5., 5.5, 5.5, 4., 3., 2.5, 2.0, 1., 0., -1, -2, -5, 1, 3, 3.5,
+    #                2.5, 3.5, 2.5, -1, -3])
+    # ds = np.array([0, 0.5, 1., 1.5, 2.5, 3., 4.25, 5.5, 5.5, 5.25, 5.5, 5.25, 4., 3., 1.5, 0.5, -3, -2, -1, -0.5,
+    #                -0.75, 1.5, 1., -1.5, -5])
+    # inds = get_energy_peaks_for_cyclic_loading(-fs, -ds)
+    # print(inds)
+    # import matplotlib.pyplot as plt
+    # plt.plot(ds, fs)
+    # plt.plot(ds[inds], fs[inds], 'o')
+    # plt.show()

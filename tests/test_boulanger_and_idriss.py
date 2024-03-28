@@ -78,9 +78,7 @@ def test_calculate_csr():
     sigma_v = 79.1
     pga = 0.25
     rd = 0.96
-    gwl = 1.6
-    depth = 5.32
-    csr = bim14.calc_csr(sigma_veff, sigma_v, pga, rd, gwl, depth)
+    csr = bim14.calc_csr(sigma_veff, sigma_v, pga, rd)
     expected_csr = 0.28966
     assert np.isclose(csr, expected_csr)
 
