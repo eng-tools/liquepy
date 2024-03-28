@@ -5,6 +5,12 @@ History
 Pre-release
 -----------
 
+0.6.26 (2024-03-28)
+-------------------
+* Add PM4Silt to o3
+* Fixed wrong date on Zhang method
+* Improved setting of default pm4sand parameters
+
 0.6.24 (2021-11-30)
 -------------------
 * Improvements for using PM4Silt
