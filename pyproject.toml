@@ -1,0 +1,61 @@
+[build-system]
+requires = [
+    "setuptools>=61.0",
+    "wheel"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "liquepy"
+description = "Tools for soil liquefaction analysis"
+readme = "README.rst"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "mmi46", email = "mmi46@uclive.ac.nz"}
+]
+dependencies = [
+    "sfsimodels>=0.9.21",
+    "eqsig>=0.5.35",
+    "geofound",
+    "numpy>=2.0.0",
+    "pandas"
+]
+keywords = ["geotechnical", "engineering", "foundations", "settlement"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12"
+]
+
+[project.optional-dependencies]
+test = ["pytest"]
+maps = ["geographiclib"]
+sra = ["pysra>=0.3.2"]
+fig = ["matplotlib"]
+
+[tool.black]
+line-length = 88
+target-version = ['py310']
+
+[tool.isort]
+profile = "black"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["liquepy"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+

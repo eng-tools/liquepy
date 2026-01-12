@@ -31,7 +31,7 @@ setup(name=about['__project__'],
           'sfsimodels>=0.9.21',
           'eqsig>=0.5.35',
           'geofound',
-          'numpy',
+          'numpy>=2.0.0',
           'pandas'
                         ],
       # List additional groups of dependencies here (e.g. development
@@ -44,7 +44,7 @@ setup(name=about['__project__'],
           'sra': ['pysra>=0.3.2'],
           'fig': ['matplotlib']
       },
-      python_requires='>=3',
+      python_requires='>=3.10',
       package_data={},
       zip_safe=False)
 
