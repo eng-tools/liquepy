@@ -2,23 +2,24 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/python:3.7
+      - image: cimg/python:3.10
     steps:
       - checkout
 
       - restore_cache:
-          key: v1-dependency-cache-{{ checksum "setup.py" }}-{{ checksum "liquepy/__about__.py" }}
+          key: v1-dependency-cache-{{ checksum "pyproject.toml" }}-{{ checksum "liquepy/__about__.py" }}
 
       - run:
           name: install python dependencies
           command: |
-            python3 -m venv venv
+            python -m venv venv
             . venv/bin/activate
+            pip install --upgrade pip
             pip install cython
-            pip install -r requirements.txt
+            pip install .[test]
             pip install -r deploy-requirements.txt
       - save_cache:
-          key: v1-dependency-cache-{{ checksum "setup.py" }}-{{ checksum "liquepy/__about__.py" }}
+          key: v1-dependency-cache-{{ checksum "pyproject.toml" }}-{{ checksum "liquepy/__about__.py" }}
           paths:
             - "venv"
 
@@ -26,29 +27,30 @@ jobs:
           name: run tests
           command: |
             . venv/bin/activate
-            py.test tests
+            pytest tests
             codecov
       - store_artifacts:
           path: htmlcov/
   deploy:
     docker:
-      - image: circleci/python:3.7
+      - image: cimg/python:3.10
     steps:
       - checkout
 
       - restore_cache:
-          key: v1-dependency-cache-{{ checksum "setup.py" }}-{{ checksum "liquepy/__about__.py" }}
+          key: v1-dependency-cache-{{ checksum "pyproject.toml" }}-{{ checksum "liquepy/__about__.py" }}
 
       - run:
           name: install python dependencies
           command: |
-            python3 -m venv venv
+            python -m venv venv
             . venv/bin/activate
+            pip install --upgrade pip
             pip install cython
-            pip install -r requirements.txt
+            pip install .[test]
             pip install -r deploy-requirements.txt
       - save_cache:
-          key: v1-dependency-cache-{{ checksum "setup.py" }}-{{ checksum "liquepy/__about__.py" }}
+          key: v1-dependency-cache-{{ checksum "pyproject.toml" }}-{{ checksum "liquepy/__about__.py" }}
           paths:
             - "venv"
 
