@@ -7,15 +7,13 @@ Modernized for Python 3.10+ and pytest >=6.0.
 """
 
 import subprocess
+import tomllib
 
 import pytest
 
-about = {}
-with open("liquepy/__about__.py") as fp:
-    exec(fp.read(), about)
-
-
-version = about["__version__"]
+with open("pyproject.toml", "rb") as f:
+    pyproject = tomllib.load(f)
+version = pyproject["project"]["version"]
 
 failures = pytest.main()
 if failures == 0:

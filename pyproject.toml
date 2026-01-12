@@ -7,12 +7,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "liquepy"
+version = "0.6.31"
 description = "Tools for soil liquefaction analysis"
 readme = "README.rst"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [
-    {name = "mmi46", email = "mmi46@uclive.ac.nz"}
+    {name = "Maxim Millen", email = "mmi46@uclive.ac.nz"}
 ]
 dependencies = [
     "sfsimodels>=0.9.21",
@@ -58,4 +59,3 @@ source = ["liquepy"]
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
-
