@@ -1,0 +1,33 @@
+name: Release to PyPI
+
+on:
+  push:
+    tags:
+      - '*'  # any tag push (e.g. 1.0.0 or v1.0.0)
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest   # same as CircleCI's docker image base
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Build distributions
+        run: python -m build
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
