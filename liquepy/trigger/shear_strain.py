@@ -2,8 +2,6 @@ import numbers
 
 import numpy as np
 
-from liquepy.exceptions import deprecation
-
 
 def calc_shear_strain_zhang_2004(fs, d_r):
     """
@@ -35,13 +33,6 @@ def calc_shear_strain_zhang_2004(fs, d_r):
             else:
                 out_values.append(calc_single_shear_strain(fs[i], d_r[i]))
         return np.array(out_values)
-
-
-def calc_shear_strain(fs, d_r):
-    deprecation(
-        "Use calc_shear_strain_zhang_2004, note that new function returns strain not in percentage!"
-    )
-    return None
 
 
 def calc_relative_density_tasuoka_1990(q_c, esig_v0, dr_min=0.0, dr_max=1.0):
@@ -77,11 +68,6 @@ def calc_relative_density_zhang_2002(q_c1n, dr_min=0.0, dr_max=1.0):
 
     """
     return np.clip((-85.0 + 76.0 * np.log10(q_c1n)) / 100, dr_min, dr_max)
-
-
-def calculate_shear_strain(fos, relative_density):
-    deprecation("Use calc_shear_strain")
-    return calculate_shear_strain(fos, relative_density)
 
 
 def calc_single_shear_strain(fs, d_r):

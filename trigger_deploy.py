@@ -1,6 +1,14 @@
+"""
+trigger_deploy.py
+----------------
+Script to run tests and, if successful, tag and push a new release version to git.
+
+Modernized for Python 3.10+ and pytest >=6.0.
+"""
+
 import subprocess
 
-import py
+import pytest
 
 about = {}
 with open("liquepy/__about__.py") as fp:
@@ -9,9 +17,9 @@ with open("liquepy/__about__.py") as fp:
 
 version = about["__version__"]
 
-failures = py.test.cmdline.main()
+failures = pytest.main()
 if failures == 0:
-    subprocess.check_call(["git", "tag", version, "-m", "version %s" % version])
+    subprocess.check_call(["git", "tag", version, "-m", f"version {version}"])
     subprocess.check_call(["git", "push", "--tags"])
 
 # git push --tags origin pypi

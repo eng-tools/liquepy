@@ -2,8 +2,6 @@ import numbers
 
 import numpy as np
 
-from liquepy.exceptions import deprecation
-
 
 def calc_volumetric_strain_zhang_2002(factor_of_safety, q_c1n_cs):
     """
@@ -38,20 +36,6 @@ def calc_volumetric_strain_zhang_2002(factor_of_safety, q_c1n_cs):
 def calc_volumetric_strain_zhang_2004(factor_of_safety, q_c1n_cs):
     # deprecated - wrong date!
     return calc_volumetric_strain_zhang_2002(factor_of_safety, q_c1n_cs)
-
-
-def calc_volumetric_strain(factor_of_safety, q_c1n_cs):
-    deprecation(
-        "Use calc_volumetric_strain_zhang_2004, note that new function returns strain not in percentage!"
-    )
-    return None
-
-
-def calculate_volumetric_strain(factor_of_safety, q_c1n_cs):
-    deprecation(
-        "Use calc_volumetric_strain_zhang_2004, note that new function returns strain not in percentage!"
-    )
-    return None
 
 
 def _calc_single_volumetric_strain(factor_of_safety, q_c1n_cs):
