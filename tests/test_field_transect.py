@@ -1,6 +1,7 @@
+import sfsimodels as sm
+
 import liquepy as lq
 from tests.conftest import TEST_DATA_DIR
-import sfsimodels as sm
 
 
 def test_load_cpt_from_loc():
@@ -16,9 +17,9 @@ def test_loc_to_dict():
     loc = lq.field.transect.Loc(cpt=cpt)
     loc.soil_profile = sp
     pdict = loc.to_dict()
-    assert 'id' in pdict
-    assert 'soil_profile_id' in pdict
+    assert "id" in pdict
+    assert "soil_profile_id" in pdict
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_loc_to_dict()

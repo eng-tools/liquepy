@@ -109,3 +109,16 @@ To deploy the package to pypi.com you need to:
 
     git tag 0.5.2 -m "version 0.5.2"
     git push --tags origin pypi
+
+Python 3.10+ and numpy 2.x are required. See `pyproject.toml` for full dependency and build requirements.
+
+Code style and formatting are enforced with `black` and `isort` via pre-commit hooks. To set up development tools:
+
+.. code:: bash
+
+    pip install -r requirements.txt
+    pip install .[test,maps,sra,fig]
+    pip install pre-commit
+    pre-commit install
+
+All code contributions should include complete docstrings and type annotations for public APIs.

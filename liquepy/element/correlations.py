@@ -1,7 +1,9 @@
 import numpy as np
 
 
-def est_strain_inc_per_cycle_tasiopoulou_et_al_2020(relative_density, shear_stress, b=28., n_std=0):
+def est_strain_inc_per_cycle_tasiopoulou_et_al_2020(
+    relative_density, shear_stress, b=28.0, n_std=0
+):
     """
     Estimation of the increase in post-liq shear strain per cycle of equal amplitude load
     From Tasiopoulou (2020).
@@ -25,5 +27,9 @@ def est_strain_inc_per_cycle_tasiopoulou_et_al_2020(relative_density, shear_stre
     a = -0.1
     std_dev = 0.5
 
-    return np.exp(a * relative_density * 100 + np.log(b) + n_std * std_dev) / 100 * shear_stress / 1e3
-
+    return (
+        np.exp(a * relative_density * 100 + np.log(b) + n_std * std_dev)
+        / 100
+        * shear_stress
+        / 1e3
+    )

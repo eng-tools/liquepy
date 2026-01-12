@@ -1,9 +1,11 @@
-from sfsimodels import models
-import sfsimodels as sm
-import numpy as np
 from collections import OrderedDict
-from sfsimodels.functions import clean_float
+
+import numpy as np
+import sfsimodels as sm
+from sfsimodels import models
 from sfsimodels.build_model_descriptions import build_parameter_descriptions
+from sfsimodels.functions import clean_float
+
 from liquepy.element.models import ShearTest
 from liquepy.exceptions import deprecation
 from liquepy.num.models import PM4Sand as PM4SandBase
@@ -28,21 +30,25 @@ class FlacSoil(sm.Soil):
         # else:
         #     _liq_mass_density = None
         # run parent class initialiser function
-        super(FlacSoil, self).__init__(wmd=wmd, pw=pw, liq_mass_density=liq_mass_density, liq_sg=liq_sg, g=g)
+        super(FlacSoil, self).__init__(
+            wmd=wmd, pw=pw, liq_mass_density=liq_mass_density, liq_sg=liq_sg, g=g
+        )
         self._tension = 0.0  # default to zero
         self._extra_class_inputs = ["tension"]
         self.inputs = self.inputs + self._extra_class_inputs
-        self.app2mod = OrderedDict([
-            ("bulk", "bulk_mod"),
-            ("shear", "g_mod"),
-            ("friction", "phi"),
-            ("cohesion", "cohesion"),
-            ("tension", "tension"),
-            ("density", "density"),
-            ("dilation", "dilation_angle"),
-            ("por", "porosity"),
-            ("perm", "flac_permeability")
-        ])
+        self.app2mod = OrderedDict(
+            [
+                ("bulk", "bulk_mod"),
+                ("shear", "g_mod"),
+                ("friction", "phi"),
+                ("cohesion", "cohesion"),
+                ("tension", "tension"),
+                ("density", "density"),
+                ("dilation", "dilation_angle"),
+                ("por", "porosity"),
+                ("perm", "flac_permeability"),
+            ]
+        )
         self.required_parameters = []
         # for item in self.flac_parameters:
         #     param = self.flac_parameters[item]
@@ -58,7 +64,7 @@ class FlacSoil(sm.Soil):
     @property
     def all_flac_parameters(self):
         return self.required_parameters + self.optional_parameters
-    
+
     def sm_to_fis_name(self, sm_name):
         for item in self.app2mod:
             if self.app2mod[item] == sm_name:
@@ -66,45 +72,68 @@ class FlacSoil(sm.Soil):
         return None
 
     def to_fis_mohr_coulomb(self, group_name=None, as_values=False, g_mod_red=1.0):
-        mc_params = OrderedDict([
-            ("bulk", "bulk_mod"),
-            ("shear", "g_mod"),
-            ("friction", "phi"),
-            ("cohesion", "cohesion"),
-            ("tension", "tension"),
-            ("density", "density"),
-            ("dilation", "dilation_angle"),
-            ("por", "porosity"),
-            ("perm", "flac_permeability")
-        ])
+        mc_params = OrderedDict(
+            [
+                ("bulk", "bulk_mod"),
+                ("shear", "g_mod"),
+                ("friction", "phi"),
+                ("cohesion", "cohesion"),
+                ("tension", "tension"),
+                ("density", "density"),
+                ("dilation", "dilation_angle"),
+                ("por", "porosity"),
+                ("perm", "flac_permeability"),
+            ]
+        )
         if group_name is None:
             group_name = "'{0}'".format(self.name)
         para = ["model mohr notnull group %s" % group_name]
-        para.append(write_parameters_to_fis_models(self, mc_params, ncols=1, not_null=True, group_name=group_name,
-                                                   as_values=as_values, g_mod_red=g_mod_red))
+        para.append(
+            write_parameters_to_fis_models(
+                self,
+                mc_params,
+                ncols=1,
+                not_null=True,
+                group_name=group_name,
+                as_values=as_values,
+                g_mod_red=g_mod_red,
+            )
+        )
         return "\n".join(para)
 
-
     def to_fis_elastic(self, group_name=None, as_values=False, g_mod_red=1.0):
-        el_params = OrderedDict([
-            ("bulk", "bulk_mod"),
-            ("shear", "g_mod"),
-            ("density", "density"),
-            ("por", "porosity"),
-            ("perm", "flac_permeability")
-        ])
+        el_params = OrderedDict(
+            [
+                ("bulk", "bulk_mod"),
+                ("shear", "g_mod"),
+                ("density", "density"),
+                ("por", "porosity"),
+                ("perm", "flac_permeability"),
+            ]
+        )
         if group_name is None:
             group_name = "'{0}'".format(self.name)
         para = ["model elastic notnull group %s" % group_name]
-        para.append(write_parameters_to_fis_models(self, el_params, ncols=1, not_null=True, group_name=group_name,
-                                                   as_values=as_values, g_mod_red=g_mod_red))
+        para.append(
+            write_parameters_to_fis_models(
+                self,
+                el_params,
+                ncols=1,
+                not_null=True,
+                group_name=group_name,
+                as_values=as_values,
+                g_mod_red=g_mod_red,
+            )
+        )
         return "\n".join(para)
 
     def set_prop_dict(self):
         plist = []
         for item in self.app2mod:
             plist.append(self.app2mod[item])
-        self.prop_dict = build_parameter_descriptions(self, user_p=self.definitions, output="dict", plist=plist)
+        self.prop_dict = build_parameter_descriptions(
+            self, user_p=self.definitions, output="dict", plist=plist
+        )
 
     def find_units(self, parameter):
         if parameter in self.prop_dict:
@@ -141,7 +170,16 @@ class PM4Sand(FlacSoil, PM4SandBase):
 
     type = "pm4sand"
 
-    def __init__(self, wmd=None, pw=None, liq_mass_density=None, liq_sg=1.0, g=9.8, p_atm=101000.0, **kwargs):
+    def __init__(
+        self,
+        wmd=None,
+        pw=None,
+        liq_mass_density=None,
+        liq_sg=1.0,
+        g=9.8,
+        p_atm=101000.0,
+        **kwargs,
+    ):
         # Note: pw has deprecated
         _gravity = g  # m/s2
         if liq_mass_density:
@@ -154,45 +192,58 @@ class PM4Sand(FlacSoil, PM4SandBase):
         else:
             _liq_mass_density = None
 
-        FlacSoil.__init__(self, wmd=wmd, pw=pw, liq_mass_density=liq_mass_density, liq_sg=liq_sg, g=g)
-        PM4SandBase.__init__(self, wmd=wmd, pw=pw, liq_mass_density=liq_mass_density, liq_sg=liq_sg, g=g, p_atm=p_atm, **kwargs)
+        FlacSoil.__init__(
+            self, wmd=wmd, pw=pw, liq_mass_density=liq_mass_density, liq_sg=liq_sg, g=g
+        )
+        PM4SandBase.__init__(
+            self,
+            wmd=wmd,
+            pw=pw,
+            liq_mass_density=liq_mass_density,
+            liq_sg=liq_sg,
+            g=g,
+            p_atm=p_atm,
+            **kwargs,
+        )
         self._extra_class_inputs = []
 
-        additional_dict = OrderedDict([
-            ("D_r", "relative_density"),
-            ("h_po", "h_po"),
-            ("G_o", "g0_mod"),
-            ("density", "density"),
-            ("porosity", "porosity"),
-            ("h_o", "h_o"),
-            ("e_min", "e_min"),
-            ("e_max", "e_max"),
-            ("n_b", "n_b"),
-            ("n_d", "n_d"),
-            ("c_z", "c_z"),
-            ("c_e", "c_e"),
-            ("n_d", "n_d"),
-            ("k11", "flac_permeability"),
-            ("k22", "flac_permeability"),
-            ("P_atm", "p_atm"),
-            ("phi_cv", "phi_cv"),
-            ("pois", "poissons_ratio"),
-            ("A_do", "a_do"),
-            ("G_degr", "g_degr"),
-            ("Ckaf", "c_kaf"),
-            ("Q_bolt", "q_bolt"),
-            ("R_bolt", "r_bolt"),
-            ("MC_ratio", "mc_ratio"),
-            ("MC_c", "mc_c"),
-            ("z_max", "z_max"),
-            ("c_dr", "c_dr"),
-            ("m_par", "m_par"),
-            ("f_sed", "f_sed"),
-            ("p_sed", "p_sed")
-        ])
+        additional_dict = OrderedDict(
+            [
+                ("D_r", "relative_density"),
+                ("h_po", "h_po"),
+                ("G_o", "g0_mod"),
+                ("density", "density"),
+                ("porosity", "porosity"),
+                ("h_o", "h_o"),
+                ("e_min", "e_min"),
+                ("e_max", "e_max"),
+                ("n_b", "n_b"),
+                ("n_d", "n_d"),
+                ("c_z", "c_z"),
+                ("c_e", "c_e"),
+                ("n_d", "n_d"),
+                ("k11", "flac_permeability"),
+                ("k22", "flac_permeability"),
+                ("P_atm", "p_atm"),
+                ("phi_cv", "phi_cv"),
+                ("pois", "poissons_ratio"),
+                ("A_do", "a_do"),
+                ("G_degr", "g_degr"),
+                ("Ckaf", "c_kaf"),
+                ("Q_bolt", "q_bolt"),
+                ("R_bolt", "r_bolt"),
+                ("MC_ratio", "mc_ratio"),
+                ("MC_c", "mc_c"),
+                ("z_max", "z_max"),
+                ("c_dr", "c_dr"),
+                ("m_par", "m_par"),
+                ("f_sed", "f_sed"),
+                ("p_sed", "p_sed"),
+            ]
+        )
         self.app2mod.update(additional_dict)
         self.pm4sand_parameters = self.app2mod  # deprecated
-        self.required_parameters = ['h_po', 'D_r', 'G_o', 'P_atm', 'density']
+        self.required_parameters = ["h_po", "D_r", "G_o", "P_atm", "density"]
         self.optional_parameters = [
             "e_min",
             "e_max",
@@ -216,22 +267,38 @@ class PM4Sand(FlacSoil, PM4SandBase):
             "f_sed",
             "p_sed",
             "MC_ratio",
-            "MC_c"
+            "MC_c",
         ]
 
     def __repr__(self):
-        return "PM4SandFLAC Soil model, id=%i, phi=%.1f, Dr=%.2f" % (self.id, self.phi, self.relative_density)
+        return "PM4SandFLAC Soil model, id=%i, phi=%.1f, Dr=%.2f" % (
+            self.id,
+            self.phi,
+            self.relative_density,
+        )
 
     def __str__(self):
-        return "PM4SandFLAC Soil model, id=%i, phi=%.1f, Dr=%.2f" % (self.id, self.phi, self.relative_density)
+        return "PM4SandFLAC Soil model, id=%i, phi=%.1f, Dr=%.2f" % (
+            self.id,
+            self.phi,
+            self.relative_density,
+        )
 
     def to_fis(self, group_name=None, as_values=False):
         params = self.all_flac_parameters
         if group_name is None:
             group_name = "'{0}'".format(self.name)
         para = [f"model pm4sand notnull group {group_name}"]
-        para.append(write_parameters_to_fis_models(self, params, ncols=1, not_null=True, group_name=group_name,
-                                                   as_values=as_values))
+        para.append(
+            write_parameters_to_fis_models(
+                self,
+                params,
+                ncols=1,
+                not_null=True,
+                group_name=group_name,
+                as_values=as_values,
+            )
+        )
         return para
 
 
@@ -239,7 +306,16 @@ class PM4Silt(FlacSoil, PM4SiltBase):
 
     type = "pm4silt"
 
-    def __init__(self, wmd=None, pw=None, liq_mass_density=None, liq_sg=1.0, g=9.8, p_atm=101000.0, **kwargs):
+    def __init__(
+        self,
+        wmd=None,
+        pw=None,
+        liq_mass_density=None,
+        liq_sg=1.0,
+        g=9.8,
+        p_atm=101000.0,
+        **kwargs,
+    ):
         # Note: pw has deprecated
         _gravity = g  # m/s2
         if liq_mass_density:
@@ -252,43 +328,56 @@ class PM4Silt(FlacSoil, PM4SiltBase):
         else:
             _liq_mass_density = None
 
-        FlacSoil.__init__(self, wmd=wmd, pw=pw, liq_mass_density=liq_mass_density, liq_sg=liq_sg, g=g)
-        PM4SiltBase.__init__(self, wmd=wmd, pw=pw, liq_mass_density=liq_mass_density, liq_sg=liq_sg, g=g, p_atm=p_atm, **kwargs)
+        FlacSoil.__init__(
+            self, wmd=wmd, pw=pw, liq_mass_density=liq_mass_density, liq_sg=liq_sg, g=g
+        )
+        PM4SiltBase.__init__(
+            self,
+            wmd=wmd,
+            pw=pw,
+            liq_mass_density=liq_mass_density,
+            liq_sg=liq_sg,
+            g=g,
+            p_atm=p_atm,
+            **kwargs,
+        )
         self._extra_class_inputs = []
 
-        additional_dict = OrderedDict([
-            ("S_u", "s_u"),
-            ("Su_Rat", "su_rat"),
-            ("h_po", "h_po"),
-            ("G_o", "g0_mod"),
-            ("density", "density"),
-            ("porosity", "porosity"),
-            ("h_o", "h_o"),
-            ("e_o", "e_o"),
-            ("n_bdry", "n_bdry"),
-            ("n_bwet", "n_bwet"),
-            ("n_d", "n_d"),
-            ("c_z", "c_z"),
-            ("c_e", "c_e"),
-            ("n_d", "n_d"),
-            ("k11", "flac_permeability"),
-            ("k22", "flac_permeability"),
-            ("P_atm", "p_atm"),
-            ("pois", "poissons_ratio"),
-            ("A_do", "a_do"),
-            ("z_max", "z_max"),
-            ("ru_max", "ru_max"),
-            ("G_degr", "g_degr"),
-            ("Ckaf", "c_kaf"),
-            ("Q_bolt", "q_bolt"),
-            ("R_bolt", "r_bolt"),
-            ("MC_ratio", "mc_ratio"),
-            ("MC_c", "mc_c"),
-            ("CG_consol", 'cg_consol')
-        ])
+        additional_dict = OrderedDict(
+            [
+                ("S_u", "s_u"),
+                ("Su_Rat", "su_rat"),
+                ("h_po", "h_po"),
+                ("G_o", "g0_mod"),
+                ("density", "density"),
+                ("porosity", "porosity"),
+                ("h_o", "h_o"),
+                ("e_o", "e_o"),
+                ("n_bdry", "n_bdry"),
+                ("n_bwet", "n_bwet"),
+                ("n_d", "n_d"),
+                ("c_z", "c_z"),
+                ("c_e", "c_e"),
+                ("n_d", "n_d"),
+                ("k11", "flac_permeability"),
+                ("k22", "flac_permeability"),
+                ("P_atm", "p_atm"),
+                ("pois", "poissons_ratio"),
+                ("A_do", "a_do"),
+                ("z_max", "z_max"),
+                ("ru_max", "ru_max"),
+                ("G_degr", "g_degr"),
+                ("Ckaf", "c_kaf"),
+                ("Q_bolt", "q_bolt"),
+                ("R_bolt", "r_bolt"),
+                ("MC_ratio", "mc_ratio"),
+                ("MC_c", "mc_c"),
+                ("CG_consol", "cg_consol"),
+            ]
+        )
         self.app2mod.update(additional_dict)
         self.pm4sand_parameters = self.app2mod  # deprecated
-        self.required_parameters = ['h_po', 'G_o', 'P_atm', 'density']
+        self.required_parameters = ["h_po", "G_o", "P_atm", "density"]
         self.optional_parameters = [
             "S_u",
             "Su_Rat",
@@ -308,36 +397,48 @@ class PM4Silt(FlacSoil, PM4SiltBase):
             "Ckaf",
             "MC_ratio",
             "MC_c",
-            "CG_consol"
+            "CG_consol",
         ]
-        
+
     def __repr__(self):
-        sus = ['s_u', 'su_rat']
+        sus = ["s_u", "su_rat"]
         ss = []
         for sitem in sus:
             val = getattr(self, sitem)
             if val is not None:
-                ss.append(f'{sitem}={val:.f}')
-        sus_str = ', '.join(ss)
-        return f"PM4Silt (FLAC) Soil model, id={self.id}, G0={self.g0_mod:.0f}, {sus_str}"
+                ss.append(f"{sitem}={val:.f}")
+        sus_str = ", ".join(ss)
+        return (
+            f"PM4Silt (FLAC) Soil model, id={self.id}, G0={self.g0_mod:.0f}, {sus_str}"
+        )
 
     def __str__(self):
-        sus = ['s_u', 'su_rat']
+        sus = ["s_u", "su_rat"]
         ss = []
         for sitem in sus:
             val = getattr(self, sitem)
             if val is not None:
-                ss.append(f'{sitem}={val:.2f}')
-        sus_str = ', '.join(ss)
-        return f"PM4Silt (FLAC) Soil model, id={self.id}, G0={self.g0_mod:.0f}, {sus_str}"
+                ss.append(f"{sitem}={val:.2f}")
+        sus_str = ", ".join(ss)
+        return (
+            f"PM4Silt (FLAC) Soil model, id={self.id}, G0={self.g0_mod:.0f}, {sus_str}"
+        )
 
     def to_fis(self, group_name=None, as_values=False):
         params = self.all_flac_parameters
         if group_name is None:
             group_name = "'{0}'".format(self.name)
         para = [f"model pm4silt notnull group {group_name}"]
-        para.append(write_parameters_to_fis_models(self, params, ncols=1, not_null=True, group_name=group_name,
-                                                   as_values=as_values))
+        para.append(
+            write_parameters_to_fis_models(
+                self,
+                params,
+                ncols=1,
+                not_null=True,
+                group_name=group_name,
+                as_values=as_values,
+            )
+        )
         return para
 
 
@@ -361,6 +462,7 @@ def load_file_and_dt(fname):
     values = num_data_k[:, 1]
     return values, dt
 
+
 def load_values_and_dt_w_interp(fname):
     num_data_k = np.loadtxt(fname, skiprows=4)
     time = num_data_k[:, 0]  # This get the first column
@@ -371,6 +473,7 @@ def load_values_and_dt_w_interp(fname):
     new_values = np.interp(new_times, time, values)
     return new_values, dt
 
+
 def load_file_dt_and_indices(fname):
     num_data_k = np.loadtxt(fname, skiprows=4)
     time = num_data_k[:, 0]  # This get the first column
@@ -378,16 +481,16 @@ def load_file_dt_and_indices(fname):
     values = num_data_k[:, 1]
     with open(fname) as ifile:
         line = ifile.read().splitlines()
-        inds = line[2].split('(')[-1][:-1]
-        inds = [int(x) for x in inds.split(',')]
+        inds = line[2].split("(")[-1][:-1]
+        inds = [int(x) for x in inds.split(",")]
     return values, dt, inds
 
 
 def load_indices(fname):
     with open(fname) as ifile:
         line = ifile.read().splitlines()
-        inds = line[2].split('(')[-1][:-1]
-        inds = [int(x) for x in inds.split(',')]
+        inds = line[2].split("(")[-1][:-1]
+        inds = [int(x) for x in inds.split(",")]
     return inds
 
 
@@ -460,7 +563,9 @@ def save_input_motion(ffp, name, values, dt):
     :param dt: float, time step
     :return: None
     """
-    deprecation("liquepy.num.flac.save_input_motion is deprecated, use liquepy.num.flac.save_input_motion_and_dt")
+    deprecation(
+        "liquepy.num.flac.save_input_motion is deprecated, use liquepy.num.flac.save_input_motion_and_dt"
+    )
     para = [name, "%i %.4f" % (len(values), dt)]
     for i in range(len(values)):
         para.append("%.6f" % values[i])
@@ -470,21 +575,29 @@ def save_input_motion(ffp, name, values, dt):
 
 
 def calc_hp0_from_crr_n15_and_relative_density_millen_et_al_2019(crr_n15, d_r):
-    return crr_n15 * (2.05 - 2.4 * d_r) / (1. - crr_n15 * (12.0 - (12.5 * d_r)))
+    return crr_n15 * (2.05 - 2.4 * d_r) / (1.0 - crr_n15 * (12.0 - (12.5 * d_r)))
 
 
 def calc_g0_mod_pm4sand_millen_et_al_2019(crr_n15, d_r):
-    return crr_n15 * (2.05 - 2.4 * d_r) / (1. - crr_n15 * (12.0 - (12.5 * d_r)))
+    return crr_n15 * (2.05 - 2.4 * d_r) / (1.0 - crr_n15 * (12.0 - (12.5 * d_r)))
 
 
 def calc_pm4sand_h_po_from_crr_n15_and_relative_density_millen_et_al_2019(crr_n15, d_r):
-    return crr_n15 * (2.05 - 2.4 * d_r) / (1. - crr_n15 * (12.0 - (12.5 * d_r)))
+    return crr_n15 * (2.05 - 2.4 * d_r) / (1.0 - crr_n15 * (12.0 - (12.5 * d_r)))
 
 
-def write_parameters_to_fis_models(obj, parameters, ncols=3, not_null=False, group_name=None, as_values=False, g_mod_red=1.0):
+def write_parameters_to_fis_models(
+    obj,
+    parameters,
+    ncols=3,
+    not_null=False,
+    group_name=None,
+    as_values=False,
+    g_mod_red=1.0,
+):
     if group_name is None:
         group_name = obj.name
-        
+
     count = 0
     para = []
     pline = ["prop"]
@@ -496,12 +609,12 @@ def write_parameters_to_fis_models(obj, parameters, ncols=3, not_null=False, gro
         value = getattr(obj, ecp_name)
         if value is None:
             continue
-        if ecp_name in ['g_mod', 'bulk_mod']:
+        if ecp_name in ["g_mod", "bulk_mod"]:
             value *= g_mod_red
         if as_values:
-            value = f'{value:.6g}'
+            value = f"{value:.6g}"
         else:
-            value = f'{obj.name}_{ecp_name}'
+            value = f"{obj.name}_{ecp_name}"
         pline.append(f"{flac_name}={value}")
         count += 1
         if count == ncols:
@@ -518,7 +631,7 @@ def write_parameters_to_fis_models(obj, parameters, ncols=3, not_null=False, gro
     return "\n".join(para)
 
 
-def write_obj_to_fis_str(obj, parameters, required=''):
+def write_obj_to_fis_str(obj, parameters, required=""):
     para = []
     added = []
     for item in parameters:
@@ -535,7 +648,7 @@ def write_obj_to_fis_str(obj, parameters, required=''):
         else:
             ecp_name = item
         val = getattr(obj, ecp_name)
-        fis_name = f'fis_name = {obj.name}_{ecp_name}'
+        fis_name = f"fis_name = {obj.name}_{ecp_name}"
         if fis_name not in added:
             added.append(fis_name)
         else:
@@ -569,7 +682,7 @@ def write_soil_profile_obj_to_fis_str(soil_profile, auto_name=True):
             sl.name = "layer_%i" % i
         sl.set_prop_dict()
         para.append(" ; LAYER %i" % i)
-        para.append(f'; name: {sl.name}')
+        para.append(f"; name: {sl.name}")
         para.append(" layer_%i_thickness=%.4g  ; m" % (i, soil_profile.layer_height(i)))
         para += write_obj_to_fis_str(sl, sl.all_flac_parameters, sl.required_parameters)
         para.append("  ;")
@@ -587,7 +700,7 @@ def calc_rayleigh_damping_params(f1, f2, d):
     w1 = 2 * np.pi * f1
     w2 = 2 * np.pi * f2
 
-    beta = 2 * (((w1 * d) - (w2 * d)) / ((w1 ** 2) - (w2 ** 2)))
+    beta = 2 * (((w1 * d) - (w2 * d)) / ((w1**2) - (w2**2)))
     alpha = beta * w1 * w2
 
     wmin = np.sqrt(alpha / beta)
@@ -602,7 +715,7 @@ def calc_rayleigh_damping_alpha_and_beta(f1, f2, d):
     w1 = 2 * np.pi * f1
     w2 = 2 * np.pi * f2
 
-    beta = 2 * (((w1 * d) - (w2 * d)) / ((w1 ** 2) - (w2 ** 2)))
+    beta = 2 * (((w1 * d) - (w2 * d)) / ((w1**2) - (w2**2)))
     alpha = beta * w1 * w2
     return alpha, beta
 
@@ -615,19 +728,25 @@ def check_max_char_limit(fnames, run_loc):
     :param run_loc:
     :return:
     """
-    MAX_CHAR_LIMIT = 200  # according to pg 2 of command reference manual this should be 2000
+    MAX_CHAR_LIMIT = (
+        200  # according to pg 2 of command reference manual this should be 2000
+    )
     fname_char_limit = 30
     for fname in fnames:
         if len(fname) > fname_char_limit:
-            raise ValueError('File name: %s - exceeds limit of %i' % (fname, fname_char_limit))
+            raise ValueError(
+                "File name: %s - exceeds limit of %i" % (fname, fname_char_limit)
+            )
         print(fname)
         a = open(run_loc + fname)
         lines = a.read().splitlines()
         for i, line in enumerate(lines):
             if len(line) > MAX_CHAR_LIMIT:
                 print(line)
-                raise ValueError('%s - Line %i has %i chars and exceeds limit of %i' % (fname, i + 1, len(line),
-                                                                                        MAX_CHAR_LIMIT))
+                raise ValueError(
+                    "%s - Line %i has %i chars and exceeds limit of %i"
+                    % (fname, i + 1, len(line), MAX_CHAR_LIMIT)
+                )
 
 
 def pip_freeze_to_run_loc(run_loc):
@@ -637,23 +756,25 @@ def pip_freeze_to_run_loc(run_loc):
     :param run_loc:
     :return:
     """
-    import pip
     import datetime
+
+    import pip
     from pip._internal.operations import freeze
+
     reqs = freeze.freeze()
     dt = datetime.datetime.today().strftime("%Y%m%d")
-    ofile = open(run_loc + f'requirements_{dt}.txt', 'w')
-    ofile.write('\n'.join(reqs))
+    ofile = open(run_loc + f"requirements_{dt}.txt", "w")
+    ofile.write("\n".join(reqs))
     ofile.close()
 
 
 # see paper-lateral-spread/nonliq-soil/figure_calibrate_flac_hysteretic.py
 def calc_flac_default_l1_from_ip_millen_2020(i_p):
-    return 1.7 * i_p ** 0.5 - 3.6
+    return 1.7 * i_p**0.5 - 3.6
 
 
 def calc_flac_default_l2_from_ip_millen_2020(i_p):
-    return -1.2 * i_p ** -0.25 + 2.25
+    return -1.2 * i_p**-0.25 + 2.25
 
 
 def split_his_file(ffp):
@@ -661,8 +782,8 @@ def split_his_file(ffp):
         lines = ofile.read().splitlines()
     inds = []
     for i in range(len(lines)):
-        if 'History' in lines[i]:
+        if "History" in lines[i]:
             inds.append(i - 1)
     if len(inds) >= 2:
-        with open(ffp, 'w') as ofile:
-            ofile.write('\n'.join(lines[:inds[1]]))
+        with open(ffp, "w") as ofile:
+            ofile.write("\n".join(lines[: inds[1]]))

@@ -1,10 +1,12 @@
-import sfsimodels as sm
-import liquepy as lq
 import json
+
+import sfsimodels as sm
+
+import liquepy as lq
 
 
 def test_save_load_w_diff_wmd():
-    sl = lq.num.models.ManzariDafaliasModel(liq_mass_density=1., p_atm=101.)
+    sl = lq.num.models.ManzariDafaliasModel(liq_mass_density=1.0, p_atm=101.0)
     sl.e_curr = 0.8
     sl.g0 = 125
     sl.poissons_ratio = 0.3
@@ -30,8 +32,10 @@ def test_save_load_w_diff_wmd():
     eo = sm.Output()
     eo.add_to_dict(sl)
     p_str = json.dumps(eo.to_dict(), indent=4)
-    mods = sm.loads_json(p_str, {'soil-manzaridafalias_model': lq.num.models.ManzariDafaliasModel})
+    mods = sm.loads_json(
+        p_str, {"soil-manzaridafalias_model": lq.num.models.ManzariDafaliasModel}
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_save_load_w_diff_wmd()

@@ -1,6 +1,7 @@
 import eqsig
 import numpy as np
 from numpy import trapz
+
 from liquepy.exceptions import deprecation
 
 

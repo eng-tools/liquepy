@@ -1,12 +1,14 @@
-from _collections import OrderedDict
-import sfsimodels as sm
-from sfsimodels import functions as sf
-import liquepy as lq
-from liquepy._spatial_models import Coords
 import warnings
 
+import sfsimodels as sm
+from _collections import OrderedDict
+from sfsimodels import functions as sf
+
+import liquepy as lq
+from liquepy._spatial_models import Coords
 
 # THESE MODELS ARE STILL IN ALPHA AND MAY CHANGE OFTEN
+
 
 class Loc(sm.CustomObject):
     base_type = "loc"
@@ -25,7 +27,9 @@ class Loc(sm.CustomObject):
         # if isinstance(esp, dict):
         #     esp = lq_esp.esp_dict_to_obj(esp)
         # self._esp = esp
-        if self._cpt is not None:  # TODO: set folder_path on CPT instead, and use lazy load from there
+        if (
+            self._cpt is not None
+        ):  # TODO: set folder_path on CPT instead, and use lazy load from there
             self.cpt_folder_path = self._cpt.folder_path  # used if can't load CPT
             self.cpt_file_name = self._cpt.file_name
             cpt_delimiter = self._cpt.delimiter
@@ -33,14 +37,26 @@ class Loc(sm.CustomObject):
             self.cpt_path = "<not-set>"
             cpt_delimiter = None
         self.cpt_delimiter = kwargs.get("cpt_delimiter", cpt_delimiter)
-        self._extra_class_inputs = ["cpt", "x", "offset", "off_dir", "cpt_folder_path", "cpt_file_name", "cpt_delimiter",
-                                    "soil_profile_id", "coords"]
+        self._extra_class_inputs = [
+            "cpt",
+            "x",
+            "offset",
+            "off_dir",
+            "cpt_folder_path",
+            "cpt_file_name",
+            "cpt_delimiter",
+            "soil_profile_id",
+            "coords",
+        ]
         self.inputs = self.inputs + self._extra_class_inputs
 
     @property
     def cpt(self):
         if self._cpt is None:
-            self._cpt = lq.field.load_mpa_cpt_file(self.cpt_folder_path + "/" + self.cpt_file_name, delimiter=self.cpt_delimiter)
+            self._cpt = lq.field.load_mpa_cpt_file(
+                self.cpt_folder_path + "/" + self.cpt_file_name,
+                delimiter=self.cpt_delimiter,
+            )
 
         return self._cpt
 
@@ -110,7 +126,16 @@ class Transect(sm.CustomObject):
         self.ug_xs = []
         self.h_face = kwargs.get("h_face", None)
         self.av_ground_slope = kwargs.get("av_ground_slope", None)
-        self._extra_class_inputs = ["locs", "start", "end", "ug_values", "ug_xs", "h_face", "av_ground_slope", "datum"]
+        self._extra_class_inputs = [
+            "locs",
+            "start",
+            "end",
+            "ug_values",
+            "ug_xs",
+            "h_face",
+            "av_ground_slope",
+            "datum",
+        ]
         self.inputs = self.inputs + self._extra_class_inputs
 
     def add_cpt_by_coords(self, cpt, coords, **kwargs):
@@ -158,7 +183,9 @@ class Transect(sm.CustomObject):
         outputs = self.to_dict(**kwargs)
         models_dict[self.base_type][self.unique_hash] = outputs
         for loc_num in self.locs:
-            self.locs[loc_num].add_to_dict(models_dict, parent_dict=models_dict[self.base_type][self.unique_hash])
+            self.locs[loc_num].add_to_dict(
+                models_dict, parent_dict=models_dict[self.base_type][self.unique_hash]
+            )
 
     def reset_cpt_folder_paths(self, folder_path):
         for loc_name in self.locs:
@@ -168,9 +195,10 @@ class Transect(sm.CustomObject):
     def tran_line(self):
         try:
             from liquepy.spatial.map_coords import Line
+
             return Line(self.s_coords, self.e_coords)
         except ImportError as e:
-            warnings.warn('Need to import spatial packages', stacklevel=3)
+            warnings.warn("Need to import spatial packages", stacklevel=3)
             warnings.warn(e, stacklevel=3)
             return None
 
@@ -190,11 +218,14 @@ class Transect(sm.CustomObject):
 
     def add_loc_by_coords(self, coords, loc):
         from liquepy.spatial import map_coords
+
         if not sum(self.start) or not sum(self.end):
             raise ValueError("start and end coordinates must be set")
         loc.x = map_coords.calc_proj_line_dist(self.tran_line, coords)
         loc.offset = map_coords.calc_line_offset(self.tran_line, coords)
-        loc.off_dir = map_coords.calc_line_off_dir(self.tran_line, coords)  # moving from start to end
+        loc.off_dir = map_coords.calc_line_off_dir(
+            self.tran_line, coords
+        )  # moving from start to end
         self._locs[loc.x] = loc
         self._sort_locs()
         return self._locs[loc.x]
@@ -252,5 +283,7 @@ class Transect(sm.CustomObject):
         self.e_coords = Coords(lat=values[0], lon=values[1])
 
 
-CUSTOM_MODELS = {"transect-transect": Transect,
-                 "transect_location-transect_location": Loc}
+CUSTOM_MODELS = {
+    "transect-transect": Transect,
+    "transect_location-transect_location": Loc,
+}

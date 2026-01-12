@@ -1,8 +1,8 @@
-import pandas as pd
 import glob
-import os
 import inspect
+import os
 
+import pandas as pd
 
 D_STR = "Depth (m)"
 QC_STR = "qc (MPa)"
@@ -56,11 +56,27 @@ def convert_file(ffp, out_fp, verbose=0):
     :return:
     """
 
-    fns = [convert_ags, convert_raw01_xls, convert_raw01_xls_v2, convert_raw01_xls_v3, convert_raw01_xlsx,
-           convert_raw02_xlsx_or_raw_03_xls, convert_raw01_xlsx_v2, convert_fugro_raw01, convert_raw01_fugro_v2,
-           convert_raw01_extra_cols, convert_tabulated_kpas, convert_raw01_xlsx_from_csv, convert_raw_txt_xlsx,
-           convert_raw01_w_kpa, convert_raw01_fugro_xls_v3, convert_raw01_xlsx_space_sep, convert_shortened_ags,
-           convert_raw01_w_underscores, convert_raw01_w_meta_on_right]
+    fns = [
+        convert_ags,
+        convert_raw01_xls,
+        convert_raw01_xls_v2,
+        convert_raw01_xls_v3,
+        convert_raw01_xlsx,
+        convert_raw02_xlsx_or_raw_03_xls,
+        convert_raw01_xlsx_v2,
+        convert_fugro_raw01,
+        convert_raw01_fugro_v2,
+        convert_raw01_extra_cols,
+        convert_tabulated_kpas,
+        convert_raw01_xlsx_from_csv,
+        convert_raw_txt_xlsx,
+        convert_raw01_w_kpa,
+        convert_raw01_fugro_xls_v3,
+        convert_raw01_xlsx_space_sep,
+        convert_shortened_ags,
+        convert_raw01_w_underscores,
+        convert_raw01_w_meta_on_right,
+    ]
     for i, fn in enumerate(fns):
         if verbose:
             print(fn.__name__)
@@ -100,10 +116,10 @@ def convert_folder(in_fp, out_fp, verbose=0):
 
         results.append("{0},{1}".format(fname, converter_name))
     if verbose:
-        print('SUMMARY: ')
+        print("SUMMARY: ")
         for line in results:
             print(line)
-    ofile = open(out_fp + 'last_processed.txt', 'w')
+    ofile = open(out_fp + "last_processed.txt", "w")
     ofile.write("\n".join(results))
     ofile.close()
     return results
@@ -139,7 +155,7 @@ def trim_missing_at_end_data_df(df_data, neg_lim=None):
         neg_rows = df_data[df_data.iloc[:, 2] < neg_lim]
         neg_indexes = list(neg_rows.index)
         if len(neg_indexes):
-            df_data = df_data[:neg_indexes[0]]
+            df_data = df_data[: neg_indexes[0]]
 
     return df_data
 
@@ -153,8 +169,8 @@ def clean_top(df_top):
     """
     for i in range(len(df_top)):
         for j in range(4):
-            if isinstance(df_top.iloc[i, j], str) and '\r\n' in df_top.iloc[i, j]:
-                df_top.iloc[i, j] = df_top.iloc[i, j].replace('\r\n', '')
+            if isinstance(df_top.iloc[i, j], str) and "\r\n" in df_top.iloc[i, j]:
+                df_top.iloc[i, j] = df_top.iloc[i, j].replace("\r\n", "")
 
 
 def convert_ags(ffp, out_fp, verbose=0):
@@ -167,9 +183,9 @@ def convert_ags(ffp, out_fp, verbose=0):
         cpt_num = cpt_num[:-4]
     else:
         try:
-            if cpt_num[-5:] == '.xlsx':
+            if cpt_num[-5:] == ".xlsx":
                 cpt_num = int(cpt_num[:-5])
-            elif cpt_num[-4:] == '.xls':
+            elif cpt_num[-4:] == ".xls":
                 cpt_num = int(cpt_num[:-4])
             else:
                 return 0
@@ -180,7 +196,12 @@ def convert_ags(ffp, out_fp, verbose=0):
     cols = list(df)
     if len(df) < 20 or len(cols) < 4:
         return 0
-    if df.iloc[20, 0] == D_STR and df.iloc[20, 1] == QC_STR and df.iloc[20, 2] == FS_STR and df.iloc[20, 3] == U2_STR:
+    if (
+        df.iloc[20, 0] == D_STR
+        and df.iloc[20, 1] == QC_STR
+        and df.iloc[20, 2] == FS_STR
+        and df.iloc[20, 3] == U2_STR
+    ):
         pass
     else:
         return 0
@@ -200,7 +221,7 @@ def convert_ags(ffp, out_fp, verbose=0):
     df_new = pd.concat([df_top, df_z, df_titles, df_data])
     # df_new.reindex(index=np.arange(len(df_new)))
     # df_new = pd.concat([df_top, df_z, df_data])
-    df_top.iloc[3, 1] = 'H'
+    df_top.iloc[3, 1] = "H"
     df_tt = pd.concat([df_top, df_z, df_titles])
 
     df_new.to_csv(out_fp + "CPT_{0}.csv".format(cpt_num), index=False)
@@ -215,9 +236,9 @@ def convert_shortened_ags(ffp, out_fp, verbose=0):
         cpt_num = cpt_num[:-4]
     else:
         try:
-            if cpt_num[-5:] == '.xlsx':
+            if cpt_num[-5:] == ".xlsx":
                 cpt_num = int(cpt_num[:-5])
-            elif cpt_num[-4:] == '.xls':
+            elif cpt_num[-4:] == ".xls":
                 cpt_num = int(cpt_num[:-4])
             else:
                 return 0
@@ -230,17 +251,27 @@ def convert_shortened_ags(ffp, out_fp, verbose=0):
         return 0
     ln0 = 14
     ln1 = 15
-    if df.iloc[ln0, 0] == 'Depth [m]' and df.iloc[ln0, 1] == 'qc [MPa]' and df.iloc[ln0, 2] == 'fs [MPa]' and df.iloc[ln0, 3] == 'u2 [MPa]':
+    if (
+        df.iloc[ln0, 0] == "Depth [m]"
+        and df.iloc[ln0, 1] == "qc [MPa]"
+        and df.iloc[ln0, 2] == "fs [MPa]"
+        and df.iloc[ln0, 3] == "u2 [MPa]"
+    ):
         ln = ln0
-    elif df.iloc[ln1, 0] == 'Depth [m]' and df.iloc[ln1, 1] == 'qc [MPa]' and df.iloc[ln1, 2] == 'fs [MPa]' and df.iloc[ln1, 3] == 'u2 [MPa]':
+    elif (
+        df.iloc[ln1, 0] == "Depth [m]"
+        and df.iloc[ln1, 1] == "qc [MPa]"
+        and df.iloc[ln1, 2] == "fs [MPa]"
+        and df.iloc[ln1, 3] == "u2 [MPa]"
+    ):
         ln = ln1
     else:
         return 0
 
-    df_data = df.iloc[ln + 1:, 0:4]
+    df_data = df.iloc[ln + 1 :, 0:4]
     df_data = trim_missing_at_end_data_df(df_data, neg_lim=-100)
 
-    df_top = df.iloc[0:ln - 1, 0:4]
+    df_top = df.iloc[0 : ln - 1, 0:4]
     heads = [D_STR, QC_STR, FS_STR, U2_STR]
     df_headers = pd.DataFrame([heads], columns=list(df_top))
     limit = 22
@@ -251,11 +282,11 @@ def convert_shortened_ags(ffp, out_fp, verbose=0):
     df_top = df_top.sort_index()  # sorting by index
     for i in range(len(df_top)):
         if df_top.iloc[i, 0] == "Predrill":
-            df_top.iloc[i, 0] = 'Pre-Drill:'
+            df_top.iloc[i, 0] = "Pre-Drill:"
             if df_top.iloc[i, 1] < 0:
                 df_top.iloc[i, 1] *= -1
         if df_top.iloc[i, 0] == "Cone Area Ratio":
-            df_top.iloc[i, 0] = 'aratio'
+            df_top.iloc[i, 0] = "aratio"
             aratio_row = i
     df_top.iloc[0, -1] = inspect.stack()[0][3]
     df_new = pd.concat([df_top, df_z, df_headers, df_data])
@@ -276,7 +307,12 @@ def convert_tabulated_kpas(ffp, out_fp, verbose=0):
     cols = list(df)
     if len(df) < 21 or len(cols) < 4:
         return 0
-    if df.iloc[21, 0] == D_STR and df.iloc[21, 1] == QC_STR and df.iloc[21, 2] == 'fs (kPa)' and df.iloc[21, 3] == 'u (kPa)':
+    if (
+        df.iloc[21, 0] == D_STR
+        and df.iloc[21, 1] == QC_STR
+        and df.iloc[21, 2] == "fs (kPa)"
+        and df.iloc[21, 3] == "u (kPa)"
+    ):
         pass
     else:
         return 0
@@ -296,9 +332,9 @@ def convert_tabulated_kpas(ffp, out_fp, verbose=0):
     df_top = df_top.sort_index()  # sorting by index
     for i in range(len(df_top)):
         for j in range(3):
-            if df_top.iloc[i, j] == 'Nil':
+            if df_top.iloc[i, j] == "Nil":
                 df_top.iloc[i, j] = 0.0
-            if df_top.iloc[i, j] == 'nil':
+            if df_top.iloc[i, j] == "nil":
                 df_top.iloc[i, j] = 0.0
     df_top.iloc[0, -1] = inspect.stack()[0][3]
     df_new = pd.concat([df_top, df_z, df_headers, df_data])
@@ -313,14 +349,19 @@ def convert_raw01_extra_cols(ffp, out_fp, verbose=0):
     if "_Raw" in ffp:
         cpt_num = int(cpt_num.split("_Raw")[0])
 
-    d_str = 'Penetration Depth (m)'
+    d_str = "Penetration Depth (m)"
     # try info all on one page
     try:
         df = pd.read_excel(ffp, sheet_name=0)
         cols = list(df)
         if len(df) < 20 or len(cols) < 4:
             raise ValueError
-        if df.iloc[20, 1] == d_str and df.iloc[20, 2] == QC_STR and df.iloc[20, 3] == FS_STR and df.iloc[20, 4] == U2_STR:
+        if (
+            df.iloc[20, 1] == d_str
+            and df.iloc[20, 2] == QC_STR
+            and df.iloc[20, 3] == FS_STR
+            and df.iloc[20, 4] == U2_STR
+        ):
             df_data = df.iloc[21:, 1:5]
             df_top = df.iloc[0:19, 0:4]
         else:
@@ -332,10 +373,15 @@ def convert_raw01_extra_cols(ffp, out_fp, verbose=0):
         except IndexError:
             return 0
         cols = list(df)
-        if cols[0] == d_str and cols[1] == QC_STR and cols[2] == FS_STR and cols[3] == U2_STR:
+        if (
+            cols[0] == d_str
+            and cols[1] == QC_STR
+            and cols[2] == FS_STR
+            and cols[3] == U2_STR
+        ):
             df_data = df.iloc[:, :4]
             df_top = pd.read_excel(ffp, sheet_name=0)
-            df_top = df_top.iloc[:min(22, len(df_top)), :4]
+            df_top = df_top.iloc[: min(22, len(df_top)), :4]
         else:
             return 0
 
@@ -370,14 +416,24 @@ def convert_fugro_raw01(ffp, out_fp, verbose=0):  # e.g. CPT_27643_Raw01.xlsx
     uline = 45
     if len(df) < 20 or len(cols) < 4:
         return 0
-    if df.iloc[tline, 0] == 'Depth' and df.iloc[tline, 1] == 'Cone' and df.iloc[tline, 2] == 'Friction' and df.iloc[tline, 3] == 'Pore 2':
-        if df.iloc[uline, 0] == 'm' and df.iloc[uline, 1] == 'MPa' and df.iloc[uline, 2] == 'MPa' and df.iloc[uline, 3] == 'MPa':
+    if (
+        df.iloc[tline, 0] == "Depth"
+        and df.iloc[tline, 1] == "Cone"
+        and df.iloc[tline, 2] == "Friction"
+        and df.iloc[tline, 3] == "Pore 2"
+    ):
+        if (
+            df.iloc[uline, 0] == "m"
+            and df.iloc[uline, 1] == "MPa"
+            and df.iloc[uline, 2] == "MPa"
+            and df.iloc[uline, 3] == "MPa"
+        ):
             pass
         else:
             return 0
     else:
         return 0
-    df_data = df.iloc[uline + 1:, 0:4]
+    df_data = df.iloc[uline + 1 :, 0:4]
     df_data = trim_missing_at_end_data_df(df_data)
     df_top = df.iloc[0:19, 0:4]
     more = 3
@@ -399,13 +455,18 @@ def convert_raw01_xls(ffp, out_fp, verbose=0):
     cpt_num = ffp.split("CPT_")[-1]
     cpt_num = int(cpt_num.split("_Raw")[0])
     xf = pd.ExcelFile(ffp)
-    if 'Header' in xf.sheet_names and 'CPT1' in xf.sheet_names:
+    if "Header" in xf.sheet_names and "CPT1" in xf.sheet_names:
         if verbose:
-            print('found header match at convert_raw01_xls')
+            print("found header match at convert_raw01_xls")
     else:
         return 0
-    df = pd.read_excel(ffp, sheet_name='CPT1')
-    if df.iloc[5, 0] == D_STR and df.iloc[5, 1] == QC_STR and df.iloc[5, 2] == 'fs(kPa)' and df.iloc[5, 3] == 'u (kPa)':
+    df = pd.read_excel(ffp, sheet_name="CPT1")
+    if (
+        df.iloc[5, 0] == D_STR
+        and df.iloc[5, 1] == QC_STR
+        and df.iloc[5, 2] == "fs(kPa)"
+        and df.iloc[5, 3] == "u (kPa)"
+    ):
         pass
     else:
         return 0
@@ -415,7 +476,7 @@ def convert_raw01_xls(ffp, out_fp, verbose=0):
     df_data.iloc[:, 2] = df_data.iloc[:, 2] / 1e3
     df_data.iloc[:, 3] = df_data.iloc[:, 3] / 1e3
 
-    df_top = pd.read_excel(ffp, sheet_name='Header')
+    df_top = pd.read_excel(ffp, sheet_name="Header")
     df_top = df_top.iloc[:, 3:7]
 
     n_cols = len(list(df_top))
@@ -428,12 +489,12 @@ def convert_raw01_xls(ffp, out_fp, verbose=0):
     aratio_row = None
     for i in range(len(df_top)):
         if df_top.iloc[i, 0] == "Water level":
-            df_top.iloc[i, 0] = 'Assumed GWL:'
+            df_top.iloc[i, 0] = "Assumed GWL:"
             if df_top.iloc[i, 1] < 0:
                 df_top.iloc[i, 1] *= -1
             gwl_row = i
         if df_top.iloc[i, 0] == "Cone Area Ratio":
-            df_top.iloc[i, 0] = 'aratio'
+            df_top.iloc[i, 0] = "aratio"
             aratio_row = i
     limit = 20
     more = limit - pp
@@ -467,14 +528,19 @@ def convert_raw01_xls_v2(ffp, out_fp, verbose=0):
     found = 0
     for name in sheet_names:
         df = pd.read_excel(ffp, sheet_name=name)
-        d_str = 'Depth (m)'
-        qc_str = 'qc Clean (MPa)'
-        fs_str = 'fs Clean (MPa)'
-        u2_str = 'u2 Clean (MPa)'
+        d_str = "Depth (m)"
+        qc_str = "qc Clean (MPa)"
+        fs_str = "fs Clean (MPa)"
+        u2_str = "u2 Clean (MPa)"
         cols = list(df)
         if len(cols) < 3:
             continue
-        if cols[0] == d_str and cols[1] == qc_str and cols[2] == fs_str and cols[3] == u2_str:
+        if (
+            cols[0] == d_str
+            and cols[1] == qc_str
+            and cols[2] == fs_str
+            and cols[3] == u2_str
+        ):
             found = name
     if not found:
         if verbose:
@@ -485,7 +551,7 @@ def convert_raw01_xls_v2(ffp, out_fp, verbose=0):
     # Columns already in MPa
     df_data = trim_missing_at_end_data_df(df_data)
 
-    df_top = pd.read_excel(ffp, sheet_name='CPT_Details')
+    df_top = pd.read_excel(ffp, sheet_name="CPT_Details")
 
     n_cols = len(list(df_top))
     if n_cols < 4:
@@ -497,12 +563,12 @@ def convert_raw01_xls_v2(ffp, out_fp, verbose=0):
     aratio_row = None
     for i in range(len(df_top)):
         if df_top.iloc[i, 0] == "Water Level":
-            df_top.iloc[i, 0] = 'Assumed GWL:'
+            df_top.iloc[i, 0] = "Assumed GWL:"
             if df_top.iloc[i, 1] < 0:
                 df_top.iloc[i, 1] *= -1
             gwl_row = i
         if df_top.iloc[i, 0] == "Cone Area Ratio":
-            df_top.iloc[i, 0] = 'aratio'
+            df_top.iloc[i, 0] = "aratio"
             aratio_row = i
     limit = 22
     more = limit - pp
@@ -539,14 +605,19 @@ def convert_raw01_w_meta_on_right(ffp, out_fp, verbose=0):
     found = 0
     for name in sheet_names:
         df = pd.read_excel(ffp, sheet_name=name)
-        d_str = 'Depth (m)'
-        qc_str = 'qcClean (MPa)'
-        fs_str = 'fsClean (MPa)'
-        u2_str = 'u2Clean (MPa)'
+        d_str = "Depth (m)"
+        qc_str = "qcClean (MPa)"
+        fs_str = "fsClean (MPa)"
+        u2_str = "u2Clean (MPa)"
         cols = list(df)
         if len(cols) < 3:
             continue
-        if cols[0] == d_str and cols[1] == qc_str and cols[2] == fs_str and cols[3] == u2_str:
+        if (
+            cols[0] == d_str
+            and cols[1] == qc_str
+            and cols[2] == fs_str
+            and cols[3] == u2_str
+        ):
             found = name
     if not found:
         if verbose:
@@ -580,12 +651,12 @@ def convert_raw01_w_meta_on_right(ffp, out_fp, verbose=0):
     aratio_row = None
     for i in range(len(df_top)):
         if df_top.iloc[i, 0] == "Water Level":  # not used
-            df_top.iloc[i, 0] = 'Assumed GWL:'
+            df_top.iloc[i, 0] = "Assumed GWL:"
             if df_top.iloc[i, 1] < 0:
                 df_top.iloc[i, 1] *= -1
             gwl_row = i
         if df_top.iloc[i, 0] == "ConeAreaRatio":
-            df_top.iloc[i, 0] = 'aratio'
+            df_top.iloc[i, 0] = "aratio"
             aratio_row = i
     limit = 22
     more = limit - pp
@@ -619,15 +690,25 @@ def convert_raw01_fugro_xls_v3(ffp, out_fp, verbose=0):
     found = 0
     for name in sheet_names:
         df = pd.read_excel(ffp, sheet_name=name)
-        d_str = 'Depth'
-        qc_str = 'Cone'
-        fs_str = 'Friction'
-        u2_strs = ['Pore 2', 'Pore2']
+        d_str = "Depth"
+        qc_str = "Cone"
+        fs_str = "Friction"
+        u2_strs = ["Pore 2", "Pore2"]
         cols = list(df)
         if len(cols) < 3:
             continue
-        if cols[0] == d_str and cols[1] == qc_str and cols[2] == fs_str and cols[3] in u2_strs:
-            if df.iloc[0, 0] == 'm' and df.iloc[0, 1] == 'MPa' and df.iloc[0, 2] == 'MPa' and df.iloc[0, 3] == 'MPa':
+        if (
+            cols[0] == d_str
+            and cols[1] == qc_str
+            and cols[2] == fs_str
+            and cols[3] in u2_strs
+        ):
+            if (
+                df.iloc[0, 0] == "m"
+                and df.iloc[0, 1] == "MPa"
+                and df.iloc[0, 2] == "MPa"
+                and df.iloc[0, 3] == "MPa"
+            ):
                 found = name
             else:
                 return 0
@@ -640,7 +721,7 @@ def convert_raw01_fugro_xls_v3(ffp, out_fp, verbose=0):
     # Columns already in MPa
     df_data = trim_missing_at_end_data_df(df_data)
 
-    df_top = pd.read_excel(ffp, sheet_name='Description')
+    df_top = pd.read_excel(ffp, sheet_name="Description")
 
     n_cols = len(list(df_top))
     if n_cols < 4:
@@ -655,15 +736,15 @@ def convert_raw01_fugro_xls_v3(ffp, out_fp, verbose=0):
     predrill_row = None
     for i in range(len(df_top)):
         if df_top.iloc[i, 0] == "Derived GWL (m):":
-            df_top.iloc[i, 0] = 'Assumed GWL:'
+            df_top.iloc[i, 0] = "Assumed GWL:"
             if df_top.iloc[i, 1] < 0:
                 df_top.iloc[i, 1] *= -1
             gwl_row = i
         if df_top.iloc[i, 0] == "Cone Tip Net Area Ratio:":
-            df_top.iloc[i, 0] = 'aratio'
+            df_top.iloc[i, 0] = "aratio"
             aratio_row = i
         if df_top.iloc[i, 0] == "Pre-Drill (m):":
-            df_top.iloc[i, 0] = 'Pre-Drill:'
+            df_top.iloc[i, 0] = "Pre-Drill:"
             predrill_row = i
     limit = 22
     more = limit - pp
@@ -697,16 +778,26 @@ def convert_raw01_fugro_v2(ffp, out_fp, verbose=0):
 
     sheet_names = xf.sheet_names
     found = 0
-    opt0 = ['Depth [m]', 'qc [MPa]', 'fs [MPa]', 'u2 [MPa]']
-    opt1 = ['Depth [m]', 'Qc [MPa]', 'Fs [MPa]', 'U2 [MPa]']
+    opt0 = ["Depth [m]", "qc [MPa]", "fs [MPa]", "u2 [MPa]"]
+    opt1 = ["Depth [m]", "Qc [MPa]", "Fs [MPa]", "U2 [MPa]"]
     for name in sheet_names:
         df = pd.read_excel(ffp, sheet_name=name)
         cols = list(df)
         if len(cols) < 3:
             continue
-        if cols[0] == opt0[0] and cols[1] == opt0[1] and cols[2] == opt0[2] and cols[3] == opt0[3]:
+        if (
+            cols[0] == opt0[0]
+            and cols[1] == opt0[1]
+            and cols[2] == opt0[2]
+            and cols[3] == opt0[3]
+        ):
             found = name
-        if cols[0] == opt1[0] and cols[1] == opt1[1] and cols[2] == opt1[2] and cols[3] == opt1[3]:
+        if (
+            cols[0] == opt1[0]
+            and cols[1] == opt1[1]
+            and cols[2] == opt1[2]
+            and cols[3] == opt1[3]
+        ):
             found = name
     if not found:
         if verbose:
@@ -719,12 +810,12 @@ def convert_raw01_fugro_v2(ffp, out_fp, verbose=0):
     df_data.iloc[:, 3] = df_data.iloc[:, 3]
     df_data = trim_missing_at_end_data_df(df_data)
 
-    if 'TESTING SUMMARY SHEET' in sheet_names:
-        df_top = pd.read_excel(ffp, sheet_name='TESTING SUMMARY SHEET')
-    elif 'Description' in sheet_names:
-        df_top = pd.read_excel(ffp, sheet_name='Description')
-    elif 'CPT SUMMARY SHEET' in sheet_names:
-        df_top = pd.read_excel(ffp, sheet_name='CPT SUMMARY SHEET')
+    if "TESTING SUMMARY SHEET" in sheet_names:
+        df_top = pd.read_excel(ffp, sheet_name="TESTING SUMMARY SHEET")
+    elif "Description" in sheet_names:
+        df_top = pd.read_excel(ffp, sheet_name="Description")
+    elif "CPT SUMMARY SHEET" in sheet_names:
+        df_top = pd.read_excel(ffp, sheet_name="CPT SUMMARY SHEET")
         dd = []
         for head in df_top.columns:
             dd.append([head, df_top[head].iloc[0]])
@@ -744,12 +835,12 @@ def convert_raw01_fugro_v2(ffp, out_fp, verbose=0):
     aratio_row = None
     for i in range(len(df_top)):
         if df_top.iloc[i, 0] == "Water Level":
-            df_top.iloc[i, 0] = 'Assumed GWL:'
+            df_top.iloc[i, 0] = "Assumed GWL:"
             if df_top.iloc[i, 1] < 0:
                 df_top.iloc[i, 1] *= -1
             gwl_row = i
         if df_top.iloc[i, 0] == "Cone Area Ratio":
-            df_top.iloc[i, 0] = 'aratio'
+            df_top.iloc[i, 0] = "aratio"
             aratio_row = i
     limit = 22
     more = limit - pp
@@ -782,7 +873,7 @@ def convert_raw01_w_kpa(ffp, out_fp, verbose=0):
 
     sheet_names = xf.sheet_names
     found = 0
-    opt1 = ['Depth [m]', 'Qc [MPa]', 'Fs [KPa]', 'U2 [KPa]']
+    opt1 = ["Depth [m]", "Qc [MPa]", "Fs [KPa]", "U2 [KPa]"]
     for name in sheet_names:
         df = pd.read_excel(ffp, sheet_name=name)
         if len(df) < 32:
@@ -791,7 +882,12 @@ def convert_raw01_w_kpa(ffp, out_fp, verbose=0):
 
         if len(cols) < 3:
             continue
-        if df.iloc[31, 0] == opt1[0] and df.iloc[31, 1] == opt1[1] and df.iloc[31, 2] == opt1[2] and df.iloc[31, 3] == opt1[3]:
+        if (
+            df.iloc[31, 0] == opt1[0]
+            and df.iloc[31, 1] == opt1[1]
+            and df.iloc[31, 2] == opt1[2]
+            and df.iloc[31, 3] == opt1[3]
+        ):
             found = name
             break
     if not found:
@@ -822,10 +918,10 @@ def convert_raw01_w_kpa(ffp, out_fp, verbose=0):
 
 
 def convert_raw01_xls_v3(ffp, out_fp, verbose=0):
-    d_str = 'Test Length (m)'
-    qc_str = 'Cone Resistance (MPa)'
-    fs_str = 'Local Friction (MPa)'
-    u2_str = 'Pore Pressure (MPa)'
+    d_str = "Test Length (m)"
+    qc_str = "Cone Resistance (MPa)"
+    fs_str = "Local Friction (MPa)"
+    u2_str = "Pore Pressure (MPa)"
 
     if "_Raw" not in ffp:
         return 0
@@ -858,7 +954,7 @@ def convert_raw01_xls_v3(ffp, out_fp, verbose=0):
             print("CPT headers not found")
         return 0
     df = pd.read_excel(ffp, sheet_name=found)
-    df_data = df.iloc[:, offset:n_data_cols + offset]
+    df_data = df.iloc[:, offset : n_data_cols + offset]
     df_data = trim_missing_at_end_data_df(df_data)
     df_data.fillna(0, inplace=True)
     # Convert columns from kPa to MPa
@@ -866,7 +962,7 @@ def convert_raw01_xls_v3(ffp, out_fp, verbose=0):
     if n_data_cols == 4:
         df_data.iloc[:, 3] = df_data.iloc[:, 3]
 
-    df_top = pd.read_excel(ffp, sheet_name='General')
+    df_top = pd.read_excel(ffp, sheet_name="General")
     dd = []
     for head in df_top.columns:
         dd.append([head, df_top[head].iloc[0]])
@@ -883,15 +979,15 @@ def convert_raw01_xls_v3(ffp, out_fp, verbose=0):
     predrill_row = None
     for i in range(len(df_top)):
         if df_top.iloc[i, 0] == "Water Level":
-            df_top.iloc[i, 0] = 'Assumed GWL:'
+            df_top.iloc[i, 0] = "Assumed GWL:"
             if df_top.iloc[i, 1] < 0:
                 df_top.iloc[i, 1] *= -1
             gwl_row = i
         if df_top.iloc[i, 0] == "Cone Area Ratio":
-            df_top.iloc[i, 0] = 'aratio'
+            df_top.iloc[i, 0] = "aratio"
             aratio_row = i
         if df_top.iloc[i, 0] == "Predrilled":
-            df_top.iloc[i, 0] = 'Pre-Drill:'
+            df_top.iloc[i, 0] = "Pre-Drill:"
             predrill_row = i
     limit = 21
     more = limit - pp
@@ -920,10 +1016,10 @@ def convert_raw01_xls_v3(ffp, out_fp, verbose=0):
 
 
 def convert_raw01_w_underscores(ffp, out_fp, verbose=0):
-    d_str = 'Depth_m'
-    qc_str = 'qc_mpa'
-    fs_str = 'fs_mpa'
-    u2_str = 'u2_mpa'
+    d_str = "Depth_m"
+    qc_str = "qc_mpa"
+    fs_str = "fs_mpa"
+    u2_str = "u2_mpa"
 
     if "_Raw" not in ffp:
         return 0
@@ -956,11 +1052,11 @@ def convert_raw01_w_underscores(ffp, out_fp, verbose=0):
             print("CPT headers not found")
         return 0
     df = pd.read_excel(ffp, sheet_name=found)
-    df_data = df.iloc[:, offset:n_data_cols + offset]
+    df_data = df.iloc[:, offset : n_data_cols + offset]
     df_data = trim_missing_at_end_data_df(df_data)
     df_data.fillna(0, inplace=True)
 
-    df_top = pd.read_excel(ffp, sheet_name='CPT_Setup')
+    df_top = pd.read_excel(ffp, sheet_name="CPT_Setup")
     dd = []
     for head in df_top.columns:
         dd.append([head, df_top[head].iloc[0]])
@@ -977,17 +1073,17 @@ def convert_raw01_w_underscores(ffp, out_fp, verbose=0):
     predrill_row = None
     for i in range(len(df_top)):
         if df_top.iloc[i, 0] == "WaterLevel":
-            df_top.iloc[i, 0] = 'Assumed GWL:'
+            df_top.iloc[i, 0] = "Assumed GWL:"
             if df_top.iloc[i, 1] < 0:
                 df_top.iloc[i, 1] *= -1
             gwl_row = i
         if df_top.iloc[i, 0] == "ConeAreaRatio":
-            df_top.iloc[i, 0] = 'aratio'
+            df_top.iloc[i, 0] = "aratio"
             aratio_row = i
         if df_top.iloc[i, 0] == "Predrill":
-            df_top.iloc[i, 0] = 'Pre-Drill:'
-            if df_top.iloc[i, 1] == '' or pd.isnull(df_top.iloc[i, 1]):
-                df_top.iloc[i, 1] = '0.0'
+            df_top.iloc[i, 0] = "Pre-Drill:"
+            if df_top.iloc[i, 1] == "" or pd.isnull(df_top.iloc[i, 1]):
+                df_top.iloc[i, 1] = "0.0"
             predrill_row = i
     limit = 21
     more = limit - pp
@@ -1029,19 +1125,19 @@ def convert_raw01_xlsx_v2(ffp, out_fp, verbose=0):  # e.g. CPT_38858_Raw01.xlsx
     n_data_cols = 3
     for name in sheet_names:
         df = pd.read_excel(ffp, sheet_name=name)
-        d_str = 'Depth'
-        qc_str = 'qc'
-        fs_str = 'fs'
-        u2_str = 'u2'
+        d_str = "Depth"
+        qc_str = "qc"
+        fs_str = "fs"
+        u2_str = "u2"
         cols = list(df)
         if len(cols) < 3:
             continue
         if cols[0] == d_str and cols[1] == qc_str and cols[2] == fs_str:
-            if df.iloc[0, 1] != '[MPa]' and df.iloc[0, 2] != '[MPa]':
+            if df.iloc[0, 1] != "[MPa]" and df.iloc[0, 2] != "[MPa]":
                 return 0
             if cols[3] == u2_str:
                 n_data_cols = 4
-                if df.iloc[0, 3] != '[MPa]':
+                if df.iloc[0, 3] != "[MPa]":
                     return 0
             found = name
     if not found:
@@ -1057,7 +1153,7 @@ def convert_raw01_xlsx_v2(ffp, out_fp, verbose=0):  # e.g. CPT_38858_Raw01.xlsx
         df_data.iloc[:, 3] = df_data.iloc[:, 3]
 
     df_data = trim_missing_at_end_data_df(df_data)
-    df_top = pd.read_excel(ffp, sheet_name='Header')
+    df_top = pd.read_excel(ffp, sheet_name="Header")
     dd = []
     for head in df_top.columns:
         dd.append([head, df_top[head].iloc[0]])
@@ -1073,12 +1169,12 @@ def convert_raw01_xlsx_v2(ffp, out_fp, verbose=0):  # e.g. CPT_38858_Raw01.xlsx
     aratio_row = None
     for i in range(len(df_top)):
         if df_top.iloc[i, 0] == "Waterlevel:":
-            df_top.iloc[i, 0] = 'Assumed GWL:'
+            df_top.iloc[i, 0] = "Assumed GWL:"
             if df_top.iloc[i, 1] < 0:
                 df_top.iloc[i, 1] *= -1
             gwl_row = i
         if df_top.iloc[i, 0] == "Cone Area Ratio":
-            df_top.iloc[i, 0] = 'aratio'
+            df_top.iloc[i, 0] = "aratio"
             aratio_row = i
     limit = 22
     more = limit - pp
@@ -1124,8 +1220,8 @@ def convert_raw01_xlsx_space_sep(ffp, out_fp, verbose=0):  # e.g. CPT_38858_Raw0
             continue
         titles = df.iloc[9, 0]
         units = df.iloc[10, 0]
-        if 'Depth     qc' in titles:
-            if '[MPa]     [MPa]' in units:
+        if "Depth     qc" in titles:
+            if "[MPa]     [MPa]" in units:
                 found = name
                 break
 
@@ -1140,7 +1236,7 @@ def convert_raw01_xlsx_space_sep(ffp, out_fp, verbose=0):  # e.g. CPT_38858_Raw0
 
     top = []
     for i in range(9):
-        top.append(df.iloc[i, 0].split(':'))
+        top.append(df.iloc[i, 0].split(":"))
 
     more = 13
     zeros = [[""] * n_data_cols] * more
@@ -1153,11 +1249,11 @@ def convert_raw01_xlsx_space_sep(ffp, out_fp, verbose=0):  # e.g. CPT_38858_Raw0
 
     for i in range(len(df_new)):
         if df_new.iloc[i, 0] == "Waterlevel":
-            df_new.iloc[i, 0] = 'Assumed GWL:'
+            df_new.iloc[i, 0] = "Assumed GWL:"
         if df_new.iloc[i, 0] == "Cone Area Ratio":
-            df_new.iloc[i, 0] = 'aratio'
+            df_new.iloc[i, 0] = "aratio"
         if df_new.iloc[i, 0] == "PreDrill":
-            df_new.iloc[i, 0] = 'Pre-Drill:'
+            df_new.iloc[i, 0] = "Pre-Drill:"
 
     df_new.to_csv(out_fp + "CPT_%i.csv" % cpt_num, index=False)
     return 1
@@ -1177,17 +1273,22 @@ def convert_raw_txt_xlsx(ffp, out_fp, verbose=0):  # e.g. CPT_49062
     n_data_cols = 4
     for name in sheet_names:
         df = pd.read_excel(ffp, sheet_name=name)
-        d_str = 'Depth'
-        qc_str = 'qc'
-        fs_str = 'fs'
-        u2_str = 'u2'
+        d_str = "Depth"
+        qc_str = "qc"
+        fs_str = "fs"
+        u2_str = "u2"
         cols = list(df)
         if len(cols) < 3:
             continue
         if len(df) <= 12:
             continue
 
-        if df.iloc[12, 0] == d_str and df.iloc[12, 1] == qc_str and df.iloc[12, 2] == fs_str and df.iloc[12, 3] == u2_str:
+        if (
+            df.iloc[12, 0] == d_str
+            and df.iloc[12, 1] == qc_str
+            and df.iloc[12, 2] == fs_str
+            and df.iloc[12, 3] == u2_str
+        ):
             found = name
         else:
             return 0
@@ -1214,15 +1315,15 @@ def convert_raw_txt_xlsx(ffp, out_fp, verbose=0):  # e.g. CPT_49062
     predrill_row = None
     for i in range(len(df_top)):
         if df_top.iloc[i, 0] == "Waterlevel:":
-            df_top.iloc[i, 0] = 'Assumed GWL:'
+            df_top.iloc[i, 0] = "Assumed GWL:"
             if df_top.iloc[i, 1] < 0:
                 df_top.iloc[i, 1] *= -1
             gwl_row = i
         if df_top.iloc[i, 0] == "Cone Area Ratio":
-            df_top.iloc[i, 0] = 'aratio'
+            df_top.iloc[i, 0] = "aratio"
             aratio_row = i
         if df_top.iloc[i, 0] == "PreDrill":
-            df_top.iloc[i, 0] = 'Pre-Drill:'
+            df_top.iloc[i, 0] = "Pre-Drill:"
             predrill_row = i
     limit = 22
     more = limit - pp
@@ -1265,10 +1366,10 @@ def convert_raw01_xlsx_from_csv(ffp, out_fp, verbose=0):  # e.g. CPT_29585_Raw01
     n_data_cols = 4
     for name in sheet_names:
         df = pd.read_excel(ffp, sheet_name=name)
-        d_str = 'H [m]'
-        qc_str = 'qc [MPa]'
-        fs_str = 'fs [MPa]'
-        u2_str = 'u2 [MPa]'
+        d_str = "H [m]"
+        qc_str = "qc [MPa]"
+        fs_str = "fs [MPa]"
+        u2_str = "u2 [MPa]"
         cols = list(df)
         if len(cols) < 3:
             continue
@@ -1313,8 +1414,18 @@ def convert_raw02_xlsx_or_raw_03_xls(ffp, out_fp, verbose=0):
     sheet_names = xf.sheet_names
     found = 0
     n_data_cols = 3
-    opt1 = ['Test length[1]', 'Cone resistance[2]', 'Local friction[3]', 'Pore pressure u2[6]']
-    opt2 = ['Test length[1] m', 'Cone resistance[2] MPa', 'Local friction[3] MPa', 'Pore pressure u2[6] MPa']
+    opt1 = [
+        "Test length[1]",
+        "Cone resistance[2]",
+        "Local friction[3]",
+        "Pore pressure u2[6]",
+    ]
+    opt2 = [
+        "Test length[1] m",
+        "Cone resistance[2] MPa",
+        "Local friction[3] MPa",
+        "Pore pressure u2[6] MPa",
+    ]
     units_in_title = 0
     for name in sheet_names:
         df = pd.read_excel(ffp, sheet_name=name)
@@ -1323,12 +1434,21 @@ def convert_raw02_xlsx_or_raw_03_xls(ffp, out_fp, verbose=0):
         if len(cols) < 3:
             continue
         if cols[0] == opt1[0] and cols[1] == opt1[1] and cols[2] == opt1[2]:
-            if df.iloc[0, 0] == 'm' and df.iloc[0, 1] == 'MPa' and df.iloc[0, 2] == 'MPa':
+            if (
+                df.iloc[0, 0] == "m"
+                and df.iloc[0, 1] == "MPa"
+                and df.iloc[0, 2] == "MPa"
+            ):
                 if cols[3] == opt1[3]:
                     n_data_cols = 4
                 found = name
                 break
-        elif cols[0] == opt2[0] and cols[1] == opt2[1] and cols[2] == opt2[2] and cols[3] == opt2[3]:
+        elif (
+            cols[0] == opt2[0]
+            and cols[1] == opt2[1]
+            and cols[2] == opt2[2]
+            and cols[3] == opt2[3]
+        ):
             found = name
             units_in_title = 1
             break
@@ -1344,14 +1464,14 @@ def convert_raw02_xlsx_or_raw_03_xls(ffp, out_fp, verbose=0):
     df_data.fillna(0, inplace=True)
 
     df_data = trim_missing_at_end_data_df(df_data)
-    if 'General' in sheet_names:
-        df_top = pd.read_excel(ffp, sheet_name='General')
+    if "General" in sheet_names:
+        df_top = pd.read_excel(ffp, sheet_name="General")
         # dd = []
         # for head in df_top.columns:
         #     dd.append([head, df_top[head].iloc[0]])
         # df_top = pd.DataFrame(dd)
-    elif 'Header' in sheet_names:
-        df_top = pd.read_excel(ffp, sheet_name='Header')
+    elif "Header" in sheet_names:
+        df_top = pd.read_excel(ffp, sheet_name="Header")
     else:
         return 0
 
@@ -1368,15 +1488,15 @@ def convert_raw02_xlsx_or_raw_03_xls(ffp, out_fp, verbose=0):
     predrill_row = None
     for i in range(len(df_top)):
         if df_top.iloc[i, 0] == "Water Level":
-            df_top.iloc[i, 0] = 'Assumed GWL:'
+            df_top.iloc[i, 0] = "Assumed GWL:"
             if df_top.iloc[i, 1] < 0:
                 df_top.iloc[i, 1] *= -1
             gwl_row = i
         if df_top.iloc[i, 0] == "Cone Area Ratio":
-            df_top.iloc[i, 0] = 'aratio'
+            df_top.iloc[i, 0] = "aratio"
             aratio_row = i
         if df_top.iloc[i, 0] == "Predrilled":
-            df_top.iloc[i, 0] = 'Pre-Drill:'
+            df_top.iloc[i, 0] = "Pre-Drill:"
             predrill_row = i
     limit = 22
     more = limit - pp
@@ -1413,18 +1533,23 @@ def convert_raw01_xlsx(ffp, out_fp, verbose=0):
     cpt_num = ffp.split("CPT_")[-1]
     cpt_num = int(cpt_num.split("_Raw")[0])
     xf = pd.ExcelFile(ffp)
-    if 'Header' in xf.sheet_names and 'Data' in xf.sheet_names:
+    if "Header" in xf.sheet_names and "Data" in xf.sheet_names:
         if verbose:
-            print('found sheet names at convert_raw01_xlsx')
+            print("found sheet names at convert_raw01_xlsx")
     else:
         return 0
-    df = pd.read_excel(ffp, sheet_name='Data')
-    d_str = 'Depth [m]'
-    qc_str = 'Cone resistance (qc) in MPa'
-    fs_str = 'Sleeve friction (fs) in MPa'
-    u2_str = 'Dynamic pore pressure (u2) in MPa'
+    df = pd.read_excel(ffp, sheet_name="Data")
+    d_str = "Depth [m]"
+    qc_str = "Cone resistance (qc) in MPa"
+    fs_str = "Sleeve friction (fs) in MPa"
+    u2_str = "Dynamic pore pressure (u2) in MPa"
     cols = list(df)
-    if cols[0] == d_str and cols[1] == qc_str and cols[2] == fs_str and cols[3] == u2_str:
+    if (
+        cols[0] == d_str
+        and cols[1] == qc_str
+        and cols[2] == fs_str
+        and cols[3] == u2_str
+    ):
         pass
     else:
         return 0
@@ -1432,7 +1557,7 @@ def convert_raw01_xlsx(ffp, out_fp, verbose=0):
 
     df_data = trim_missing_at_end_data_df(df_data)
 
-    df_top = pd.read_excel(ffp, sheet_name='Header')
+    df_top = pd.read_excel(ffp, sheet_name="Header")
     df_top = df_top.iloc[:, 0:4]
 
     pp = len(df_top)
@@ -1444,15 +1569,15 @@ def convert_raw01_xlsx(ffp, out_fp, verbose=0):
     predrill_row = None
     for i in range(len(df_top)):
         if df_top.iloc[i, 0] == "Predrill":
-            df_top.iloc[i, 0] = 'Pre-Drill:'
+            df_top.iloc[i, 0] = "Pre-Drill:"
             predrill_row = i
         if df_top.iloc[i, 0] == "Water level":
-            df_top.iloc[i, 0] = 'Assumed GWL:'
+            df_top.iloc[i, 0] = "Assumed GWL:"
             if df_top.iloc[i, 1] < 0:
                 df_top.iloc[i, 1] *= -1
             gwl_row = i
         if df_top.iloc[i, 0] == "Alpha Factor":
-            df_top.iloc[i, 0] = 'aratio'
+            df_top.iloc[i, 0] = "aratio"
             aratio_row = i
     if predrill_row is not None and predrill_row > limit:
         df_top.iloc[limit - 3, :] = df_top.iloc[predrill_row, :]
@@ -1480,4 +1605,3 @@ def convert_raw01_xlsx(ffp, out_fp, verbose=0):
     df_new.to_csv(out_fp + "CPT_%i.csv" % cpt_num, index=False)
 
     return 1
-

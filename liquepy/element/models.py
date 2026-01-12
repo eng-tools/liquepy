@@ -1,6 +1,7 @@
-import numpy as np
-from liquepy import functions
 import eqsig
+import numpy as np
+
+from liquepy import functions
 
 
 class ShearTest(object):
@@ -95,19 +96,32 @@ class ShearTest(object):
         epp = np.array(ru) * self.esig_v0
         self._pp = epp + hydrostatic
 
-    def set_i_liq(self, ru_limit=None, esig_v_limit=None, strain_limit=None, da_strain_limit=None, or_none=True):
+    def set_i_liq(
+        self,
+        ru_limit=None,
+        esig_v_limit=None,
+        strain_limit=None,
+        da_strain_limit=None,
+        or_none=True,
+    ):
         if ru_limit is not None:
             self._ru_limit = ru_limit
-            self._i_liq_pp = functions.determine_t_liq_index(self.ru, ru_limit, return_none=or_none)
+            self._i_liq_pp = functions.determine_t_liq_index(
+                self.ru, ru_limit, return_none=or_none
+            )
         elif esig_v_limit is not None:
             ru_limit = 1 - esig_v_limit / self.esig_v0
             self._ru_limit = ru_limit
-            self._i_liq_pp = functions.determine_t_liq_index(self.ru, ru_limit, return_none=or_none)
+            self._i_liq_pp = functions.determine_t_liq_index(
+                self.ru, ru_limit, return_none=or_none
+            )
         elif strain_limit is None:
             pass
             # print("No limit set for set_i_liq")
         if strain_limit is not None:
-            self._i_liq_strain = functions.determine_t_liq_index(abs(self.strain), strain_limit, return_none=or_none)
+            self._i_liq_strain = functions.determine_t_liq_index(
+                abs(self.strain), strain_limit, return_none=or_none
+            )
         elif da_strain_limit is not None:
             pinds = eqsig.get_switched_peak_array_indices(self.strain)
             da_strains = self.get_da_strain_series()
@@ -128,7 +142,9 @@ class ShearTest(object):
     @property
     def av_stress(self):
         average_stress = (self.stress[1:] + self.stress[:-1]) / 2
-        average_stress = np.insert(average_stress, 0, self.stress[0])  # Include first value
+        average_stress = np.insert(
+            average_stress, 0, self.stress[0]
+        )  # Include first value
         return average_stress
 
     @property
@@ -149,6 +165,10 @@ class ShearTest(object):
             sgn = np.sign(curr_p_strain)
             if sgn == 0 and j == 0:
                 sgn = -1 * np.sign(self.strain[pinds[j + 1]])
-            da_strains += list(sgn * -1 * (self.strain[pinds[j] + 1: pinds[j + 1] + 1] - curr_p_strain))
+            da_strains += list(
+                sgn
+                * -1
+                * (self.strain[pinds[j] + 1 : pinds[j + 1] + 1] - curr_p_strain)
+            )
         self._da_strain = np.array(da_strains)
         return np.array(self._da_strain)

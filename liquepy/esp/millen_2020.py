@@ -1,19 +1,29 @@
 import itertools
 import os
-import numpy as np
-import liquepy as lq
-from liquepy.trigger import boulanger_and_idriss_2014 as bi_functions
-import sfsimodels as sm
-import eqsig
-from liquepy.field import correlations as lq_field_correlations
 from collections import OrderedDict
 
+import eqsig
+import numpy as np
+import sfsimodels as sm
+
+import liquepy as lq
+from liquepy.field import correlations as lq_field_correlations
+from liquepy.trigger import boulanger_and_idriss_2014 as bi_functions
+
 # ESP_MODULE_DIR = os.path.dirname(os.path.abspath(__file__)) + "/"
-from liquepy.trigger.boulanger_and_idriss_2014 import calc_rd, calc_q_c1n_cs_from_crr_m7p5, calc_k_sigma, calc_msf, \
-    crr_m, calc_csr
+from liquepy.trigger.boulanger_and_idriss_2014 import (
+    calc_csr,
+    calc_k_sigma,
+    calc_msf,
+    calc_q_c1n_cs_from_crr_m7p5,
+    calc_rd,
+    crr_m,
+)
 
 
-def fit_3_layer_profile(depths, crr_n15s, fitting_values, crr_non_liq=0.6, max_depth=20):
+def fit_3_layer_profile(
+    depths, crr_n15s, fitting_values, crr_non_liq=0.6, max_depth=20
+):
     """
     Determines the best 3-layer profile fit for a given parameter
 
@@ -66,7 +76,9 @@ def fit_3_layer_profile(depths, crr_n15s, fitting_values, crr_non_liq=0.6, max_d
             loc_mins = np.take(eline, loc_min_is)
             loc_maxs = np.take(eline, loc_max_is)
             opts = loc_mins[np.newaxis, :] - loc_maxs[:, np.newaxis]
-            opts *= np.tri(*opts.shape)  # remove cases where liq layer is higher than crust
+            opts *= np.tri(
+                *opts.shape
+            )  # remove cases where liq layer is higher than crust
 
             min_i, min_j = np.unravel_index(opts.argmin(), opts.shape)
             i_crust = loc_min_is[min_j]
@@ -74,7 +86,11 @@ def fit_3_layer_profile(depths, crr_n15s, fitting_values, crr_non_liq=0.6, max_d
             h_crusts.append(depths[i_crust + 1])
             h_liqs.append(depths[i_liq + 1] - depths[i_crust + 1])
 
-            refined_errors = cdiffs[i_crust][0] + (cdiffs[i_liq][ii] - cdiffs[i_crust][ii]) + (cdiffs[-1][0] - cdiffs[i_liq][0])
+            refined_errors = (
+                cdiffs[i_crust][0]
+                + (cdiffs[i_liq][ii] - cdiffs[i_crust][ii])
+                + (cdiffs[-1][0] - cdiffs[i_liq][0])
+            )
             diffs.append(refined_errors)
         else:
             h_crusts.append(depths[-1])
@@ -92,7 +108,9 @@ def fit_3_layer_profile(depths, crr_n15s, fitting_values, crr_non_liq=0.6, max_d
     return h_crust, h_liq, p_value, normed_diff
 
 
-def fit_n_layer_profile(depths, crr_n15s, n=3, crr_n15_opts=None, cap=0.6, max_depth=20):
+def fit_n_layer_profile(
+    depths, crr_n15s, n=3, crr_n15_opts=None, cap=0.6, max_depth=20
+):
     """
     Determines the best n-layer profile fit for a given parameter
 
@@ -139,7 +157,7 @@ def fit_n_layer_profile(depths, crr_n15s, n=3, crr_n15_opts=None, cap=0.6, max_d
             # q_c1n_cs = np.arange(0, 180., 5.)
             # crr_n15_opts = bi_functions.calc_crr_m7p5_from_qc1ncs(q_c1n_cs)[::-1]
         else:
-            q_c1n_cs = np.arange(0, 180., 5.)
+            q_c1n_cs = np.arange(0, 180.0, 5.0)
             crr_n15_opts = bi_functions.calc_crr_m7p5_from_qc1ncs(q_c1n_cs)[::-1]
 
     # standardise depth
@@ -179,8 +197,12 @@ def fit_n_layer_profile(depths, crr_n15s, n=3, crr_n15_opts=None, cap=0.6, max_d
 
             poss_i_tops = np.take(peak_ids, np.arange(0, len(peak_ids), 2))
             poss_i_bots = np.take(peak_ids, np.arange(1, len(peak_ids), 2))
-            poss_i_tops = np.insert(poss_i_tops, len(poss_i_tops), len(std_crr_n15s) - 1)  # add end
-            poss_i_bots = np.insert(poss_i_bots, len(poss_i_bots), len(std_crr_n15s) - 1)
+            poss_i_tops = np.insert(
+                poss_i_tops, len(poss_i_tops), len(std_crr_n15s) - 1
+            )  # add end
+            poss_i_bots = np.insert(
+                poss_i_bots, len(poss_i_bots), len(std_crr_n15s) - 1
+            )
             poss_err_tops = np.take(eline, poss_i_tops)
             poss_err_bots = np.take(eline, poss_i_bots)
             for ll in range(n_liqs):
@@ -188,7 +210,9 @@ def fit_n_layer_profile(depths, crr_n15s, n=3, crr_n15_opts=None, cap=0.6, max_d
                     opts_lay.append([0])
                 else:
                     # error occurred for each change point pair
-                    opts_lay.append(poss_err_tops[np.newaxis, ll:] - poss_err_bots[ll:, np.newaxis])
+                    opts_lay.append(
+                        poss_err_tops[np.newaxis, ll:] - poss_err_bots[ll:, np.newaxis]
+                    )
                     # remove cases where i_bot is higher than i_top
                     opts_lay[ll] *= np.tri(*opts_lay[ll].shape)
             if n_liqs == 1:
@@ -199,19 +223,35 @@ def fit_n_layer_profile(depths, crr_n15s, n=3, crr_n15_opts=None, cap=0.6, max_d
 
             elif n_liqs == 2:
                 opts_l1f = opts_lay[0].flatten()
-                top1_is = poss_i_tops[np.newaxis, :] * np.ones_like(opts_lay[0], dtype=int)
-                bot1_is = poss_i_bots[:, np.newaxis] * np.ones_like(opts_lay[0], dtype=int)
+                top1_is = poss_i_tops[np.newaxis, :] * np.ones_like(
+                    opts_lay[0], dtype=int
+                )
+                bot1_is = poss_i_bots[:, np.newaxis] * np.ones_like(
+                    opts_lay[0], dtype=int
+                )
 
                 opts_l2f = opts_lay[1].flatten()
-                top2_is = poss_i_tops[np.newaxis, 1:] * np.ones_like(opts_lay[1], dtype=int)
-                bot2_is = poss_i_bots[1:, np.newaxis] * np.ones_like(opts_lay[1], dtype=int)
+                top2_is = poss_i_tops[np.newaxis, 1:] * np.ones_like(
+                    opts_lay[1], dtype=int
+                )
+                bot2_is = poss_i_bots[1:, np.newaxis] * np.ones_like(
+                    opts_lay[1], dtype=int
+                )
 
                 opts = opts_l1f[np.newaxis, :] + opts_l2f[:, np.newaxis]
-                top1_is = top1_is.flatten()[np.newaxis, :] * np.ones_like(opts, dtype=int)
-                bot1_is = bot1_is.flatten()[np.newaxis, :] * np.ones_like(opts, dtype=int)
+                top1_is = top1_is.flatten()[np.newaxis, :] * np.ones_like(
+                    opts, dtype=int
+                )
+                bot1_is = bot1_is.flatten()[np.newaxis, :] * np.ones_like(
+                    opts, dtype=int
+                )
 
-                top2_is = top2_is.flatten()[:, np.newaxis] * np.ones_like(opts, dtype=int)
-                bot2_is = bot2_is.flatten()[:, np.newaxis] * np.ones_like(opts, dtype=int)
+                top2_is = top2_is.flatten()[:, np.newaxis] * np.ones_like(
+                    opts, dtype=int
+                )
+                bot2_is = bot2_is.flatten()[:, np.newaxis] * np.ones_like(
+                    opts, dtype=int
+                )
 
                 # remove cases where i_crust_l2 < i_liq_l1
                 opts = np.where(top2_is < bot1_is, 1e10, opts)
@@ -236,9 +276,9 @@ def fit_n_layer_profile(depths, crr_n15s, n=3, crr_n15_opts=None, cap=0.6, max_d
                     # err = 0
                 else:
                     # Median equal to min of absolute deviation
-                    crr_median = np.median(std_crr_n15s[i_tops[ll]:i_bots[ll]])
+                    crr_median = np.median(std_crr_n15s[i_tops[ll] : i_bots[ll]])
                     crrs[ll].append(crr_median)
-                    crr_profile[i_tops[ll]:i_bots[ll]] = crr_median
+                    crr_profile[i_tops[ll] : i_bots[ll]] = crr_median
                 # err = np.sum(np.abs(capped_values[i_tops[ll]:i_bots[ll]] - crrs[ll][ii]))
                 # total_err += err
             total_err = np.sum(abs(std_crr_n15s - crr_profile))
@@ -255,13 +295,13 @@ def fit_n_layer_profile(depths, crr_n15s, n=3, crr_n15_opts=None, cap=0.6, max_d
             else:
                 d_liqs[0].append(depths[peak_ids[1]])
                 d_nonliqs[0].append(depths[peak_ids[2]])
-                crr_median = np.median(std_crr_n15s[peak_ids[1]:peak_ids[2]])
+                crr_median = np.median(std_crr_n15s[peak_ids[1] : peak_ids[2]])
                 crrs[0].append(crr_median)
                 d_liqs[1].append(depths[-1])
                 d_nonliqs[1].append(depths[-1])
                 crrs[1].append(cap)
                 crr_profile = np.ones_like(std_crr_n15s) * cap
-                crr_profile[peak_ids[1]:peak_ids[2]] = crr_median
+                crr_profile[peak_ids[1] : peak_ids[2]] = crr_median
                 total_err = np.sum(abs(std_crr_n15s - crr_profile))
                 normed_diffs.append(total_err / (n_depths * cap))
 
@@ -280,7 +320,7 @@ def fit_n_layer_profile(depths, crr_n15s, n=3, crr_n15_opts=None, cap=0.6, max_d
     return d_liqs, d_nonliqs, crrs[:, i_best], normed_diff
 
 
-def create_profile_array(d_nonliqs, d_liqs, depth, layer_values, other_layers=2.):
+def create_profile_array(d_nonliqs, d_liqs, depth, layer_values, other_layers=2.0):
     """
     Given equivalent soil profile values it builds an array based on the depths
 
@@ -320,8 +360,12 @@ class EquivalentProfiler(object):
     def bi2014(self):
         return self._bi2014
 
-    def compute_e3profile(self, max_depth=20.):
-        self._e3_d_liqs, self._e3_d_nonliqs, self._e3_csr_n15, self._e3_norm_diff = fit_n_layer_profile(self.bi2014.depth, self.bi2014.crr_m7p5, n=3, max_depth=max_depth)
+    def compute_e3profile(self, max_depth=20.0):
+        self._e3_d_liqs, self._e3_d_nonliqs, self._e3_csr_n15, self._e3_norm_diff = (
+            fit_n_layer_profile(
+                self.bi2014.depth, self.bi2014.crr_m7p5, n=3, max_depth=max_depth
+            )
+        )
 
     @property
     def e3_h_crust(self):
@@ -345,12 +389,16 @@ class EquivalentProfiler(object):
     def e3_qc1ncs(self):
         qc1ncs_vals = bi_functions.calculate_qc_1ncs_from_crr_7p5(self.e3_csr_n15)
         if self._e3_q_c1n_cs is None:
-            self._e3_q_c1n_cs = create_profile_array(self._e3_d_nonliqs, self._e3_d_liqs, self.depth, qc1ncs_vals)
+            self._e3_q_c1n_cs = create_profile_array(
+                self._e3_d_nonliqs, self._e3_d_liqs, self.depth, qc1ncs_vals
+            )
         return self._e3_q_c1n_cs
 
     @property
     def e3_crr_m7p5(self):
-        return create_profile_array(self._e3_d_nonliqs, self._e3_d_liqs, self.depth, self.e3_csr_n15s)
+        return create_profile_array(
+            self._e3_d_nonliqs, self._e3_d_liqs, self.depth, self.e3_csr_n15s
+        )
 
     @property
     def e3_norm_diff(self):
@@ -359,8 +407,9 @@ class EquivalentProfiler(object):
         return self.e3_norm_diff
 
     def compute_e5profile(self):
-        self._e5_d_nonliqs, self._e5_d_liqs, self._e5_csr_n15, self._e5_norm_diff = fit_n_layer_profile(
-            self.bi2014.depth, self.bi2014.crr_m7p5, n=5)
+        self._e5_d_nonliqs, self._e5_d_liqs, self._e5_csr_n15, self._e5_norm_diff = (
+            fit_n_layer_profile(self.bi2014.depth, self.bi2014.crr_m7p5, n=5)
+        )
 
     @property
     def e5_h_nonliqs(self):
@@ -384,12 +433,16 @@ class EquivalentProfiler(object):
     def e5_qc1ncs(self):
         qc1ncs_vals = bi_functions.calculate_qc_1ncs_from_crr_7p5(self.e5_csr_n15s)
         if self._e5_q_c1n_cs is None:
-            self._e5_q_c1n_cs = create_profile_array(self._e5_d_nonliqs, self._e5_d_liqs, self.depth, qc1ncs_vals)
+            self._e5_q_c1n_cs = create_profile_array(
+                self._e5_d_nonliqs, self._e5_d_liqs, self.depth, qc1ncs_vals
+            )
         return self._e5_q_c1n_cs
 
     @property
     def e5_crr_m7p5(self):
-        return create_profile_array(self._e5_d_nonliqs, self._e5_d_liqs, self.depth, self.e5_csr_n15s)
+        return create_profile_array(
+            self._e5_d_nonliqs, self._e5_d_liqs, self.depth, self.e5_csr_n15s
+        )
 
     @property
     def e5_norm_diff(self):
@@ -403,13 +456,27 @@ class EquivalentProfiler(object):
 
 
 def compute_e5profile(bi2014):
-    d_liqs, d_nonliqs, csr_n15s, norm_diff = fit_n_layer_profile(bi2014.depth, bi2014.crr_m7p5, n=5)
-    return Equiv5LayerProfile(d_nonliqs, d_liqs, csr_n15s, bi2014.gwl, norm_diff, bi2014.depth, surrogate=True)
+    d_liqs, d_nonliqs, csr_n15s, norm_diff = fit_n_layer_profile(
+        bi2014.depth, bi2014.crr_m7p5, n=5
+    )
+    return Equiv5LayerProfile(
+        d_nonliqs, d_liqs, csr_n15s, bi2014.gwl, norm_diff, bi2014.depth, surrogate=True
+    )
 
 
 def compute_e3profile(bi2014):
-    d_liqs, d_nonliqs, csr_n15, norm_diff = fit_n_layer_profile(bi2014.depth, bi2014.crr_m7p5, n=3)
-    return Equiv3LayerProfile(d_liqs[0], d_nonliqs[0], csr_n15[0], bi2014.gwl, norm_diff, bi2014.depth, surrogate=True)
+    d_liqs, d_nonliqs, csr_n15, norm_diff = fit_n_layer_profile(
+        bi2014.depth, bi2014.crr_m7p5, n=3
+    )
+    return Equiv3LayerProfile(
+        d_liqs[0],
+        d_nonliqs[0],
+        csr_n15[0],
+        bi2014.gwl,
+        norm_diff,
+        bi2014.depth,
+        surrogate=True,
+    )
 
 
 def crr_error_variance(eprofile, crr_values):
@@ -483,7 +550,7 @@ def compute_new_lsn_from_equivalent_profile(eq_profiler, new_pga, new_m_w, n=3):
     return lsn
 
 
-class EquivalentProfile(sm.PhysicalObject):  # TODO: create SurrogateObject, always attached
+class EquivalentProfile(sm.PhysicalObject):
     q_c = None
     f_s = None
     u_2 = None
@@ -538,28 +605,29 @@ class EquivalentProfile(sm.PhysicalObject):  # TODO: create SurrogateObject, alw
 
 
 def get_esp_names():
-    return ['WLS'
-            'WLM',
-            'WLD',
-            'WMS',
-            'WMM',
-            'WMD',
-            'WTS',
-            'WTM',
-            'WTD',
-            'MLS',
-            'MLM',
-            'MLD',
-            'MMS',
-            'MMM',
-            'MMD',
-            'MTS',
-            'MTM',
-            'MTD',
-            'SLX',
-            'SMX',
-            'STX',
-            'RXX']
+    return [
+        "WLS" "WLM",
+        "WLD",
+        "WMS",
+        "WMM",
+        "WMD",
+        "WTS",
+        "WTM",
+        "WTD",
+        "MLS",
+        "MLM",
+        "MLD",
+        "MMS",
+        "MMM",
+        "MMD",
+        "MTS",
+        "MTM",
+        "MTD",
+        "SLX",
+        "SMX",
+        "STX",
+        "RXX",
+    ]
 
 
 def get_esp_criteria():
@@ -568,21 +636,16 @@ def get_esp_criteria():
 
     :return:
     """
-    cd = {'crr_n15':
-           {'W': [0.0, 0.15],
-            'M': [0.15, 0.25],
-            'S': [0.25, 0.45],
-            'R': [0.45, 0.60]},
-          'h_liq':
-                {'T': [0.5, 3.0],
-                'M': [3.0, 7.0],
-            'L': [7.0, 10.0]},
-          'h_crust':
-              {'S': [0.0, 2.0],
-            'M': [3.0, 7.0],
-            'D': [7.0, 10.0]
-            }
-          }
+    cd = {
+        "crr_n15": {
+            "W": [0.0, 0.15],
+            "M": [0.15, 0.25],
+            "S": [0.25, 0.45],
+            "R": [0.45, 0.60],
+        },
+        "h_liq": {"T": [0.5, 3.0], "M": [3.0, 7.0], "L": [7.0, 10.0]},
+        "h_crust": {"S": [0.0, 2.0], "M": [3.0, 7.0], "D": [7.0, 10.0]},
+    }
 
     return cd
 
@@ -617,10 +680,19 @@ def classify_esp(esp_values: dict) -> str:
 
 def set_strength_props(sl, vert_eff_stress, i_c, big_q, n_kt=14):
     if i_c > 2.6:
-        sl.cohesion = lq.field.correlations.est_undrained_strength_ratio_robertson_2009(big_q, n_kt=n_kt) * vert_eff_stress
+        sl.cohesion = (
+            lq.field.correlations.est_undrained_strength_ratio_robertson_2009(
+                big_q, n_kt=n_kt
+            )
+            * vert_eff_stress
+        )
         sl.phi = 0.0
     else:
-        sl.phi = np.arctan(lq.field.correlations.est_undrained_strength_ratio_robertson_2009(big_q, n_kt=n_kt))
+        sl.phi = np.arctan(
+            lq.field.correlations.est_undrained_strength_ratio_robertson_2009(
+                big_q, n_kt=n_kt
+            )
+        )
         sl.cohesion = 0.0
 
 
@@ -634,9 +706,17 @@ def set_soil_props(sl, bi2014, i_top, i_bot, gwl):
     else:
         unit_wt = sl.unit_sat_weight
     if np.median(bi2014.i_c) > 2.6:  # clay-like
-        undrained_strength_ratio_i = lq.field.correlations.est_undrained_strength_ratio_robertson_2009(bi2014.big_q[i_top:i_bot])
+        undrained_strength_ratio_i = (
+            lq.field.correlations.est_undrained_strength_ratio_robertson_2009(
+                bi2014.big_q[i_top:i_bot]
+            )
+        )
         undrained_strength_ratio = np.mean(undrained_strength_ratio_i)
-        rel_density_i = lq_field_correlations.calc_relative_density_salgado_et_al_1997_cpt_values(bi2014.q_c1n[i_top:i_bot])
+        rel_density_i = (
+            lq_field_correlations.calc_relative_density_salgado_et_al_1997_cpt_values(
+                bi2014.q_c1n[i_top:i_bot]
+            )
+        )
         sl.relative_density = np.mean(rel_density_i)
         av_esig_v = np.mean(bi2014.sigma_veff)
         sl.cohesion = undrained_strength_ratio * av_esig_v
@@ -644,7 +724,11 @@ def set_soil_props(sl, bi2014, i_top, i_bot, gwl):
     else:
         sl.phi = 30.0  # TODO: better definition for this
         sl.cohesion = 0.0
-    sl.g_mod = np.mean(lq.field.correlations.est_g_mod_robertson_2009(bi2014.i_c, bi2014.big_q, unit_wt))
+    sl.g_mod = np.mean(
+        lq.field.correlations.est_g_mod_robertson_2009(
+            bi2014.i_c, bi2014.big_q, unit_wt
+        )
+    )
 
 
 def build_soil_profile_from_bi2014(esp, bi2014):
@@ -680,7 +764,13 @@ def build_soil_profile_from_bi2014(esp, bi2014):
     for i in range(len(s_depths) - 1):
         if s_depths[i + 1] - s_depths[i] > 0:
             sl = sm.Soil()
-            set_soil_props(sl, bi2014, i_top=esp.ith(s_depths[i]), i_bot=esp.ith(s_depths[i + 1]),  gwl=sp.gwl)
+            set_soil_props(
+                sl,
+                bi2014,
+                i_top=esp.ith(s_depths[i]),
+                i_bot=esp.ith(s_depths[i + 1]),
+                gwl=sp.gwl,
+            )
             if csr_n15[i]:
                 sl.csr_n15 = csr_n15[i]
                 sl.inputs.append("csr_n15")
@@ -691,13 +781,26 @@ def build_soil_profile_from_bi2014(esp, bi2014):
 
 
 class Equiv3LayerProfile(sm.CustomObject):
-    base_type = 'soil_profile'
-    type = 'equivalent_3layer'
+    base_type = "soil_profile"
+    type = "equivalent_3layer"
     n_layers = 3
     _q_c1ncs = None
     _e3_q_c1n_cs = None
 
-    def __init__(self, d_liq, d_nonliq, crr_n15, gwl, norm_diff=None, depth=None, d_inc=None, d_start=None, d_end=None, surrogate=False, **kwargs):
+    def __init__(
+        self,
+        d_liq,
+        d_nonliq,
+        crr_n15,
+        gwl,
+        norm_diff=None,
+        depth=None,
+        d_inc=None,
+        d_start=None,
+        d_end=None,
+        surrogate=False,
+        **kwargs,
+    ):
         super(Equiv3LayerProfile, self).__init__()
         if depth is None:
             if d_inc is None or d_start is None or d_end is None:
@@ -709,7 +812,16 @@ class Equiv3LayerProfile(sm.CustomObject):
         self.crr_n15 = crr_n15
         self.gwl = gwl
         self.norm_diff = norm_diff
-        self._extra_class_inputs = ['d_liq', 'd_nonliq', 'crr_n15', 'gwl', 'norm_diff', 'd_inc', 'd_start', 'd_end']
+        self._extra_class_inputs = [
+            "d_liq",
+            "d_nonliq",
+            "crr_n15",
+            "gwl",
+            "norm_diff",
+            "d_inc",
+            "d_start",
+            "d_end",
+        ]
         if surrogate:
             self.inputs = self._extra_class_inputs
         else:
@@ -743,25 +855,41 @@ class Equiv3LayerProfile(sm.CustomObject):
     def q_c1n_cs(self):
         qc1ncs_vals = bi_functions.calc_q_c1n_cs_from_crr_m7p5(self.crr_n15)
         if self._e3_q_c1n_cs is None:
-            self._e3_q_c1n_cs = create_profile_array([self.d_nonliq], [self.d_liq], self.depth, [qc1ncs_vals], 220.0)
+            self._e3_q_c1n_cs = create_profile_array(
+                [self.d_nonliq], [self.d_liq], self.depth, [qc1ncs_vals], 220.0
+            )
         return self._e3_q_c1n_cs
 
     @property
     def crr_m7p5(self):
-        return create_profile_array([self.d_nonliq], [self.d_liq], self.depth, [self.crr_n15], 1.0)
+        return create_profile_array(
+            [self.d_nonliq], [self.d_liq], self.depth, [self.crr_n15], 1.0
+        )
 
     def ith(self, y_depth):
         return np.where(self.depth >= y_depth)[0][0]
 
 
 class Equiv5LayerProfile(sm.CustomObject):
-    base_type = 'soil_profile'
-    type = 'equivalent_5layer'
+    base_type = "soil_profile"
+    type = "equivalent_5layer"
     n_layers = 5
     _q_c1n_cs = None
 
-    def __init__(self, d_liqs, d_nonliqs, crr_n15s, gwl, norm_diff=None, depth=None, d_inc=None, d_start=None,
-                 d_end=None, surrogate=False, **kwargs):
+    def __init__(
+        self,
+        d_liqs,
+        d_nonliqs,
+        crr_n15s,
+        gwl,
+        norm_diff=None,
+        depth=None,
+        d_inc=None,
+        d_start=None,
+        d_end=None,
+        surrogate=False,
+        **kwargs,
+    ):
 
         super(Equiv5LayerProfile, self).__init__()
         if depth is None:
@@ -774,7 +902,16 @@ class Equiv5LayerProfile(sm.CustomObject):
         self.crr_n15s = crr_n15s
         self.gwl = gwl
         self.norm_diff = norm_diff
-        self._extra_class_inputs = ['d_liqs', 'd_nonliqs', 'crr_n15s', 'gwl', 'norm_diff', 'd_inc', 'd_start', 'd_end']
+        self._extra_class_inputs = [
+            "d_liqs",
+            "d_nonliqs",
+            "crr_n15s",
+            "gwl",
+            "norm_diff",
+            "d_inc",
+            "d_start",
+            "d_end",
+        ]
         if surrogate:
             self.inputs = self._extra_class_inputs
         else:
@@ -798,22 +935,34 @@ class Equiv5LayerProfile(sm.CustomObject):
 
     @property
     def h_nonliqs(self):
-        return np.array([self.d_liqs[0], self.d_liqs[1] - self.d_nonliqs[0], self.d_end - self.d_nonliqs[1]])
+        return np.array(
+            [
+                self.d_liqs[0],
+                self.d_liqs[1] - self.d_nonliqs[0],
+                self.d_end - self.d_nonliqs[1],
+            ]
+        )
 
     @property
     def h_liqs(self):
-        return np.array([self.d_nonliqs[0] - self.d_liqs[0], self.d_nonliqs[1] - self.d_liqs[1]])
+        return np.array(
+            [self.d_nonliqs[0] - self.d_liqs[0], self.d_nonliqs[1] - self.d_liqs[1]]
+        )
 
     @property
     def q_c1n_cs(self):
         q_c1ncs_vals = bi_functions.calculate_qc_1ncs_from_crr_7p5(self.crr_n15s)
         if self._q_c1n_cs is None:
-            self._q_c1n_cs = create_profile_array(self.d_nonliqs, self.d_liqs, self.depth, q_c1ncs_vals)
+            self._q_c1n_cs = create_profile_array(
+                self.d_nonliqs, self.d_liqs, self.depth, q_c1ncs_vals
+            )
         return self._q_c1n_cs
 
     @property
     def crr_m7p5(self):
-        return create_profile_array(self.d_nonliqs, self.d_liqs, self.depth, self.crr_n15s)
+        return create_profile_array(
+            self.d_nonliqs, self.d_liqs, self.depth, self.crr_n15s
+        )
 
     def ith(self, y_depth):
         return np.where(self.depth >= y_depth)[0][0]
@@ -863,16 +1012,18 @@ def build_soil_profile_from_bi2014_w_layer_dict(bi2014, layers_dict):
     csr_n15 = csr_n15[arr_inds]
     s_depths[0] = 0
 
-    crr_values = lq.trigger.boulanger_and_idriss_2014.calc_crr_m7p5_from_qc1ncs(bi2014.q_c1n_cs)
+    crr_values = lq.trigger.boulanger_and_idriss_2014.calc_crr_m7p5_from_qc1ncs(
+        bi2014.q_c1n_cs
+    )
     crr_values = np.clip(crr_values, None, 0.6)
 
     for i in range(len(s_depths) - 1):
         sl = sm.Soil()
-        set_soil_props(sl, bi2014, i_top=i_ths[i] - 1, i_bot=i_ths[i + 1],  gwl=sp.gwl)
+        set_soil_props(sl, bi2014, i_top=i_ths[i] - 1, i_bot=i_ths[i + 1], gwl=sp.gwl)
         # if csr_n15[i]:
         #     sl.csr_n15 = csr_n15[i]
         #     sl.inputs.append("csr_n15")
-        sl.csr_n15 = np.mean(crr_values[i_ths[i] - 1:i_ths[i + 1]])
+        sl.csr_n15 = np.mean(crr_values[i_ths[i] - 1 : i_ths[i + 1]])
         sl.inputs.append("csr_n15")
         sp.add_layer(s_depths[i], sl)
 
@@ -882,42 +1033,55 @@ def build_soil_profile_from_bi2014_w_layer_dict(bi2014, layers_dict):
 
 def get_col_dict():
     """Define a dictionary of colors of different ESP (strength-position pairs)"""
-    col_dict = OrderedDict([
-        ("WT", [(1.0, 0.5, 0.4), "Weak thin"]),
-        ("WM", [(1.0, 0.3, 0.25), "Weak mid-size"]),
-        ("WL", [(0.8, 0.0, 0.15), "Weak large"]),
-        ("MT", [(1.0, 0.9, 0.3), "Mid-strength thin"]),
-        ("MM", [(1.0, 0.75, 0.15), "Mid-strength mid-size"]),
-        ("ML", [(0.95, 0.55, 0.0), "Mid-strength large"]),
-        ("ST", [(0.3, 0.8, 0.3), "Strong thin"]),
-        ("SM", [(0.0, 0.6, 0.0), "Strong mid-size"]),
-        ("SL", [(0.1, 0.4, 0.1), "Strong large"]),
-        ("RX", [(0.6, 0.6, 0.6), "Resistant"]),
-    ])
+    col_dict = OrderedDict(
+        [
+            ("WT", [(1.0, 0.5, 0.4), "Weak thin"]),
+            ("WM", [(1.0, 0.3, 0.25), "Weak mid-size"]),
+            ("WL", [(0.8, 0.0, 0.15), "Weak large"]),
+            ("MT", [(1.0, 0.9, 0.3), "Mid-strength thin"]),
+            ("MM", [(1.0, 0.75, 0.15), "Mid-strength mid-size"]),
+            ("ML", [(0.95, 0.55, 0.0), "Mid-strength large"]),
+            ("ST", [(0.3, 0.8, 0.3), "Strong thin"]),
+            ("SM", [(0.0, 0.6, 0.0), "Strong mid-size"]),
+            ("SL", [(0.1, 0.4, 0.1), "Strong large"]),
+            ("RX", [(0.6, 0.6, 0.6), "Resistant"]),
+        ]
+    )
     return col_dict
 
 
 def get_hatch_dict():
     """Define a dictionary of hatches for different ESP sizes"""
-    hatch_dict = OrderedDict([
-        ("S", [None, "Shallow"]),
-        ("M", ["...", "Mid-height"]),
-        ("D", ["o", "Deep"]),
-        ("X", ["*", "N/A"])
-        ])
+    hatch_dict = OrderedDict(
+        [
+            ("S", [None, "Shallow"]),
+            ("M", ["...", "Mid-height"]),
+            ("D", ["o", "Deep"]),
+            ("X", ["*", "N/A"]),
+        ]
+    )
     return hatch_dict
+
 
 def get_esp_classes_legend_elements(include="all"):
     from matplotlib.patches import Patch
+
     hatch_dict = get_hatch_dict()
     col_dict = get_col_dict()
     legend_elements = []
     for name in col_dict:
-        legend_elements.append(Patch(facecolor=col_dict[name][0],
-                                     label=col_dict[name][1]))
+        legend_elements.append(
+            Patch(facecolor=col_dict[name][0], label=col_dict[name][1])
+        )
     for name in hatch_dict:
-        legend_elements.append(Patch(facecolor="w", edgecolor='k',
-                                     label=hatch_dict[name][1], hatch=hatch_dict[name][0]))
+        legend_elements.append(
+            Patch(
+                facecolor="w",
+                edgecolor="k",
+                label=hatch_dict[name][1],
+                hatch=hatch_dict[name][0],
+            )
+        )
 
     return legend_elements
 
@@ -927,8 +1091,8 @@ class BoulangerIdriss2014SoilProfile(object):  # TODO: validate this properly
         self.sp = sp
         assert isinstance(self.sp, sm.SoilProfile)
         self.inc = 0.01
-        self.sp.gen_split(target=self.inc, props=['csr_n15'])
-        split_depths = np.cumsum(self.sp.split['thickness'])
+        self.sp.gen_split(target=self.inc, props=["csr_n15"])
+        split_depths = np.cumsum(self.sp.split["thickness"])
         self.depth = np.arange(0, sp.height + self.inc, self.inc)
         self.npts = len(self.depth)
 
@@ -955,12 +1119,14 @@ class BoulangerIdriss2014SoilProfile(object):  # TODO: validate this properly
         if self.sigma_veff[0] == 0.0:
             self.sigma_veff[0] = 1.0e-10
         self.rd = calc_rd(self.depth, self.m_w)
-        crr_unlimited = np.interp(self.depth, split_depths, self.sp.split['csr_n15'])
+        crr_unlimited = np.interp(self.depth, split_depths, self.sp.split["csr_n15"])
         self.crr_m7p5 = np.where(self.depth <= self.gwl, 4, crr_unlimited)
         self.q_c1n_cs = calc_q_c1n_cs_from_crr_m7p5(self.crr_m7p5)
         self.k_sigma = calc_k_sigma(self.sigma_veff, self.q_c1n_cs)
         self.msf = calc_msf(self.m_w, self.q_c1n_cs)
         self.crr = crr_m(self.k_sigma, self.msf, self.crr_m7p5)  # CRR at set magnitude
-        self.csr = calc_csr(self.sigma_veff, self.sigma_v, pga, self.rd, self.gwl, self.depth)
+        self.csr = calc_csr(
+            self.sigma_veff, self.sigma_v, pga, self.rd, self.gwl, self.depth
+        )
         fs_unlimited = self.crr / self.csr
         self.factor_of_safety = np.where(fs_unlimited > 2, 2, fs_unlimited)

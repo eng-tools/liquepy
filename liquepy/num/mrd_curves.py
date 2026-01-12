@@ -15,7 +15,7 @@ def calc_mr_flac_default_curve(gamma, l_1, l_2):
     gamma_percent = gamma * 100
     lg = np.log10(gamma_percent)
     s = np.clip((l_2 - lg) / (l_2 - l_1), None, 1)
-    return s ** 2 * (3. - 2. * s)
+    return s**2 * (3.0 - 2.0 * s)
 
 
 def calc_mr_seed_and_sun_mod(gamma):
@@ -75,26 +75,28 @@ def calc_ip_from_ss_ratio_vardanega_2013(ss_ratio, gamma_target=0.005):
 
 def set_hyp_params_from_op_pimy_or_pdmy_model(sl, p_ref=100.0e3, hyp=True):
     # Octahedral shear stress
-    tau_f = (2 * np.sqrt(2.) * np.sin(sl.phi_r)) / (3 - np.sin(sl.phi_r)) * p_ref + 2 * np.sqrt(2.) / 3 * sl.cohesion
-    if hasattr(sl, 'get_g_mod_at_m_eff_stress'):
+    tau_f = (2 * np.sqrt(2.0) * np.sin(sl.phi_r)) / (
+        3 - np.sin(sl.phi_r)
+    ) * p_ref + 2 * np.sqrt(2.0) / 3 * sl.cohesion
+    if hasattr(sl, "get_g_mod_at_m_eff_stress"):
         g_mod_r = sl.get_g_mod_at_m_eff_stress(p_ref)
-        if hasattr(sl, 'g_mod_p0'):
+        if hasattr(sl, "g_mod_p0"):
             assert sl.g_mod_p0 == 0.0
         d = sl.a
     else:
         g_mod_r = sl.g_mod
         d = 0.0
-    print('tau_f: ', tau_f)
-    print('cohesion: ', sl.cohesion)
+    print("tau_f: ", tau_f)
+    print("cohesion: ", sl.cohesion)
     strain_r = sl.peak_strain * tau_f / (g_mod_r * sl.peak_strain - tau_f)
     sdf = (p_ref / p_ref) ** d
     if hyp:  # hyperbolic model parameters
         sl.strain_curvature = 1.0
         sl.xi_min = 0.01
-        dss_eq = 1.  # np.sqrt(3. / 2)  # correct to direct simple shear equivalent
+        dss_eq = 1.0  # np.sqrt(3. / 2)  # correct to direct simple shear equivalent
         sl.strain_ref = strain_r / sdf / dss_eq
         sl.sra_type = "hyperbolic"
-        sl.inputs += ['strain_curvature', 'xi_min', 'sra_type', 'strain_ref']
+        sl.inputs += ["strain_curvature", "xi_min", "sra_type", "strain_ref"]
 
 
 def calc_gamma_ref_via_darendeli_2001(i_p, ocr, p_eff, p_atm=101.0e3):
@@ -111,7 +113,7 @@ def calc_gamma_ref_via_darendeli_2001(i_p, ocr, p_eff, p_atm=101.0e3):
     phi_2 = 0.0010
     phi_3 = 0.3246
     phi_4 = 0.3483
-    return (phi_1 + phi_2 * i_p * 100 * ocr ** phi_3) * (p_eff / p_atm) ** phi_4 / 100
+    return (phi_1 + phi_2 * i_p * 100 * ocr**phi_3) * (p_eff / p_atm) ** phi_4 / 100
 
 
 def calc_gamma_ref_via_menq_2003(c_u, p_eff, p_atm=101.0e3):
@@ -123,8 +125,8 @@ def calc_gamma_ref_via_menq_2003(c_u, p_eff, p_atm=101.0e3):
     :param p_eff:
     :return:
     """
-    big_a_gamma = 0.12 * c_u ** -0.6
-    n_gamma = 0.5 * c_u ** -0.15
+    big_a_gamma = 0.12 * c_u**-0.6
+    n_gamma = 0.5 * c_u**-0.15
 
     return big_a_gamma * (p_eff / p_atm) ** n_gamma / 100
 
@@ -146,7 +148,7 @@ def calc_min_damping_via_menq_2003(c_u, d_50, p_eff, p_atm=101.0e3):
 
     """
 
-    return (0.55 * c_u ** 0.1 * d_mean ** -0.3 * (p_eff / p_atm) ** -0.08) / 100
+    return (0.55 * c_u**0.1 * d_mean**-0.3 * (p_eff / p_atm) ** -0.08) / 100
 
 
 def calc_alpha_via_menq_2003(p_eff, p_atm=101.0e3):

@@ -14,7 +14,7 @@ def calc_shear_vel_mcgann_2015_cpt(cpt):
     array_like
         Shear wave velocity profile corresponding to the depths in the CPT.
     """
-    return 18.4 * cpt.q_c ** 0.144 * cpt.f_s ** 0.0832 * cpt.depth ** 0.278
+    return 18.4 * cpt.q_c**0.144 * cpt.f_s**0.0832 * cpt.depth**0.278
 
 
 def calc_shear_vel_robertson_2009_cpt(i_c, esigv0, qt, p_atm=101.0e3):
@@ -25,9 +25,9 @@ def calc_shear_vel_hegazy_and_mayne_2006_cpt(i_c, esigv0, big_qtn, p_atm=101.0e3
     return 0.0831 * big_qtn * np.exp(1.786 * i_c) * (esigv0 / p_atm) ** 0.25
 
 
-def calc_shear_vel_andrus_et_al_2007_cpt(i_c, depth, qt, stype='holocene-only'):
-    if stype == 'holocene-only':
-        return 2.27 * qt ** 0.412 * i_c ** 0.989 * depth ** 0.033
+def calc_shear_vel_andrus_et_al_2007_cpt(i_c, depth, qt, stype="holocene-only"):
+    if stype == "holocene-only":
+        return 2.27 * qt**0.412 * i_c**0.989 * depth**0.033
 
 
 def calc_shear_vel_andrus_and_stokoe_2000_spt_values(n_1_60):
@@ -114,7 +114,7 @@ def calc_q_c1n_via_inverse_d_r_boulanger_et_al_2014(d_r, c_dq=0.9):
     -------
     array_like
     """
-    return c_dq * ((d_r + 1.063) / 0.465) ** (1. / 0.264)
+    return c_dq * ((d_r + 1.063) / 0.465) ** (1.0 / 0.264)
 
 
 def calc_g0_mod_boulanger_and_ziotopoulou_2015_spt_values(n_1_60):
@@ -130,7 +130,7 @@ def calc_g0_mod_boulanger_and_ziotopoulou_2015_spt_values(n_1_60):
     -------
     array_like
     """
-    return 167. * np.sqrt(n_1_60 + 2.5)
+    return 167.0 * np.sqrt(n_1_60 + 2.5)
 
 
 def est_permeability_robertson_and_cabal_2012(i_c):
@@ -147,7 +147,9 @@ def est_permeability_robertson_and_cabal_2012(i_c):
     """
     if np.min(i_c) < 1:
         raise ValueError
-    return np.where(i_c < 3.27, 10.0 ** (0.952 - 3.04 * i_c), 10.0 ** (-4.52 - 1.37 * i_c))
+    return np.where(
+        i_c < 3.27, 10.0 ** (0.952 - 3.04 * i_c), 10.0 ** (-4.52 - 1.37 * i_c)
+    )
 
 
 def est_shear_vel_hegazy_and_mayne_2006(q_c1n, i_c, esig_v0, p_a):
@@ -175,7 +177,7 @@ def est_g_mod_robertson_2009(i_c, big_q, unit_weight):
     alpha_vs = 10 * (0.55 * i_c + 1.68)  # Eq 11 [m/s]
     big_q = np.clip(big_q, 0.001, None)
     vs1 = (alpha_vs * big_q) ** 0.5  # Eq 9 [m/s]
-    return unit_weight * vs1 ** 2
+    return unit_weight * vs1**2
 
 
 def est_g0_mod_robertson_2009(i_c, big_q, unit_weight, esig_v, pa=101000, n=0.5):
@@ -191,8 +193,13 @@ def est_undrained_strength_ratio_robertson_2009(big_q, n_kt=14):
 
 def set_strength_props(sl, vert_eff_stress, i_c, big_q, n_kt=14):
     if i_c > 2.6:
-        sl.cohesion = est_undrained_strength_ratio_robertson_2009(big_q, n_kt=n_kt) * vert_eff_stress
+        sl.cohesion = (
+            est_undrained_strength_ratio_robertson_2009(big_q, n_kt=n_kt)
+            * vert_eff_stress
+        )
         sl.phi = 0.0
     else:
-        sl.phi = np.arctan(est_undrained_strength_ratio_robertson_2009(big_q, n_kt=n_kt))
+        sl.phi = np.arctan(
+            est_undrained_strength_ratio_robertson_2009(big_q, n_kt=n_kt)
+        )
         sl.cohesion = 0.0

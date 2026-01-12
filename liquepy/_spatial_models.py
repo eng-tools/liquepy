@@ -18,7 +18,7 @@ class Coords(object):
         self.lon = lon
 
     def to_dict(self, **kwargs):
-        return OrderedDict([('lat', self.lat), ('lon', self.lon)])
+        return OrderedDict([("lat", self.lat), ("lon", self.lon)])
 
     def __repr__(self):
         return "Coord({0}, {1})".format(self.lat, self.lon)

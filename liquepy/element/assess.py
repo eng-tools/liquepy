@@ -1,5 +1,5 @@
-import numpy as np
 import eqsig
+import numpy as np
 
 
 def calc_diss_energy_fd(force, disp):
@@ -17,7 +17,9 @@ def calc_diss_energy_fd(force, disp):
     : array_like
         dissipated energy series
     """
-    average_force = (force[1:] + force[:-1]) / 2  # TODO: speed up by pre-allocating array of len(disp), then remove insert statements
+    average_force = (
+        force[1:] + force[:-1]
+    ) / 2  # TODO: speed up by pre-allocating array of len(disp), then remove insert statements
     average_force = np.insert(average_force, 0, force[0])  # Include first value
     delta_disp = np.diff(disp)
     delta_disp = np.insert(delta_disp, 0, 0)
@@ -112,13 +114,15 @@ def average_of_absolute_via_trapz(values):
     values_i = values[:-1]
     values_ip1 = values[1:]
     # build trapezoids but be careful of sign changes.
-    expected = np.where(values_ip1 * values_i >= 0,
-                        (values_i + values_ip1) / 2,
-                        (values_i ** 2 + values_ip1 ** 2) / (2 * abs(values_ip1 - values_i)))
+    expected = np.where(
+        values_ip1 * values_i >= 0,
+        (values_i + values_ip1) / 2,
+        (values_i**2 + values_ip1**2) / (2 * abs(values_ip1 - values_i)),
+    )
     return abs(expected)
 
 
-def calc_stored_energy_abs_incs_fd_peaks_and_indices(forces, disps, peaks_from='disp'):
+def calc_stored_energy_abs_incs_fd_peaks_and_indices(forces, disps, peaks_from="disp"):
     """
     Calculates the absolute change stored energy for an oscillating system
 
@@ -139,15 +143,17 @@ def calc_stored_energy_abs_incs_fd_peaks_and_indices(forces, disps, peaks_from='
     """
     forces = forces.astype(float)
     disps = disps.astype(float)
-    if peaks_from == 'disp':
+    if peaks_from == "disp":
         peak_indices = eqsig.get_peak_array_indices(disps)
-    elif peaks_from == 'cyclic_energy':
+    elif peaks_from == "cyclic_energy":
         peak_indices = get_energy_peaks_for_cyclic_loading(forces, disps)  # slow
     elif not isinstance(peaks_from, str):
         peak_indices = np.array(peaks_from)
     else:
-        raise ValueError("'peaks_from' must be either 'disp', 'cyclic_energy' or "
-                         "array indices, not {0}".format(peaks_from))
+        raise ValueError(
+            "'peaks_from' must be either 'disp', 'cyclic_energy' or "
+            "array indices, not {0}".format(peaks_from)
+        )
     peak_forces = np.take(forces, peak_indices)
     peak_disps = np.take(disps, peak_indices)
 
@@ -181,12 +187,14 @@ def calc_case_peaks_and_indices_fd(forces, disps):
         force time series
     :return: array_like
     """
-    peak_abs_delta_work, peak_indices = calc_stored_energy_abs_incs_fd_peaks_and_indices(forces, disps)
+    peak_abs_delta_work, peak_indices = (
+        calc_stored_energy_abs_incs_fd_peaks_and_indices(forces, disps)
+    )
     cum_work = np.cumsum(peak_abs_delta_work)
     return cum_work, peak_indices
 
 
-def calc_case_fd(forces, disps, stepped=False, peaks_from='disp', direct=False):
+def calc_case_fd(forces, disps, stepped=False, peaks_from="disp", direct=False):
     """
     Calculates the cumulative change in stored energy for an oscillating system.
 
@@ -212,8 +220,11 @@ def calc_case_fd(forces, disps, stepped=False, peaks_from='disp', direct=False):
         se = forces * abs(disps) * 0.5
         diff = np.diff(se, axis=-1, prepend=0)
         return np.cumsum(np.abs(diff), axis=-1)
-    peak_abs_delta_work, peak_indices = calc_stored_energy_abs_incs_fd_peaks_and_indices(forces, disps,
-                                                                                         peaks_from=peaks_from)
+    peak_abs_delta_work, peak_indices = (
+        calc_stored_energy_abs_incs_fd_peaks_and_indices(
+            forces, disps, peaks_from=peaks_from
+        )
+    )
     if stepped:
         peak_abs_delta_work_full_series = np.zeros_like(disps)
         np.put(peak_abs_delta_work_full_series, peak_indices, peak_abs_delta_work)
@@ -227,7 +238,9 @@ def calc_case_fd(forces, disps, stepped=False, peaks_from='disp', direct=False):
         return cum_abs_delta_work_full_series
 
 
-def calc_case_et(element_test, stepped=False, to_liq=False, norm=False, peaks_from='disp'):
+def calc_case_et(
+    element_test, stepped=False, to_liq=False, norm=False, peaks_from="disp"
+):
     """
     Calculates the absolute elastic work (case), cumulative absolute change in stored energy for an element test
 
@@ -253,7 +266,15 @@ def calc_case_et(element_test, stepped=False, to_liq=False, norm=False, peaks_fr
     denom = 1
     if norm:
         denom = element_test.esig_v0
-    return calc_case_fd(element_test.stress, element_test.strain, stepped=stepped, peaks_from=peaks_from)[:indy] / denom
+    return (
+        calc_case_fd(
+            element_test.stress,
+            element_test.strain,
+            stepped=stepped,
+            peaks_from=peaks_from,
+        )[:indy]
+        / denom
+    )
 
 
 def calc_damping_et(element_test, to_liq=False, cumulative=False):
@@ -288,16 +309,18 @@ def get_energy_peaks_for_cyclic_loading(forces, disps):
         zi = np.append(zi, len(forces))
     inds = [0]
     for i in range(len(zi) - 1):
-        e = (forces[zi[i]: zi[i + 1]] - forces[inds[i]]) * (disps[zi[i]: zi[i + 1]] - disps[inds[i]])
+        e = (forces[zi[i] : zi[i + 1]] - forces[inds[i]]) * (
+            disps[zi[i] : zi[i + 1]] - disps[inds[i]]
+        )
         inds.append(np.argmax(e) + zi[i])
     if inds[1] == 0:  # remove due to non zero start
         inds = inds[1:]
     return np.array(inds)
 
 
-if __name__ == '__main__':
-    gamma = np.array([0., 1., 0.5])
-    tau = np.array([0., 1., 0])
+if __name__ == "__main__":
+    gamma = np.array([0.0, 1.0, 0.5])
+    tau = np.array([0.0, 1.0, 0])
     expected_delta_e = 0.75  # two triangles (1x1x0.5 + 1x0.5x0.5)
     energy = calc_case_fd(tau, gamma)
     assert energy[-1] == expected_delta_e, energy

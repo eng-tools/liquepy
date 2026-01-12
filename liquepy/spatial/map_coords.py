@@ -1,4 +1,5 @@
 import numpy as np
+
 try:
     from geographiclib.geodesic import Geodesic
 except ImportError as e:
@@ -108,9 +109,11 @@ def calc_line_offset(line, coords):
     -------
 
     """
-    return _offset_wgs84((line.coords0.lat, line.coords0.lon),
-                        (line.coords1.lat, line.coords1.lon),
-                        (coords.lat, coords.lon))
+    return _offset_wgs84(
+        (line.coords0.lat, line.coords0.lon),
+        (line.coords1.lat, line.coords1.lon),
+        (coords.lat, coords.lon),
+    )
 
 
 def calc_line_off_dir(line, coords):
@@ -126,9 +129,11 @@ def calc_line_off_dir(line, coords):
     -------
 
     """
-    return _off_dir_wgs84((line.coords0.lat, line.coords0.lon),
-                        (line.coords1.lat, line.coords1.lon),
-                        (coords.lat, coords.lon))
+    return _off_dir_wgs84(
+        (line.coords0.lat, line.coords0.lon),
+        (line.coords1.lat, line.coords1.lon),
+        (coords.lat, coords.lon),
+    )
 
 
 def calc_smallest_angle(a0, a1):
@@ -176,9 +181,11 @@ def calc_proj_line_dist(line, coords):
     -------
 
     """
-    return _proj_dist_wgs84((line.coords0.lat, line.coords0.lon),
-                           (line.coords1.lat, line.coords1.lon),
-                           (coords.lat, coords.lon))
+    return _proj_dist_wgs84(
+        (line.coords0.lat, line.coords0.lon),
+        (line.coords1.lat, line.coords1.lon),
+        (coords.lat, coords.lon),
+    )
 
 
 def get_coords_at_dist(coords0, bearing, dist):
@@ -196,10 +203,19 @@ def get_coords_at_dist(coords0, bearing, dist):
     liquepy.spatial.models.Coords
     """
     g = Geodesic.WGS84.Direct(coords0.lat, coords0.lon, bearing, dist)
-    return Coords(g['lat2'], g['lon2'])
+    return Coords(g["lat2"], g["lon2"])
 
 
-def compute_idw(xy_vals, z_vals, new_xys, num_near=6, eps=0.0, pow_dist=1, weights=None, kd_leafsize=10):
+def compute_idw(
+    xy_vals,
+    z_vals,
+    new_xys,
+    num_near=6,
+    eps=0.0,
+    pow_dist=1,
+    weights=None,
+    kd_leafsize=10,
+):
     """
 
     Parameters
@@ -226,10 +242,11 @@ def compute_idw(xy_vals, z_vals, new_xys, num_near=6, eps=0.0, pow_dist=1, weigh
 
     """
     from scipy.spatial import cKDTree
+
     kd_tree = cKDTree(xy_vals, leafsize=kd_leafsize)  # build nearest neighbour tree
     new_xys = np.asarray(new_xys)
     distances, tree_indy = kd_tree.query(new_xys, k=num_near, eps=eps)
-    w = 1 / distances ** pow_dist
+    w = 1 / distances**pow_dist
     if weights is not None:
         w *= weights
     w = w / np.sum(w, axis=1)[:, np.newaxis]
@@ -240,12 +257,31 @@ def compute_idw(xy_vals, z_vals, new_xys, num_near=6, eps=0.0, pow_dist=1, weigh
     return new_zs
 
 
-def compute_idw_w_coords(coords, z_vals, new_coords, ref_coord=None, num_near=6, eps=0.0, pow_dist=1, weights=None, kd_leafsize=10):
+def compute_idw_w_coords(
+    coords,
+    z_vals,
+    new_coords,
+    ref_coord=None,
+    num_near=6,
+    eps=0.0,
+    pow_dist=1,
+    weights=None,
+    kd_leafsize=10,
+):
     if ref_coord is None:
         pass  # take central coordinate
     xy_vals = coords
     new_xys = new_coords
-    return compute_idw(xy_vals, z_vals, new_xys, num_near=num_near, eps=eps, pow_dist=pow_dist, weights=weights, kd_leafsize=kd_leafsize)
+    return compute_idw(
+        xy_vals,
+        z_vals,
+        new_xys,
+        num_near=num_near,
+        eps=eps,
+        pow_dist=pow_dist,
+        weights=weights,
+        kd_leafsize=kd_leafsize,
+    )
 
 
 class Line(object):

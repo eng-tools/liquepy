@@ -1,5 +1,6 @@
-import liquepy as lq
 import numpy as np
+
+import liquepy as lq
 
 
 def test_calc_q_c1n_via_inverse_d_r_boulanger_et_al_2014():
@@ -22,5 +23,6 @@ def test_calc_shear_vel_mcgann_2015_cpt():
     vs = lq.field.correlations.calc_shear_vel_mcgann_2015_cpt(cpt)
     assert np.isclose(vs, 77.85187, rtol=0.01), vs
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     test_calc_shear_vel_mcgann_2015_cpt()

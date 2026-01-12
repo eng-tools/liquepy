@@ -1,9 +1,9 @@
+import eqsig
+import numpy as np
+
 import liquepy.motion.measures
 from liquepy.settlement import methods
-
-import numpy as np
 from tests.conftest import TEST_DATA_DIR
-import eqsig
 
 
 def test_cavdp():
@@ -24,5 +24,5 @@ def test_cavdp():
     assert np.isclose(cav_dp, 1.4598176, rtol=0.001), cav_dp
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_cavdp()

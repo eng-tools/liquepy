@@ -1,13 +1,26 @@
-import liquepy as lq
-import numpy as np
 import eqsig
+import numpy as np
 import pysra
 import sfsimodels as sm
+
+import liquepy as lq
 
 
 class EqlinStockwellAnalysis(object):
 
-    def __init__(self, soil_profile, in_sig, rus=None, wave_field='outcrop', store='surface', gibbs=0, t_inc=1.0, t_win=3.0, strain_at_incs=True, strain_ratio=0.9):
+    def __init__(
+        self,
+        soil_profile,
+        in_sig,
+        rus=None,
+        wave_field="outcrop",
+        store="surface",
+        gibbs=0,
+        t_inc=1.0,
+        t_win=3.0,
+        strain_at_incs=True,
+        strain_ratio=0.9,
+    ):
         """
         Equivalent linear Stockwell Analysis
 
@@ -44,9 +57,11 @@ class EqlinStockwellAnalysis(object):
         assert isinstance(soil_profile, sm.SoilProfile)
         org_npts = in_sig.npts
         # Determine number of zeros required for zero padding
-        if gibbs is not None:  # If it is an integer then add to the exponent of 2 to remove the Gibbs effect
+        if (
+            gibbs is not None
+        ):  # If it is an integer then add to the exponent of 2 to remove the Gibbs effect
             nindex = int(np.ceil(np.log2(org_npts))) + gibbs
-            new_len = 2 ** nindex
+            new_len = 2**nindex
             diff_len = new_len - org_npts
             front = 0  # int(diff_len / 2)
             back = diff_len - front
@@ -54,19 +69,30 @@ class EqlinStockwellAnalysis(object):
             back = int(4 * np.ceil(org_npts / 4) - org_npts)
             front = 0
         # pad the input signal with zeros to make length a factor of 4
-        in_sig = eqsig.AccSignal(np.pad(in_sig.values, (front, back), mode='constant'), in_sig.dt)
+        in_sig = eqsig.AccSignal(
+            np.pad(in_sig.values, (front, back), mode="constant"), in_sig.dt
+        )
 
-        self.t_inds = np.arange(0, in_sig.npts - 1, int(t_inc / in_sig.dt), dtype=int)  # indices of time intervals
-        self.t_inds = np.insert(self.t_inds, len(self.t_inds), in_sig.npts)  # make sure last value is in list
-        ics = np.array((self.t_inds[1:] + self.t_inds[:-1]) / 2, dtype=int)  # halfway between indices of time intervals
+        self.t_inds = np.arange(
+            0, in_sig.npts - 1, int(t_inc / in_sig.dt), dtype=int
+        )  # indices of time intervals
+        self.t_inds = np.insert(
+            self.t_inds, len(self.t_inds), in_sig.npts
+        )  # make sure last value is in list
+        ics = np.array(
+            (self.t_inds[1:] + self.t_inds[:-1]) / 2, dtype=int
+        )  # halfway between indices of time intervals
 
         points = int(in_sig.npts / 2)
-        freqs = np.arange(0, points) / (points * in_sig.dt * 2)  # All the frequencies in the Stockwell transform
+        freqs = np.arange(0, points) / (
+            points * in_sig.dt * 2
+        )  # All the frequencies in the Stockwell transform
         # freqs_d2 = freqs[:int(points / 2)]  # Frequencies needed to compute the transfer function
 
         # Steps 1 & 2) Conduct and equivalent linear analysis and obtain strain time series
-        pysra_profile, strains = compute_pysra_strain_time_series(soil_profile, in_sig, target_height=0.5,
-                                                                  wave_field=wave_field)
+        pysra_profile, strains = compute_pysra_strain_time_series(
+            soil_profile, in_sig, target_height=0.5, wave_field=wave_field
+        )
 
         # 3a) Calculate the effective strain in each time interval for each slice of the soil profile
         iside = int(t_win / in_sig.dt)  # width of window in increments
@@ -77,7 +103,7 @@ class EqlinStockwellAnalysis(object):
                 if strain_at_incs:
                     si = max([ics[tt] - iside, 0])
                     ei = min([ics[tt] + iside, len(strains[i])])
-                    max_strain = max(abs(strains[i][si: ei]))
+                    max_strain = max(abs(strains[i][si:ei]))
                 else:  # Note this is different to the pysra eff. strain -which estimates the peak from the strain tf
                     max_strain = max(abs(strains[i]))
                 eff_strains[i].append(strain_ratio * max_strain)
@@ -91,49 +117,89 @@ class EqlinStockwellAnalysis(object):
         gr_hd_liq = 0.15  # (secant-shear-modulus-ratio-high-density-at-liquefaction)
         x_ld = 0.45  # Low density threshold
         x_hd = 0.8  # high density threshold
-        ru_gr_low = 0.3  # Low pore pressure ratio threshold for secant shear modulus change
-        ru_gr_high = 0.8  # High pore pressure ratio threshold for secant shear modulus change
-        ru_dx_low = 0.5  # Low pore pressure ratio threshold for damping increment change
-        ru_dx_high = 1.0  # High pore pressure ratio threshold for damping increment change
+        ru_gr_low = (
+            0.3  # Low pore pressure ratio threshold for secant shear modulus change
+        )
+        ru_gr_high = (
+            0.8  # High pore pressure ratio threshold for secant shear modulus change
+        )
+        ru_dx_low = (
+            0.5  # Low pore pressure ratio threshold for damping increment change
+        )
+        ru_dx_high = (
+            1.0  # High pore pressure ratio threshold for damping increment change
+        )
         min_g_liq_vs_g0 = 0.001  # Limiting ratio between the shear modulus at liquefaction divided by initial shear mod
         max_xi_liq = 0.3  # Maximum value for damping
 
         # The arrays for the secant stiffness ratio and damping increase at each time interval from pore pressure
         gred_is = np.ones((soil_profile.n_layers, len(ics)))
         dxi_is = np.zeros((soil_profile.n_layers, len(ics)))
-        if rus is not None:  # if pore pressure time series is defined then calculate the pore pressure corrections
+        if (
+            rus is not None
+        ):  # if pore pressure time series is defined then calculate the pore pressure corrections
             assert len(rus[0]) == org_npts, (len(rus[0]), org_npts)
-            gr_liqs = np.ones(soil_profile.n_layers)  # The secant stiffness ratio at liquefaction for each soil layer
-            dxi_liqs = np.zeros(soil_profile.n_layers)  # The damping increase at liquefaction for each soil layer
+            gr_liqs = np.ones(
+                soil_profile.n_layers
+            )  # The secant stiffness ratio at liquefaction for each soil layer
+            dxi_liqs = np.zeros(
+                soil_profile.n_layers
+            )  # The damping increase at liquefaction for each soil layer
             for i in range(soil_profile.n_layers):
                 dr = soil_profile.layer(i + 1).relative_density
                 if dr is None:
                     if max(rus[i]):
-                        raise ValueError('Relative density must be set for layer: ', i + 1)
+                        raise ValueError(
+                            "Relative density must be set for layer: ", i + 1
+                        )
                     else:
                         continue
                 # Calculate the secant stiffness ratio at liquefaction based on relative density
-                gr_liq = np.where(dr < x_ld, gr_ld_liq, gr_ld_liq + (gr_hd_liq - gr_ld_liq) / (x_hd - x_ld) * (dr - x_ld))
+                gr_liq = np.where(
+                    dr < x_ld,
+                    gr_ld_liq,
+                    gr_ld_liq + (gr_hd_liq - gr_ld_liq) / (x_hd - x_ld) * (dr - x_ld),
+                )
                 np.clip(gr_liq, None, gr_hd_liq, out=gr_liq)
                 gr_liqs[i] = gr_liq
                 # Calculate the damping increase at liquefaction based on relative density
-                dx_max = np.where(dr < x_ld, dxi_ld_liq, dxi_ld_liq + (dxi_hd_liq - dxi_ld_liq) / (x_hd - x_ld) * (dr - x_ld))
+                dx_max = np.where(
+                    dr < x_ld,
+                    dxi_ld_liq,
+                    dxi_ld_liq
+                    + (dxi_hd_liq - dxi_ld_liq) / (x_hd - x_ld) * (dr - x_ld),
+                )
                 np.clip(dx_max, dxi_hd_liq, None, out=dx_max)
                 dxi_liqs[i] = dx_max
 
             # zero pad pore pressure time series to be consistent with acceleration time series
-            rus = np.pad(rus, [(0, 0), (front, back)], mode='constant')
+            rus = np.pad(rus, [(0, 0), (front, back)], mode="constant")
             # Calculate the secant stiffness ratio at each time step based on pore pressure ratio (ru)
-            greds = np.where(rus < ru_gr_low, 1, 1 - (1 - gr_liqs[:, np.newaxis]) / (ru_gr_high - ru_gr_low) * (rus - ru_gr_low))
+            greds = np.where(
+                rus < ru_gr_low,
+                1,
+                1
+                - (1 - gr_liqs[:, np.newaxis])
+                / (ru_gr_high - ru_gr_low)
+                * (rus - ru_gr_low),
+            )
             np.clip(greds, gr_liqs[:, np.newaxis], None, out=greds)
             # Calculate the damping increase at each time step based on pore pressure ratio (ru)
-            dxs = np.where(rus < ru_dx_low, 0, dxi_liqs[:, np.newaxis] / (ru_dx_high - ru_dx_low) * (rus - ru_dx_low))
+            dxs = np.where(
+                rus < ru_dx_low,
+                0,
+                dxi_liqs[:, np.newaxis] / (ru_dx_high - ru_dx_low) * (rus - ru_dx_low),
+            )
             np.clip(dxs, None, dxi_liqs[:, np.newaxis], out=dxs)
 
             # Calculate the secant stiffness ratio and damping increase at each time interval
             for tt in range(len(ics)):
-                gred_is[:, tt] = np.mean(greds[:, self.t_inds[tt]: self.t_inds[tt + 1]], axis=1)
-                dxi_is[:, tt] = np.mean(dxs[:, self.t_inds[tt]: self.t_inds[tt + 1]], axis=1)
+                gred_is[:, tt] = np.mean(
+                    greds[:, self.t_inds[tt] : self.t_inds[tt + 1]], axis=1
+                )
+                dxi_is[:, tt] = np.mean(
+                    dxs[:, self.t_inds[tt] : self.t_inds[tt + 1]], axis=1
+                )
 
         # 5) Develop input-to-surface transfer functions
         self.tfs = []  # A list to store the transfer functions at each increment
@@ -141,8 +207,10 @@ class EqlinStockwellAnalysis(object):
         for tt in range(len(self.t_inds[1:])):
             layers = []
             for i, depth in enumerate(pysra_profile.depth):
-                org_layer = pysra_profile.location('outcrop', depth=depth).layer
-                org_layer.strain = eff_strains[i][tt]  # Apply effective strain (Step 3b)
+                org_layer = pysra_profile.location("outcrop", depth=depth).layer
+                org_layer.strain = eff_strains[i][
+                    tt
+                ]  # Apply effective strain (Step 3b)
                 shear_vel0 = org_layer.initial_shear_vel
                 shear_vel = org_layer.shear_vel
                 damping = org_layer.damping
@@ -153,7 +221,9 @@ class EqlinStockwellAnalysis(object):
                 gred = gred_is[ind][tt]
                 # 4b) determine the new shear modulus and damping accounting for strain and pore pressure
                 xi_liq = min([damping + dx, max_xi_liq])
-                vs_liq = max([np.sqrt(min_g_liq_vs_g0) * shear_vel0, shear_vel * np.sqrt(gred)])
+                vs_liq = max(
+                    [np.sqrt(min_g_liq_vs_g0) * shear_vel0, shear_vel * np.sqrt(gred)]
+                )
                 pysra_sl = pysra.site.SoilType("soil", org_layer.unit_wt, None, xi_liq)
                 lay = pysra.site.Layer(pysra_sl, slice_thickness, vs_liq)
                 layers.append(lay)
@@ -161,7 +231,9 @@ class EqlinStockwellAnalysis(object):
             # rebuild the pysra_profile with the new properties
             strain_comp_profile = pysra.site.Profile(layers, wt_depth=soil_profile.gwl)
             # determine the new transfer function for this interval
-            freq1, tf_values = lq.sra.calc_pysra_tf(strain_comp_profile, freqs, wave_field=wave_field)
+            freq1, tf_values = lq.sra.calc_pysra_tf(
+                strain_comp_profile, freqs, wave_field=wave_field
+            )
             # refactor transfer function to be applied to Stockwell transform
             tf_values = np.flipud(np.conj(tf_values))
             # tf_values = np.concatenate((tf_values, np.flipud(np.conj(tf_values))))
@@ -173,7 +245,7 @@ class EqlinStockwellAnalysis(object):
         # 7) Obtain the surface Stockwell transform by multiplying input Stockwell transform by transfer functions
         ps = []
         for ss in range(len(self.tfs)):
-            p1 = self.tfs[ss] * in_sig.swtf[:, self.t_inds[ss]:self.t_inds[ss + 1]]
+            p1 = self.tfs[ss] * in_sig.swtf[:, self.t_inds[ss] : self.t_inds[ss + 1]]
             ps.append(p1)
         surf_st = np.concatenate(ps, axis=1)
 
@@ -183,7 +255,9 @@ class EqlinStockwellAnalysis(object):
         # save the surface acceleration series as a parameter
         self.surf_sig = eqsig.AccSignal(iacc, in_sig.dt)
 
-        if store == 'all':  # Store the Stockwell transforms of the input motion if needed
+        if (
+            store == "all"
+        ):  # Store the Stockwell transforms of the input motion if needed
             # self.tfs = tfs
             self.freqs = freqs
             self.in_sig = in_sig
@@ -192,7 +266,15 @@ class EqlinStockwellAnalysis(object):
             self.surf_sig.smooth_freqs = np.linspace(0.2, 1 / (4 * in_sig.dt), 30)
 
 
-def compute_pysra_strain_time_series(soil_profile, in_sig, d_inc=None, target_height=1.0, wave_field='outcrop', in_loc=-1, atype='eqlin'):
+def compute_pysra_strain_time_series(
+    soil_profile,
+    in_sig,
+    d_inc=None,
+    target_height=1.0,
+    wave_field="outcrop",
+    in_loc=-1,
+    atype="eqlin",
+):
     """
     Perform an equivalent linear analysis and obtain the strain time series at many depths
 
@@ -215,22 +297,33 @@ def compute_pysra_strain_time_series(soil_profile, in_sig, d_inc=None, target_he
 
     """
     import pysra
-    m = pysra.motion.TimeSeriesMotion(filename=in_sig.label, description=None, time_step=in_sig.dt,
-                                      accels=in_sig.values / 9.8)
+
+    m = pysra.motion.TimeSeriesMotion(
+        filename=in_sig.label,
+        description=None,
+        time_step=in_sig.dt,
+        accels=in_sig.values / 9.8,
+    )
     if d_inc is None:
         d_inc = 1.0 * np.ones(soil_profile.n_layers)
-    profile = lq.sra.sm_profile_to_pysra(soil_profile, target_height=target_height, d_inc=d_inc)
+    profile = lq.sra.sm_profile_to_pysra(
+        soil_profile, target_height=target_height, d_inc=d_inc
+    )
     strain_ratio = None
     kw = {}
     if strain_ratio is not None:
-        kw['strain_ratio'] = strain_ratio
-    if atype == 'eqlin':
+        kw["strain_ratio"] = strain_ratio
+    if atype == "eqlin":
         calc = pysra.propagation.EquivalentLinearCalculator(**kw)
-    elif atype == 'fd':
-        calc = pysra.propagation.FrequencyDependentEqlCalculator(use_smooth_spectrum=False, **kw)
-    elif atype == 'fdk':  # k=Kausel
-        calc = pysra.propagation.FrequencyDependentEqlCalculator(use_smooth_spectrum=True, **kw)
-    elif atype == 'linear':
+    elif atype == "fd":
+        calc = pysra.propagation.FrequencyDependentEqlCalculator(
+            use_smooth_spectrum=False, **kw
+        )
+    elif atype == "fdk":  # k=Kausel
+        calc = pysra.propagation.FrequencyDependentEqlCalculator(
+            use_smooth_spectrum=True, **kw
+        )
+    elif atype == "linear":
         calc = pysra.propagation.LinearElasticCalculator()
     else:
         raise ValueError(f'atype must: "eqlin", "fd", "fdk", "linear". Not {atype}')
@@ -242,8 +335,11 @@ def compute_pysra_strain_time_series(soil_profile, in_sig, d_inc=None, target_he
 
     outs = []
     for i, depth in enumerate(profile.depth):
-        outs.append(pysra.output.StrainTSOutput(pysra.output.OutputLocation('within', depth=depth),
-                                                in_percent=False))
+        outs.append(
+            pysra.output.StrainTSOutput(
+                pysra.output.OutputLocation("within", depth=depth), in_percent=False
+            )
+        )
 
     outputs = pysra.output.OutputCollection(outs)
     outputs(calc)

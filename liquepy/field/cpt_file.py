@@ -1,7 +1,8 @@
-import numpy as np
-from liquepy.exceptions import deprecation
 import ntpath
 
+import numpy as np
+
+from liquepy.exceptions import deprecation
 
 # def load_cpt_data(fname):
 #     deprecation('Deprecated (load_cpt_data), should use load_cpt_from_file')
@@ -20,6 +21,7 @@ import ntpath
 #             gwl = float(line.split(";")[1])
 #
 #     return depth, q_c, f_s, u_2, gwl
+
 
 def load_mpa_cpt_file(ffp, delimiter=",", a_ratio_override=None):
     # import data from csv file
@@ -45,7 +47,7 @@ def load_mpa_cpt_file(ffp, delimiter=",", a_ratio_override=None):
     for line in lines:
         if "Assumed GWL:" in line:
             gwl = line.split(delimiter)[1]
-            if gwl == '-':
+            if gwl == "-":
                 gwl = None
             else:
                 gwl = float(line.split(delimiter)[1])
@@ -56,7 +58,7 @@ def load_mpa_cpt_file(ffp, delimiter=",", a_ratio_override=None):
                 pass
         if "Pre-Drill:" in line:
             val = line.split(delimiter)[1]
-            if val != '':
+            if val != "":
                 pre_drill = float(val)
     if a_ratio_override:
         a_ratio = a_ratio_override
@@ -67,11 +69,21 @@ def load_mpa_cpt_file(ffp, delimiter=",", a_ratio_override=None):
             q_c = q_c[indy:]
             f_s = f_s[indy:]
             u_2 = u_2[indy:]
-    return CPT(depth, q_c, f_s, u_2, gwl, a_ratio, folder_path=folder_path, file_name=file_name, delimiter=delimiter)
+    return CPT(
+        depth,
+        q_c,
+        f_s,
+        u_2,
+        gwl,
+        a_ratio,
+        folder_path=folder_path,
+        file_name=file_name,
+        delimiter=delimiter,
+    )
 
 
 def load_cpt_from_file(ffp, delimiter=";"):
-    deprecation('Use load_mpa_cpt_file() where file is all in MPa')
+    deprecation("Use load_mpa_cpt_file() where file is all in MPa")
     # import data from csv file
     folder_path, file_name = ntpath.split(ffp)
     ncols = 4
@@ -99,12 +111,32 @@ def load_cpt_from_file(ffp, delimiter=";"):
                 a_ratio = float(line.split(delimiter)[1])
             except ValueError:
                 pass
-    return CPT(depth, q_c, f_s, u_2, gwl, a_ratio, folder_path=folder_path, file_name=file_name, delimiter=delimiter)
+    return CPT(
+        depth,
+        q_c,
+        f_s,
+        u_2,
+        gwl,
+        a_ratio,
+        folder_path=folder_path,
+        file_name=file_name,
+        delimiter=delimiter,
+    )
 
 
 class CPT(object):
-    def __init__(self, depth, q_c, f_s, u_2, gwl, a_ratio=None, folder_path="<path-not-set>", file_name="<name-not-set>",
-                 delimiter=";"):
+    def __init__(
+        self,
+        depth,
+        q_c,
+        f_s,
+        u_2,
+        gwl,
+        a_ratio=None,
+        folder_path="<path-not-set>",
+        file_name="<name-not-set>",
+        delimiter=";",
+    ):
         """
         A cone penetration resistance test
 
@@ -130,7 +162,6 @@ class CPT(object):
         self.file_name = file_name
         self.delimiter = delimiter
 
-
     @property
     def q_t(self):
         """
@@ -143,7 +174,6 @@ class CPT(object):
     @q_t.setter
     def q_t(self, q_t):
         self.q_c = q_t - ((1 - self.a_ratio) * self.u_2)
-
 
 
 def correct_qt_via_boulanger_and_dejong_2018(q_t, depth, d_c):
@@ -159,8 +189,10 @@ def correct_qt_via_boulanger_and_dejong_2018(q_t, depth, d_c):
     mq = 2  # pg 30
     qt_dash_o_qt = q_t[:, np.newaxis] / q_t[np.newaxis, :]
     qt_dash_o_qt = 100
-    w_2 = np.sqrt(2. / (1 + (1 / qt_dash_o_qt) ** mq))
-    z50_dash = 1 + 2 * (c_2 * z50_dash_ref - 1) * (1 - 1. / (1 + (qt_dash_o_qt) ** m50))
+    w_2 = np.sqrt(2.0 / (1 + (1 / qt_dash_o_qt) ** mq))
+    z50_dash = 1 + 2 * (c_2 * z50_dash_ref - 1) * (
+        1 - 1.0 / (1 + (qt_dash_o_qt) ** m50)
+    )
     w_1 = c_1 / (1 + (z_dash / z50_dash) ** mz)
     w_c = w_1 * w_2 / np.sum(w_1 * w_2, axis=0)
     # import matplotlib.pyplot as plt
@@ -169,7 +201,8 @@ def correct_qt_via_boulanger_and_dejong_2018(q_t, depth, d_c):
     # ax[0].invert_yaxis()
     # plt.show()
     import matplotlib.pyplot as plt
-    bf, ax = plt.subplots(ncols=2, sharey='row')
+
+    bf, ax = plt.subplots(ncols=2, sharey="row")
     ax[0].plot(q_t, depth)
     ax[1].plot(w_c, depth)
     ax[0].invert_yaxis()
@@ -186,7 +219,8 @@ def view_correction():
     qt = np.ones_like(z) * 3
     qt[300:500] = 7
     import matplotlib.pyplot as plt
-    bf, ax = plt.subplots(ncols=2, sharey='row')
+
+    bf, ax = plt.subplots(ncols=2, sharey="row")
     ax[0].plot(qt, z)
     ax[0].plot(q_m, z)
     ax[1].plot(q_m / qt, z)
@@ -195,6 +229,5 @@ def view_correction():
     # correct_qt_via_boulanger_and_dejong_2018(q_m, z, 0.08)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     view_correction()
-

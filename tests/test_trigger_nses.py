@@ -1,8 +1,9 @@
+import eqsig
 import numpy as np
 import sfsimodels as sm
-import eqsig
-from tests import conftest
+
 from liquepy.trigger import nses
+from tests import conftest
 
 
 def test_est_nses_millen_et_al_2019():
@@ -24,7 +25,7 @@ def test_est_nses_millen_et_al_2019():
     sp.height = 30  # m
 
     # Load ground motion
-    acc = np.loadtxt(conftest.TEST_DATA_DIR + 'test_motion_dt0p01.txt', skiprows=2)
+    acc = np.loadtxt(conftest.TEST_DATA_DIR + "test_motion_dt0p01.txt", skiprows=2)
     dt = 0.01
 
     in_signal = eqsig.AccSignal(acc / 2, dt)
@@ -33,12 +34,16 @@ def test_est_nses_millen_et_al_2019():
     in_cake = in_uke * rho
 
     # Estimate CASE and CAKE using the input motion with method from Millen et al. (2019)
-    odepths = np.array([4.])
-    pred_case = nses.est_case_1d_millen_et_al_2019(sp, in_signal, odepths, xi=damp)[0, -1]
-    pred_cake = nses.est_case_1d_millen_et_al_2019(sp, in_signal, odepths, xi=damp, nodal=False)[0, -1]
+    odepths = np.array([4.0])
+    pred_case = nses.est_case_1d_millen_et_al_2019(sp, in_signal, odepths, xi=damp)[
+        0, -1
+    ]
+    pred_cake = nses.est_case_1d_millen_et_al_2019(
+        sp, in_signal, odepths, xi=damp, nodal=False
+    )[0, -1]
     assert np.isclose(pred_cake, 729.00213882), pred_cake  # v0.6.3
     assert np.isclose(pred_case, 40.094265976), pred_case  # v0.6.3
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_est_nses_millen_et_al_2019()

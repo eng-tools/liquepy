@@ -1,8 +1,10 @@
 from collections import OrderedDict
-import sfsimodels as sm
+
 import numpy as np
-from sfsimodels.functions import clean_float
+import sfsimodels as sm
 from sfsimodels.build_model_descriptions import build_parameter_descriptions
+from sfsimodels.functions import clean_float
+
 from liquepy.exceptions import deprecation
 
 
@@ -45,7 +47,9 @@ class PM4Sand(sm.StressDependentSoil):
         else:
             _liq_mass_density = None
 
-        sm.StressDependentSoil.__init__(self, liq_mass_density=_liq_mass_density, g=_gravity, **kwargs)
+        sm.StressDependentSoil.__init__(
+            self, liq_mass_density=_liq_mass_density, g=_gravity, **kwargs
+        )
         self._extra_class_inputs = [
             "h_po",
             "crr_n15",
@@ -67,7 +71,7 @@ class PM4Sand(sm.StressDependentSoil):
             "f_sed",
             "p_sed",
             "mc_ratio",
-            "mc_c"
+            "mc_c",
         ]
         self.p_atm = p_atm
         self.inputs += self._extra_class_inputs
@@ -80,10 +84,18 @@ class PM4Sand(sm.StressDependentSoil):
         self.definitions["p_atm"] = ["Atmospheric pressure", "Pa"]
 
     def __repr__(self):
-        return "PM4Sand Soil model, id=%i, phi=%.1f, Dr=%.2f" % (self.id, self.phi, self.relative_density)
+        return "PM4Sand Soil model, id=%i, phi=%.1f, Dr=%.2f" % (
+            self.id,
+            self.phi,
+            self.relative_density,
+        )
 
     def __str__(self):
-        return "PM4Sand Soil model, id=%i, phi=%.1f, Dr=%.2f" % (self.id, self.phi, self.relative_density)
+        return "PM4Sand Soil model, id=%i, phi=%.1f, Dr=%.2f" % (
+            self.id,
+            self.phi,
+            self.relative_density,
+        )
 
     @property
     def h_po(self):
@@ -98,7 +110,7 @@ class PM4Sand(sm.StressDependentSoil):
 
     @property
     def hp0(self):
-        deprecation('hp0 is deprecated, used h_po')
+        deprecation("hp0 is deprecated, used h_po")
         return self._h_po
 
     @hp0.setter
@@ -144,18 +156,26 @@ class PM4Sand(sm.StressDependentSoil):
         if value is not None:
             self._add_to_stack("h_po", value)
 
-    def g_mod_at_v_eff_stress(self, v_eff_stress):  # Override base function since k0 is different
+    def g_mod_at_v_eff_stress(
+        self, v_eff_stress
+    ):  # Override base function since k0 is different
         return self.get_g_mod_at_v_eff_stress(v_eff_stress)
 
-    def get_g_mod_at_v_eff_stress(self, v_eff_stress, k0=None):  # Override base function since k0 is different
+    def get_g_mod_at_v_eff_stress(
+        self, v_eff_stress, k0=None
+    ):  # Override base function since k0 is different
         if k0 is None:
             k0 = self.poissons_ratio / (1 - self.poissons_ratio)
-        return self.g0_mod * self.p_atm * (v_eff_stress * (1 + k0) / 2 / self.p_atm) ** 0.5
+        return (
+            self.g0_mod * self.p_atm * (v_eff_stress * (1 + k0) / 2 / self.p_atm) ** 0.5
+        )
 
     def set_g0_mod_from_g_mod_at_v_eff_stress(self, g_mod, v_eff_stress, k0=None):
         if k0 is None:
             k0 = self.poissons_ratio / (1 - self.poissons_ratio)
-        self.g0_mod = g_mod / self.p_atm / (v_eff_stress * (1 + k0) / 2 / self.p_atm) ** 0.5
+        self.g0_mod = (
+            g_mod / self.p_atm / (v_eff_stress * (1 + k0) / 2 / self.p_atm) ** 0.5
+        )
 
     def get_peak_angle(self, p):
         n_b = self.n_b
@@ -167,8 +187,15 @@ class PM4Sand(sm.StressDependentSoil):
         r_bolt = self.r_bolt
         if r_bolt is None:
             r_bolt = 1.5
-        return calc_peak_angle_for_pm4sand(self.relative_density, p, p_atm=self.p_atm, phi_cv=self.phi_cv, n_b=n_b,
-                                           q_bolt=q_bolt, r_bolt=r_bolt)
+        return calc_peak_angle_for_pm4sand(
+            self.relative_density,
+            p,
+            p_atm=self.p_atm,
+            phi_cv=self.phi_cv,
+            n_b=n_b,
+            q_bolt=q_bolt,
+            r_bolt=r_bolt,
+        )
 
     def get_dr_cs(self, p):
         return self.r_bolt / (self.q_bolt - np.log(100 * p / self.p_atm))
@@ -220,7 +247,9 @@ class PM4Sand(sm.StressDependentSoil):
             self.c_z = 250.0
         if self.c_e is None:
             if ops:
-                self.c_e = np.clip(0.2, 0.55, 0.5 - (self.relative_density - 0.55) * 1.5)
+                self.c_e = np.clip(
+                    0.2, 0.55, 0.5 - (self.relative_density - 0.55) * 1.5
+                )
             else:
                 self.c_e = np.clip(1, 5, 5 - 4 * (self.relative_density - 0.35) / 0.4)
         if self.phi_cv is None:
@@ -244,9 +273,13 @@ class PM4Sand(sm.StressDependentSoil):
         m_b = self.get_m_b(p)
         m_d = self.get_m_d(p)
         if self.a_do is None:
-            self.a_do = 1. / 0.4 * (np.arcsin(m_b / 2) - np.arcsin(self.m_cs)) / (m_b - m_d)
+            self.a_do = (
+                1.0 / 0.4 * (np.arcsin(m_b / 2) - np.arcsin(self.m_cs)) / (m_b - m_d)
+            )
         if self.c_kaf is None:
-            self.c_kaf = np.clip(4.0, 35.0, 5 + 220.0 * (self.relative_density - 0.26) ** 3)
+            self.c_kaf = np.clip(
+                4.0, 35.0, 5 + 220.0 * (self.relative_density - 0.26) ** 3
+            )
         if self.f_sed is None:
             self.f_sed = min([0.03 * np.exp(2.6 * self.relative_density), 0.99])
         if self.p_sed is None:
@@ -294,7 +327,9 @@ class PM4Silt(sm.StressDependentSoil):
         else:
             _liq_mass_density = None
 
-        sm.StressDependentSoil.__init__(self, liq_mass_density=_liq_mass_density, g=_gravity, **kwargs)
+        sm.StressDependentSoil.__init__(
+            self, liq_mass_density=_liq_mass_density, g=_gravity, **kwargs
+        )
         self._extra_class_inputs = [
             "s_u",
             "su_rat",
@@ -316,7 +351,7 @@ class PM4Silt(sm.StressDependentSoil):
             "c_kaf",
             "mc_ratio",
             "mc_c",
-            "cg_consol"
+            "cg_consol",
         ]
         self.p_atm = p_atm
         self.inputs += self._extra_class_inputs
@@ -329,23 +364,23 @@ class PM4Silt(sm.StressDependentSoil):
         self.definitions["p_atm"] = ["Atmospheric pressure", "Pa"]
 
     def __repr__(self):
-        sus = ['s_u', 'su_rat']
+        sus = ["s_u", "su_rat"]
         ss = []
         for sitem in sus:
             val = getattr(self, sitem)
             if val is not None:
-                ss.append(f'{sitem}={val:.f}')
-        sus_str = ', '.join(ss)
+                ss.append(f"{sitem}={val:.f}")
+        sus_str = ", ".join(ss)
         return f"PM4Silt Soil model, id={self.id}, G0={self.g0_mod:.0f}, {sus_str}"
 
     def __str__(self):
-        sus = ['s_u', 'su_rat']
+        sus = ["s_u", "su_rat"]
         ss = []
         for sitem in sus:
             val = getattr(self, sitem)
             if val is not None:
-                ss.append(f'{sitem}={val:.f}')
-        sus_str = ', '.join(ss)
+                ss.append(f"{sitem}={val:.f}")
+        sus_str = ", ".join(ss)
         return f"PM4Silt Soil model, id={self.id}, G0={self.g0_mod:.0f}, {sus_str}"
 
     @property
@@ -419,18 +454,29 @@ class PM4Silt(sm.StressDependentSoil):
         self.n_g = value
         self._a = value
 
-    def g_mod_at_v_eff_stress(self, v_eff_stress):  # Override base function since k0 is different
+    def g_mod_at_v_eff_stress(
+        self, v_eff_stress
+    ):  # Override base function since k0 is different
         return self.get_g_mod_at_v_eff_stress(v_eff_stress)
 
-    def get_g_mod_at_v_eff_stress(self, v_eff_stress, k0=None):  # Override base function since k0 is different
+    def get_g_mod_at_v_eff_stress(
+        self, v_eff_stress, k0=None
+    ):  # Override base function since k0 is different
         if k0 is None:
             k0 = self.poissons_ratio / (1 - self.poissons_ratio)
-        return self.g0_mod * self.p_atm * (v_eff_stress * (1 + k0) / 2 / self.p_atm) ** self.a
+        return (
+            self.g0_mod
+            * self.p_atm
+            * (v_eff_stress * (1 + k0) / 2 / self.p_atm) ** self.a
+        )
 
     def set_g0_mod_from_g_mod_at_v_eff_stress(self, g_mod, v_eff_stress, k0=None):
         if k0 is None:
             k0 = self.poissons_ratio / (1 - self.poissons_ratio)
-        self.g0_mod = g_mod / self.p_atm / (v_eff_stress * (1 + k0) / 2 / self.p_atm) ** self.a
+        self.g0_mod = (
+            g_mod / self.p_atm / (v_eff_stress * (1 + k0) / 2 / self.p_atm) ** self.a
+        )
+
     # def e_critical(self, p):
     #     p = float(p)
     #     return self.e_cr0 - self.lamb_crl * np.log(p / self.p_cr0)
@@ -462,7 +508,9 @@ class PM4Silt(sm.StressDependentSoil):
         return self.m_cs * np.exp(self.n_d * self.get_ksi_r(p))
 
 
-def calc_peak_angle_for_pm4sand(d_r, p, p_atm=101.0e3, phi_cv=33.0, n_b=0.5, q_bolt=10, r_bolt=1.5):
+def calc_peak_angle_for_pm4sand(
+    d_r, p, p_atm=101.0e3, phi_cv=33.0, n_b=0.5, q_bolt=10, r_bolt=1.5
+):
     dr_cs = r_bolt / (q_bolt - np.log(100 * p / p_atm))  # Eq 11
     ksi_r = dr_cs - d_r  # Eq 10
     phi_r = np.radians(phi_cv)
@@ -495,7 +543,16 @@ class ManzariDafaliasModel(sm.StressDependentSoil):
     # TODO: add non default inputs here
     type = "manzaridafalias_model"
 
-    def __init__(self, pw=None, wmd=None, liq_mass_density=None, liq_sg=1, g=9.8, p_atm=101000.0, **kwargs):
+    def __init__(
+        self,
+        pw=None,
+        wmd=None,
+        liq_mass_density=None,
+        liq_sg=1,
+        g=9.8,
+        p_atm=101000.0,
+        **kwargs,
+    ):
         # Note: pw has deprecated
         # _gravity = g  # m/s2
         # if liq_mass_density:
@@ -508,7 +565,15 @@ class ManzariDafaliasModel(sm.StressDependentSoil):
         # else:
         #     _liq_mass_density = None
 
-        sm.StressDependentSoil.__init__(self, pw=pw, wmd=wmd, liq_mass_density=liq_mass_density, liq_sg=liq_sg, g=g, **kwargs)
+        sm.StressDependentSoil.__init__(
+            self,
+            pw=pw,
+            wmd=wmd,
+            liq_mass_density=liq_mass_density,
+            liq_sg=liq_sg,
+            g=g,
+            **kwargs,
+        )
         self._extra_class_inputs = [
             "crr_n15",
             "m_c",
@@ -525,7 +590,7 @@ class ManzariDafaliasModel(sm.StressDependentSoil):
             "z_max",
             "c_z",
             "g0",
-            'int_scheme'
+            "int_scheme",
         ]
         self.p_atm = p_atm
         self.inputs += self._extra_class_inputs
@@ -537,18 +602,26 @@ class ManzariDafaliasModel(sm.StressDependentSoil):
         self.definitions["p_atm"] = ["Atmospheric pressure", "Pa"]
 
     def __repr__(self):
-        return "ManzariDafaliasModel Soil model, id=%i, phi=%.1f, Dr=%.2f" % (self.id, self.phi, self.relative_density)
+        return "ManzariDafaliasModel Soil model, id=%i, phi=%.1f, Dr=%.2f" % (
+            self.id,
+            self.phi,
+            self.relative_density,
+        )
 
     def __str__(self):
-        return "ManzariDafaliasModel Soil model, id=%i, phi=%.1f, Dr=%.2f" % (self.id, self.phi, self.relative_density)
+        return "ManzariDafaliasModel Soil model, id=%i, phi=%.1f, Dr=%.2f" % (
+            self.id,
+            self.phi,
+            self.relative_density,
+        )
 
     def get_peak_angle(self, p, opt):
         e_cs = self.e_0 - self.lambda_c * (p / self.p_atm) ** self.ksi
         psi = self.e_curr - e_cs
         m_b_txc = self.m_c * np.exp(-self.n_b * psi)  # Eq 13
-        if opt == 'txc':
+        if opt == "txc":
             return np.degrees(np.arcsin(3 * m_b_txc / (m_b_txc + 6)))
-        elif opt == 'ps':
+        elif opt == "ps":
             theta = np.pi / 6
             g = 2 * self.c_c / ((1 + self.c_c) - (1 - self.c_c) * np.cos(3 * theta))
             m_b = g * m_b_txc
@@ -562,7 +635,6 @@ class ManzariDafaliasModel(sm.StressDependentSoil):
         phi_r = np.radians(phi_cv)
         self.m_c = 6 * np.sin(np.radians(phi_cv)) / (3 - np.sin(np.radians(phi_cv)))
         self._add_to_stack("m_c", self.m_c)
-
 
     @property
     def g0(self):
@@ -610,8 +682,8 @@ class ManzariDafaliasModel(sm.StressDependentSoil):
         self._g0_mod = value
         if value is not None:
             self._add_to_stack("g0_mod", value)
-        # if self.e_curr is None:
-        #     raise ValueError('must set e_curr before setting g0_mod')
+            # if self.e_curr is None:
+            #     raise ValueError('must set e_curr before setting g0_mod')
             if self.e_curr is not None:
                 self._g0 = value * (1 + self.e_curr) / (2.97 - self.e_curr) ** 2
 
@@ -656,25 +728,27 @@ class StressDensityModel(sm.StressDependentSoil):
 
     def __init__(self, pw=9800, liq_mass_density=None, g=9.8, p_atm=101000.0, **kwargs):
 
-        super(StressDensityModel, self).__init__(liq_mass_density=liq_mass_density, g=g, **kwargs)
+        super(StressDensityModel, self).__init__(
+            liq_mass_density=liq_mass_density, g=g, **kwargs
+        )
         self._extra_class_inputs = [
             "crr_n15",
-            'big_a',
+            "big_a",
             # 'a',  # pressure dependency exponent for elastic shear modulus
-            'a1',
-            'a2',
-            'a3',
-            'b1',
-            'b2',
-            'b3',
-            'fd',  # degradation constant
-            'mu_0',  # muNot
-            'mu_cyc',
-            'sc',
-            'big_m',
-            'ssls',
-            'hsl',
-            'ps',
+            "a1",
+            "a2",
+            "a3",
+            "b1",
+            "b2",
+            "b3",
+            "fd",  # degradation constant
+            "mu_0",  # muNot
+            "mu_cyc",
+            "sc",
+            "big_m",
+            "ssls",
+            "hsl",
+            "ps",
         ]
         self.p_atm = p_atm
         self.inputs += self._extra_class_inputs
@@ -699,10 +773,18 @@ class StressDensityModel(sm.StressDependentSoil):
         self.definitions["p_atm"] = ["Atmospheric pressure", "Pa"]
 
     def __repr__(self):
-        return "StressDensityModel Soil model, id=%i, phi=%.1f, Dr=%.2f" % (self.id, self.phi, self.relative_density)
+        return "StressDensityModel Soil model, id=%i, phi=%.1f, Dr=%.2f" % (
+            self.id,
+            self.phi,
+            self.relative_density,
+        )
 
     def __str__(self):
-        return "StressDensityModel Soil model, id=%i, phi=%.1f, Dr=%.2f" % (self.id, self.phi, self.relative_density)
+        return "StressDensityModel Soil model, id=%i, phi=%.1f, Dr=%.2f" % (
+            self.id,
+            self.phi,
+            self.relative_density,
+        )
 
     @property
     def crr_n15(self):
@@ -738,10 +820,14 @@ class StressDensityModel(sm.StressDependentSoil):
         if value is not None:
             self._add_to_stack("big_a", value)
 
-    def g_mod_at_v_eff_stress(self, v_eff_stress):  # Override base function since k0 is different
+    def g_mod_at_v_eff_stress(
+        self, v_eff_stress
+    ):  # Override base function since k0 is different
         return self.get_g_mod_at_v_eff_stress(v_eff_stress)
 
-    def get_g_mod_at_v_eff_stress(self, v_eff_stress, k0=None):  # Override base function since k0 is different
+    def get_g_mod_at_v_eff_stress(
+        self, v_eff_stress, k0=None
+    ):  # Override base function since k0 is different
         # k0 = 1 - np.sin(self.phi_r)
         if k0 is None:
             k0 = self.poissons_ratio / (1 - self.poissons_ratio)

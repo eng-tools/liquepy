@@ -1,16 +1,18 @@
-import liquepy as lq
 import numpy as np
 import pytest
 
+import liquepy as lq
+
 
 @pytest.mark.parametrize(
-    'q_c1n, fos, gamma_max', [
+    "q_c1n, fos, gamma_max",
+    [
         (263.04, 2.0, 0.101e-2),
         (40.434, 0.686, 51.2e-2),
         (60.545, 0.59, 33.6007e-2),
         (25.851, 0.45, 51.2e-2),
-        (147.94, 1.413, 1.566e-2)
-    ]
+        (147.94, 1.413, 1.566e-2),
+    ],
 )
 def calc_shear_strain_zhang_2004(q_c1n, fos, gamma_max):
     d_r = lq.trigger.calc_relative_density_zhang_2002(q_c1n) / 1e2
@@ -46,6 +48,6 @@ def calc_volumetric_strain_zhang_2004():
     assert np.isclose(e_inc, 2.5553, rtol=0.001), e_inc
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # test_single_calc_shear_strain()
     test_calc_volumetric_strain()

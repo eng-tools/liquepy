@@ -1,7 +1,6 @@
-import numpy as np
-
-from scipy.integrate import trapz
 import eqsig
+import numpy as np
+from scipy.integrate import trapezoid as trapz
 
 import liquepy as lq
 
@@ -19,9 +18,15 @@ def calculate_factor_safety(q_c1ncs, p_a, magnitude, pga, depth, soil_profile):
     :return:
     """
 
-    crr_m7p5 = np.exp(q_c1ncs / 113 + (q_c1ncs / 1000) ** 2 - (q_c1ncs / 140) ** 3 + (q_c1ncs / 137) ** 4 - 2.8)
+    crr_m7p5 = np.exp(
+        q_c1ncs / 113
+        + (q_c1ncs / 1000) ** 2
+        - (q_c1ncs / 140) ** 3
+        + (q_c1ncs / 137) ** 4
+        - 2.8
+    )
 
-    c_sigma = 1.0 / (37.3 - (8.27 * (q_c1ncs ** 0.264)))
+    c_sigma = 1.0 / (37.3 - (8.27 * (q_c1ncs**0.264)))
 
     sigma_v = soil_profile.get_v_total_stress_at_depth(depth)
     sigma_veff = soil_profile.get_v_eff_stress_at_depth(depth)
@@ -41,7 +46,7 @@ def calculate_factor_safety(q_c1ncs, p_a, magnitude, pga, depth, soil_profile):
     return fs_liq
 
 
-def calc_degraded_phi(phi, sigma_v_eff, q, a=0.9, ru_ff=1.):
+def calc_degraded_phi(phi, sigma_v_eff, q, a=0.9, ru_ff=1.0):
     """
     Equivalent degraded friction angle of liquefied soil under a foundation
 
@@ -86,7 +91,9 @@ def karamitros_settlement(fd, z_liq, q, q_ult, acc, dt):
     return sett_dyn_ts[-1]
 
 
-def karamitros_settlement_time_series(fd, z_liq, q, q_ult, acc, dt, c_dash=0.003):  # units: m, Pa, s
+def karamitros_settlement_time_series(
+    fd, z_liq, q, q_ult, acc, dt, c_dash=0.003
+):  # units: m, Pa, s
     """
     Calculate the settlement using the method proposed by :cite:`Karamitros:2013gi`
 
@@ -107,10 +114,14 @@ def karamitros_settlement_time_series(fd, z_liq, q, q_ult, acc, dt, c_dash=0.003
     asig = eqsig.AccSignal(acc, dt)
     fd_q_ult = q_ult
     fd_q_demand = q
-    return calc_settlement_karamitros_et_al_2013(fd, asig, fd_q_ult, fd_q_demand, z_liq, c_dash=c_dash)
+    return calc_settlement_karamitros_et_al_2013(
+        fd, asig, fd_q_ult, fd_q_demand, z_liq, c_dash=c_dash
+    )
 
 
-def calc_settlement_karamitros_et_al_2013(fd, asig, fd_q_ult, fd_q_demand, y_liq, c_dash=0.003):
+def calc_settlement_karamitros_et_al_2013(
+    fd, asig, fd_q_ult, fd_q_demand, y_liq, c_dash=0.003
+):
     """
     Calculate the settlement using the method proposed by :cite:`Karamitros:2013gi`
 
@@ -131,10 +142,12 @@ def calc_settlement_karamitros_et_al_2013(fd, asig, fd_q_ult, fd_q_demand, y_liq
     array_like
     """
 
-    c_factor = min(c_dash * (1.0 + 1.65 * fd.length / fd.width), 11.65 * c_dash)  # Karamitros 2013 sett
+    c_factor = min(
+        c_dash * (1.0 + 1.65 * fd.length / fd.width), 11.65 * c_dash
+    )  # Karamitros 2013 sett
 
     int_vel = eqsig.im.calc_integral_of_abs_velocity(asig)
-    amax_t2_n = (np.pi ** 2) * int_vel
+    amax_t2_n = (np.pi**2) * int_vel
     fs_deg = fd_q_ult / fd_q_demand
     sett_dyn_ts = c_factor * amax_t2_n * (y_liq / fd.width) ** 1.5 * (1.0 / fs_deg) ** 3
     return sett_dyn_ts
@@ -153,7 +166,9 @@ def bray_and_macedo_settlement(soil_profile, fd, asig, liq_layers):
     :return:
     """
 
-    sett_dyn_ts = bray_and_macedo_settlement_time_series(soil_profile, fd, asig, liq_layers)
+    sett_dyn_ts = bray_and_macedo_settlement_time_series(
+        soil_profile, fd, asig, liq_layers
+    )
     return sett_dyn_ts[-1]
 
 
@@ -181,15 +196,26 @@ def bray_and_macedo_settlement_time_series(soil_profile, fd, asig, liq_layers):
     # calculation of LBS
 
     # calculation of Maximum Cyclic Shear Strains
-    z = np.arange((soil_profile.layer_depth(2)) + 0.5, (soil_profile.layer_depth(3) + 0.5), 0.5)
-    xmax = len(z)-1
+    z = np.arange(
+        (soil_profile.layer_depth(2)) + 0.5, (soil_profile.layer_depth(3) + 0.5), 0.5
+    )
+    xmax = len(z) - 1
     lbs = []
 
     for depth in z:
 
-        fs = calculate_factor_safety(q_c1ncs=q_c1ncs, p_a=101000, magnitude=asig.magnitude, pga=pga_max, depth=depth, soil_profile=soil_profile)
+        fs = calculate_factor_safety(
+            q_c1ncs=q_c1ncs,
+            p_a=101000,
+            magnitude=asig.magnitude,
+            pga=pga_max,
+            depth=depth,
+            soil_profile=soil_profile,
+        )
         d_r = soil_profile.layer(2).relative_density
-        e_shear = lq.trigger.calc_shear_strain_zhang_2004(fs=fs, d_r=d_r) * 100  # should be in percentage for LBS
+        e_shear = (
+            lq.trigger.calc_shear_strain_zhang_2004(fs=fs, d_r=d_r) * 100
+        )  # should be in percentage for LBS
         if depth < fd.depth:
             w = 0
         else:
@@ -203,7 +229,7 @@ def bray_and_macedo_settlement_time_series(soil_profile, fd, asig, liq_layers):
     y_int = np.abs(np.array(lbs)[np.where((x_lower <= z) * (z <= x_upper))])
     int_lbs = trapz(y_int, x_int)  # lbs value
 
-    asig.generate_response_spectrum(response_times=np.array([1.]), xi=0.05)
+    asig.generate_response_spectrum(response_times=np.array([1.0]), xi=0.05)
     sa1 = asig.s_a[0] / gravity
     qf = fd.vertical_load / fd.width / fd.length
     return bray_and_macedo_eq(fd.width, qf, hl, sa1, cavdp_time_series, int_lbs)
@@ -220,9 +246,19 @@ def bray_and_macedo_eq(width, qf, hl, sa1, cavdp_time_series, int_lbs, epsilon=0
 
     q = qf / 1000
 
-    sett_dyn_ts = np.exp(c_1 + (4.59 * np.log(q)) - (0.42 * ((np.log(q)) ** 2)) + (c_2 * int_lbs) + (0.58 * np.log(np.tanh(hl / 6))) - (0.02 * width) + (0.84 * np.log(cavdp_time_series)) + (0.41 * np.log(sa1)) + epsilon)
+    sett_dyn_ts = np.exp(
+        c_1
+        + (4.59 * np.log(q))
+        - (0.42 * ((np.log(q)) ** 2))
+        + (c_2 * int_lbs)
+        + (0.58 * np.log(np.tanh(hl / 6)))
+        - (0.02 * width)
+        + (0.84 * np.log(cavdp_time_series))
+        + (0.41 * np.log(sa1))
+        + epsilon
+    )
 
-    sett_dyn_ts = sett_dyn_ts/1000
+    sett_dyn_ts = sett_dyn_ts / 1000
 
     return sett_dyn_ts  # TODO: Should return metres not millimetres
 
@@ -232,25 +268,195 @@ def lu_settlements(q, fd, Dr, acc):
     # TODO: q should be in Pa not kPa
     # TODO: DR should be a ratio
 
-    Dr_1b=[30.057, 32.004, 34.065, 35.954, 37.958, 39.962, 41.966, 43.969, 45.973, 47.920, 49.866, 51.985, 53.817, 55.935, 57.939, 59.943]
-    N_lr_1b = [204.739, 208.531, 212.322, 216.114, 219.905, 231.280, 242.654, 257.820, 276.777, 299.526, 329.858, 382.938, 428.436, 496.682, 561.137, 636.967]
+    Dr_1b = [
+        30.057,
+        32.004,
+        34.065,
+        35.954,
+        37.958,
+        39.962,
+        41.966,
+        43.969,
+        45.973,
+        47.920,
+        49.866,
+        51.985,
+        53.817,
+        55.935,
+        57.939,
+        59.943,
+    ]
+    N_lr_1b = [
+        204.739,
+        208.531,
+        212.322,
+        216.114,
+        219.905,
+        231.280,
+        242.654,
+        257.820,
+        276.777,
+        299.526,
+        329.858,
+        382.938,
+        428.436,
+        496.682,
+        561.137,
+        636.967,
+    ]
 
-    Dr_2a = [30.000, 32.004, 33.950, 35.954, 38.187, 40.019, 41.966, 43.969, 46.031, 48.034, 49.981, 51.927, 53.989, 55.992, 57.882, 59.943]
-    N_lr_2a = [37.915, 37.915, 45.498, 53.081, 56.872, 60.664, 75.829, 79.621, 90.995, 98.578, 98.578, 109.953, 117.536, 128.910, 140.284, 155.450]
+    Dr_2a = [
+        30.000,
+        32.004,
+        33.950,
+        35.954,
+        38.187,
+        40.019,
+        41.966,
+        43.969,
+        46.031,
+        48.034,
+        49.981,
+        51.927,
+        53.989,
+        55.992,
+        57.882,
+        59.943,
+    ]
+    N_lr_2a = [
+        37.915,
+        37.915,
+        45.498,
+        53.081,
+        56.872,
+        60.664,
+        75.829,
+        79.621,
+        90.995,
+        98.578,
+        98.578,
+        109.953,
+        117.536,
+        128.910,
+        140.284,
+        155.450,
+    ]
 
-    Dr_2b = [30.115, 31.947, 34.008, 36.298, 37.901, 40.076, 42.137, 43.511, 45.744, 47.748, 49.122, 51.126, 53.130, 55.649, 57.424, 59.943]
-    N_lr_2b = [299.526, 299.526, 318.483, 329.858, 337.441, 367.773, 401.896, 424.645, 492.891, 553.555, 587.678, 659.716, 724.171, 800.000, 845.498, 936.493]
+    Dr_2b = [
+        30.115,
+        31.947,
+        34.008,
+        36.298,
+        37.901,
+        40.076,
+        42.137,
+        43.511,
+        45.744,
+        47.748,
+        49.122,
+        51.126,
+        53.130,
+        55.649,
+        57.424,
+        59.943,
+    ]
+    N_lr_2b = [
+        299.526,
+        299.526,
+        318.483,
+        329.858,
+        337.441,
+        367.773,
+        401.896,
+        424.645,
+        492.891,
+        553.555,
+        587.678,
+        659.716,
+        724.171,
+        800.000,
+        845.498,
+        936.493,
+    ]
 
-    Dr_3a = [30.115, 31.947, 34.179, 35.954, 38.073, 40.019, 42.023, 43.969, 46.088, 48.092, 50.095, 51.985, 53.989, 55.763, 57.767, 59.828]
-    N_lr_3a = [60.664, 60.664, 68.246, 75.829, 83.412, 90.995, 98.578, 106.161, 121.327, 128.910, 151.659, 170.616, 189.573, 216.114, 250.237, 288.152]
+    Dr_3a = [
+        30.115,
+        31.947,
+        34.179,
+        35.954,
+        38.073,
+        40.019,
+        42.023,
+        43.969,
+        46.088,
+        48.092,
+        50.095,
+        51.985,
+        53.989,
+        55.763,
+        57.767,
+        59.828,
+    ]
+    N_lr_3a = [
+        60.664,
+        60.664,
+        68.246,
+        75.829,
+        83.412,
+        90.995,
+        98.578,
+        106.161,
+        121.327,
+        128.910,
+        151.659,
+        170.616,
+        189.573,
+        216.114,
+        250.237,
+        288.152,
+    ]
 
-    Dr_3b = [30.057, 31.897, 33.678, 35.230, 37.356, 39.483, 41.034, 42.414, 43.563, 46.264, 49.080, 50.862, 52.644, 54.713, 57.011, 60.000]
-    N_lr_3b = [778.202, 793.461, 820.164, 831.608, 865.940, 900.272, 926.975, 946.049, 972.752, 1022.343, 1079.564, 1121.526, 1163.488, 1205.450, 1251.226, 1319.891]
+    Dr_3b = [
+        30.057,
+        31.897,
+        33.678,
+        35.230,
+        37.356,
+        39.483,
+        41.034,
+        42.414,
+        43.563,
+        46.264,
+        49.080,
+        50.862,
+        52.644,
+        54.713,
+        57.011,
+        60.000,
+    ]
+    N_lr_3b = [
+        778.202,
+        793.461,
+        820.164,
+        831.608,
+        865.940,
+        900.272,
+        926.975,
+        946.049,
+        972.752,
+        1022.343,
+        1079.564,
+        1121.526,
+        1163.488,
+        1205.450,
+        1251.226,
+        1319.891,
+    ]
 
     x_int = Dr
 
     abs_acc = abs(acc)
-    pga = (max(abs_acc))
+    pga = max(abs_acc)
     x_pga = [0.1, 0.4]
 
     if 10 <= q < 30:
@@ -286,11 +492,8 @@ def lu_settlements(q, fd, Dr, acc):
     else:
         raise ValueError("q value ({0}) out of range (10-120)".format(q))
 
-    c_d = 1-(fd.depth/(4*fd.width))
+    c_d = 1 - (fd.depth / (4 * fd.width))
 
     sett_dyn_lu = c_d * (q / N_lr) * ((fd.width / (fd.width + 0.33)) ** 2)
 
     return sett_dyn_lu
-
-
-

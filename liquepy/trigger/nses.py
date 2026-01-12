@@ -1,5 +1,5 @@
-import numpy as np
 import eqsig
+import numpy as np
 
 
 def calc_energy_ratio_w_time(xi, total_time, time, av_period):
@@ -9,14 +9,53 @@ def calc_energy_ratio_w_time(xi, total_time, time, av_period):
     return (up_reduction + down_reduction) / 2
 
 
-def est_case_1d_millen_et_al_2019(sp, asig, depth, xi, g_mod_red=1.0, trim=False, start=False, period=0.5, exact=False,
-                                   in_loc=1, g_scale_limit=1e3, nodal=True, cace=True):
-    return est_case_1d_millen_et_al_2020(sp, asig, depth, xi, g_mod_red=g_mod_red, trim=trim, start=False, period=period,
-                                      exact=exact, in_loc=in_loc, g_scale_limit=g_scale_limit, nodal=nodal, cace=cace)
+def est_case_1d_millen_et_al_2019(
+    sp,
+    asig,
+    depth,
+    xi,
+    g_mod_red=1.0,
+    trim=False,
+    start=False,
+    period=0.5,
+    exact=False,
+    in_loc=1,
+    g_scale_limit=1e3,
+    nodal=True,
+    cace=True,
+):
+    return est_case_1d_millen_et_al_2020(
+        sp,
+        asig,
+        depth,
+        xi,
+        g_mod_red=g_mod_red,
+        trim=trim,
+        start=False,
+        period=period,
+        exact=exact,
+        in_loc=in_loc,
+        g_scale_limit=g_scale_limit,
+        nodal=nodal,
+        cace=cace,
+    )
 
 
-def est_case_1d_millen_et_al_2020(sp, asig, depth, xi, g_mod_red=1.0, trim=False, start=False, period=0.5, exact=False,
-                                   in_loc=1, g_scale_limit=1e3, nodal=True, cace=True):
+def est_case_1d_millen_et_al_2020(
+    sp,
+    asig,
+    depth,
+    xi,
+    g_mod_red=1.0,
+    trim=False,
+    start=False,
+    period=0.5,
+    exact=False,
+    in_loc=1,
+    g_scale_limit=1e3,
+    nodal=True,
+    cace=True,
+):
     """
     Calculates the Cumulative absolute change in strain energy according to Millen et al. (2020)
 
@@ -52,23 +91,31 @@ def est_case_1d_millen_et_al_2020(sp, asig, depth, xi, g_mod_red=1.0, trim=False
     :return:
     """
     from scipy.interpolate import interp1d
-    sp.gen_split(props=['shear_vel', 'unit_mass'], target=0.25)
+
+    sp.gen_split(props=["shear_vel", "unit_mass"], target=0.25)
     dis_depths = np.cumsum(sp.split["thickness"])
     split_depths = np.cumsum(sp.split["thickness"])
 
     dis_depths = np.insert(dis_depths, 0, 0)
     dis_shear_vel = sp.split["shear_vel"] * np.sqrt(g_mod_red)
-    split_g_mod = dis_shear_vel ** 2 * sp.split["unit_mass"]
+    split_g_mod = dis_shear_vel**2 * sp.split["unit_mass"]
     travel_times = sp.split["thickness"] / dis_shear_vel
     dis_time_from_surface = np.cumsum(travel_times)
     dis_time_from_surface = np.insert(dis_time_from_surface, 0, 0)
     time_at_depth = np.interp(depth, dis_depths, dis_time_from_surface)
     total_time = dis_time_from_surface[-1]
 
-    vs = interp1d(dis_depths[:-1], dis_shear_vel, kind='previous', fill_value='extrapolate')(depth)
-    rho = interp1d(dis_depths[:-1], sp.split["unit_mass"], kind='previous', fill_value='extrapolate')(depth)
+    vs = interp1d(
+        dis_depths[:-1], dis_shear_vel, kind="previous", fill_value="extrapolate"
+    )(depth)
+    rho = interp1d(
+        dis_depths[:-1],
+        sp.split["unit_mass"],
+        kind="previous",
+        fill_value="extrapolate",
+    )(depth)
 
-    g_mod = vs ** 2 * rho
+    g_mod = vs**2 * rho
 
     # tau is conserved across a boundary, so E=tau^2/G, so imp^2
     if in_loc == 0:
@@ -87,14 +134,29 @@ def est_case_1d_millen_et_al_2020(sp, asig, depth, xi, g_mod_red=1.0, trim=False
         else:
             soil_in = sp.get_soil_at_depth(sp.height)
             stt = total_time
-        down_red = np.exp(-xi * time_at_depth * 2 * np.pi / period) ** 2 * surf_reduction
+        down_red = (
+            np.exp(-xi * time_at_depth * 2 * np.pi / period) ** 2 * surf_reduction
+        )
         if cace:
-            spectra_series = eqsig.surface.calc_cum_abs_surface_energy(asig, time_at_depth, up_red=up_red,
-                                                                   down_red=down_red, trim=trim, nodal=nodal, stt=stt)
+            spectra_series = eqsig.surface.calc_cum_abs_surface_energy(
+                asig,
+                time_at_depth,
+                up_red=up_red,
+                down_red=down_red,
+                trim=trim,
+                nodal=nodal,
+                stt=stt,
+            )
         else:
-            spectra_series = eqsig.surface.calc_surface_energy(asig, time_at_depth, up_red=up_red,
-                                                                       down_red=down_red, trim=trim, nodal=nodal,
-                                                                       stt=stt)
+            spectra_series = eqsig.surface.calc_surface_energy(
+                asig,
+                time_at_depth,
+                up_red=up_red,
+                down_red=down_red,
+                trim=trim,
+                nodal=nodal,
+                stt=stt,
+            )
         spectra_series = np.asarray(spectra_series)
     else:
         red_at_surf = calc_energy_ratio_w_time(xi, total_time, 0, av_period=period)
@@ -107,21 +169,26 @@ def est_case_1d_millen_et_al_2020(sp, asig, depth, xi, g_mod_red=1.0, trim=False
             red_ratio = red_at_surf + (1 - red_at_surf) / 2 * time_at_depth / total_time
             stt = total_time
         if cace:
-            spectra_series = eqsig.surface.calc_cum_abs_surface_energy(asig, time_at_depth, trim=trim, nodal=nodal, stt=stt,
-                                                                   start=start)
+            spectra_series = eqsig.surface.calc_cum_abs_surface_energy(
+                asig, time_at_depth, trim=trim, nodal=nodal, stt=stt, start=start
+            )
         else:
-            spectra_series = eqsig.surface.calc_surface_energy(asig, time_at_depth, trim=trim, nodal=nodal, stt=stt, start=start)
-        if hasattr(red_ratio, '__len__'):
+            spectra_series = eqsig.surface.calc_surface_energy(
+                asig, time_at_depth, trim=trim, nodal=nodal, stt=stt, start=start
+            )
+        if hasattr(red_ratio, "__len__"):
             spectra_series = red_ratio[:, np.newaxis] * np.asarray(spectra_series)
         else:
             spectra_series *= red_ratio
     rho_in = soil_in.unit_dry_weight / 9.8
     g_in = np.interp(in_depth, split_depths, split_g_mod)
-    g_scale = (g_mod / g_in)
+    g_scale = g_mod / g_in
     if not nodal:
         g_scale_limit = 1.0
-    g_scale = np.clip(g_scale, 1.0 / g_scale_limit, g_scale_limit)  # simple scaling from Millen et al. (2019)
-    if hasattr(g_scale, '__len__'):
+    g_scale = np.clip(
+        g_scale, 1.0 / g_scale_limit, g_scale_limit
+    )  # simple scaling from Millen et al. (2019)
+    if hasattr(g_scale, "__len__"):
         estimate = spectra_series * rho_in / g_scale[:, np.newaxis]
     else:
         estimate = spectra_series * rho_in / g_scale
@@ -129,7 +196,7 @@ def est_case_1d_millen_et_al_2020(sp, asig, depth, xi, g_mod_red=1.0, trim=False
 
 
 def calc_time_surf_to_depth(sp, depth):
-    sp.gen_split(props=['shear_vel', 'unit_mass'])
+    sp.gen_split(props=["shear_vel", "unit_mass"])
     edge_depths = np.zeros(len(sp.split["thickness"]) + 1)
     edge_depths[1:] = np.cumsum(sp.split["thickness"])
     travel_times = sp.split["thickness"] / sp.split["shear_vel"]
@@ -150,12 +217,12 @@ class TimeShiftProfile(object):  # Under development
         self.period = period
         self._exact = exact
 
-        self.sp.gen_split(props=['shear_vel', 'unit_mass'])
+        self.sp.gen_split(props=["shear_vel", "unit_mass"])
         edge_depths = np.cumsum(sp.split["thickness"])
         self.edge_depths = np.insert(edge_depths, 0, 0)
 
         self.shear_vel = sp.split["shear_vel"] * np.sqrt(g_mod_red)
-        self.g_mod = self.shear_vel ** 2 * sp.split["unit_mass"]
+        self.g_mod = self.shear_vel**2 * sp.split["unit_mass"]
         self.rho = sp.split["unit_mass"]
         travel_times = sp.split["thickness"] / self.shear_vel
         dis_time_from_surface = np.cumsum(travel_times)
@@ -175,7 +242,9 @@ class TimeShiftProfile(object):  # Under development
         self.g_mod_ys = np.interp(ys, self.edge_depths[1:], self.g_mod)
 
         self.shifts = np.array(self.time_shifts / asig.dt, dtype=int)
-        self.up_wave = np.pad(asig.values, (0, np.max(self.shifts)), mode='constant', constant_values=0)  # 1d
+        self.up_wave = np.pad(
+            asig.values, (0, np.max(self.shifts)), mode="constant", constant_values=0
+        )  # 1d
         self.down_waves = eqsig.put_array_in_2d_array(asig.values, self.shifts)
         if self.in_loc == 0:
             self.start_time = -self.time_ys
@@ -194,40 +263,56 @@ class TimeShiftProfile(object):  # Under development
 
     def get_red_factors(self, xi):  # TODO: cache properties
         if self.exact:
-            up_amp_red = np.exp(-xi * (self.total_time - self.time_ys) * 2 * np.pi / self.period)
+            up_amp_red = np.exp(
+                -xi * (self.total_time - self.time_ys) * 2 * np.pi / self.period
+            )
             surf_reduction = np.exp(-xi * self.total_time * 2 * np.pi / self.period)
             if self.in_loc == 0:  # reset to 1 at surface
                 up_amp_red = up_amp_red - surf_reduction + 1
                 surf_reduction = 1
-            down_amp_red = np.exp(-xi * self.time_ys * 2 * np.pi / self.period) * surf_reduction
+            down_amp_red = (
+                np.exp(-xi * self.time_ys * 2 * np.pi / self.period) * surf_reduction
+            )
             total_red = np.ones_like(down_amp_red)
         else:
-            red_at_surf = calc_energy_ratio_w_time(xi, self.total_time, 0, av_period=self.period)
+            red_at_surf = calc_energy_ratio_w_time(
+                xi, self.total_time, 0, av_period=self.period
+            )
             if self.in_loc == 0:
                 total_red = 1 + (1 - red_at_surf) / 2 * self.time_ys / self.total_time
             else:
-                total_red = red_at_surf + (1 - red_at_surf) / 2 * self.time_ys / self.total_time
+                total_red = (
+                    red_at_surf + (1 - red_at_surf) / 2 * self.time_ys / self.total_time
+                )
             up_amp_red = np.ones_like(total_red)
             down_amp_red = np.ones_like(total_red)
         return up_amp_red, down_amp_red, total_red
 
     def get_unit_energy_series(self, xi, energy):
         from scipy.integrate import cumtrapz
+
         e_str = "{0}-{1}".format(xi, energy)
         if e_str in self.e_cache:
             return self.e_cache[e_str]
         up_amp_red, down_amp_red, total_red = self.get_red_factors(xi)
 
-        if energy == 'kinetic':
+        if energy == "kinetic":
             acc_series = down_amp_red * self.down_waves + up_amp_red * self.up_wave
         else:
-            acc_series = - down_amp_red[:, np.newaxis] * self.down_waves + up_amp_red[:, np.newaxis] * self.up_wave
+            acc_series = (
+                -down_amp_red[:, np.newaxis] * self.down_waves
+                + up_amp_red[:, np.newaxis] * self.up_wave
+            )
         velocity = cumtrapz(acc_series, dx=self.asig.dt, initial=0)
-        unit_kinetic_energy = 0.5 * velocity * np.abs(velocity) * total_red[:, np.newaxis]
+        unit_kinetic_energy = (
+            0.5 * velocity * np.abs(velocity) * total_red[:, np.newaxis]
+        )
         self.e_cache[e_str] = unit_kinetic_energy
         return unit_kinetic_energy
 
-    def trim_to_length(self, out, trim=False, start=False):  # TODO: switch to use esig function
+    def trim_to_length(
+        self, out, trim=False, start=False
+    ):  # TODO: switch to use esig function
         # if not trim:
         #     return out
         total_shift = int(self.total_time / self.asig.dt)
@@ -242,48 +327,60 @@ class TimeShiftProfile(object):  # Under development
                 npts = self.asig.npts
             else:
                 extras = np.max([sis, 0]) - np.min([np.min(self.shifts), 0])
-                npts = self.asig.npts + extras  # plus the zero padding in front and back
+                npts = (
+                    self.asig.npts + extras
+                )  # plus the zero padding in front and back
         else:
             if trim:
                 sis = np.zeros_like(total_shift)
                 npts = self.asig.npts
             else:  # no changes required
                 return out
-        print('npts: ', npts)
+        print("npts: ", npts)
 
         outs = np.zeros((len(self.shifts), npts))
-        print('len_outs: ', outs.shape)
+        print("len_outs: ", outs.shape)
         for i in range(len(self.shifts)):
             if sis[i] < 0:
-                outs[i] = out[i, -sis[i]: npts - sis[i]]
+                outs[i] = out[i, -sis[i] : npts - sis[i]]
             else:
-                outs[i, sis[i]:] = out[i, : npts - sis[i]]  # zero padded
+                outs[i, sis[i] :] = out[i, : npts - sis[i]]  # zero padded
         return outs
 
-    def get_cake(self, xi, trim=False, start=False, g_scale_limit=1.):
-        kin_energy = self.get_unit_energy_series(xi, energy='kinetic')
+    def get_cake(self, xi, trim=False, start=False, g_scale_limit=1.0):
+        kin_energy = self.get_unit_energy_series(xi, energy="kinetic")
         delta_energy = np.zeros_like(kin_energy)
         delta_energy[:, 0] = kin_energy[:, 0]
         delta_energy[:, 1:] = np.diff(kin_energy, axis=1)
         cake = self.rho_in * np.cumsum(abs(delta_energy))
-        g_scale = np.clip(self.g_mod_ys / self.g_mod_in, 1. / g_scale_limit, g_scale_limit)
+        g_scale = np.clip(
+            self.g_mod_ys / self.g_mod_in, 1.0 / g_scale_limit, g_scale_limit
+        )
         return self.trim_to_length(cake, trim=trim, start=start) / g_scale
 
-    def get_case(self, xi, trim=False, start=False, g_scale_limit=1.):
-        strain_energy = self.get_unit_energy_series(xi, energy='strain')
+    def get_case(self, xi, trim=False, start=False, g_scale_limit=1.0):
+        strain_energy = self.get_unit_energy_series(xi, energy="strain")
         delta_energy = np.zeros_like(strain_energy)
         delta_energy[:, 0] = strain_energy[:, 0]
         delta_energy[:, 1:] = np.diff(strain_energy, axis=1)
         case = self.rho_in * np.cumsum(abs(delta_energy), axis=1)
-        g_scale = np.clip(self.g_mod_ys / self.g_mod_in, 1. / g_scale_limit, g_scale_limit)
-        return self.trim_to_length(case, trim=trim, start=start) / g_scale[:, np.newaxis]
+        g_scale = np.clip(
+            self.g_mod_ys / self.g_mod_in, 1.0 / g_scale_limit, g_scale_limit
+        )
+        return (
+            self.trim_to_length(case, trim=trim, start=start) / g_scale[:, np.newaxis]
+        )
 
-    def get_kinetic_energy(self, xi, trim=False, start=False, g_scale_limit=1.):
-        ke = self.rho_in * self.get_unit_energy_series(xi, energy='kinetic')
-        g_scale = np.clip(self.g_mod_ys / self.g_mod_in, 1. / g_scale_limit, g_scale_limit)
+    def get_kinetic_energy(self, xi, trim=False, start=False, g_scale_limit=1.0):
+        ke = self.rho_in * self.get_unit_energy_series(xi, energy="kinetic")
+        g_scale = np.clip(
+            self.g_mod_ys / self.g_mod_in, 1.0 / g_scale_limit, g_scale_limit
+        )
         return self.trim_to_length(ke, trim=trim, start=start) / g_scale[:, np.newaxis]
 
-    def get_strain_energy(self, xi, trim=False, start=False, g_scale_limit=1.):
-        se = self.rho_in * self.get_unit_energy_series(xi, energy='strain')
-        g_scale = np.clip(self.g_mod_ys / self.g_mod_in, 1. / g_scale_limit, g_scale_limit)
+    def get_strain_energy(self, xi, trim=False, start=False, g_scale_limit=1.0):
+        se = self.rho_in * self.get_unit_energy_series(xi, energy="strain")
+        g_scale = np.clip(
+            self.g_mod_ys / self.g_mod_in, 1.0 / g_scale_limit, g_scale_limit
+        )
         return self.trim_to_length(se, trim=trim, start=start) / g_scale[:, np.newaxis]

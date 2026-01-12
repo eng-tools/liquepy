@@ -1,13 +1,13 @@
 import subprocess
-import py
 
+import py
 
 about = {}
 with open("liquepy/__about__.py") as fp:
     exec(fp.read(), about)
 
 
-version = about['__version__']
+version = about["__version__"]
 
 failures = py.test.cmdline.main()
 if failures == 0:

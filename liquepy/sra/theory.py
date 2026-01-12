@@ -1,7 +1,7 @@
-__author__ = 'maximmillen'
+__author__ = "maximmillen"
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def calc_vs(g_mod, density):
@@ -16,7 +16,7 @@ def calc_vs(g_mod, density):
 
 
 def calc_g_mod(vs, density):
-    return vs ** 2 * density
+    return vs**2 * density
 
 
 def calc_damped_vs_kramer_1996(vs, xi):
@@ -39,7 +39,7 @@ def calc_damped_vs_dormieux_1990(vs, xi):
     :param xi:
     :return:
     """
-    return vs * np.sqrt(np.sqrt(1 - 4 * xi ** 2) + 2j * xi)
+    return vs * np.sqrt(np.sqrt(1 - 4 * xi**2) + 2j * xi)
 
 
 def calc_alternative_damped_vs(vs, xi):
@@ -50,7 +50,7 @@ def calc_alternative_damped_vs(vs, xi):
     :param xi:
     :return:
     """
-    sqrt_d = np.sqrt(1.0 + 4 * xi ** 2)
+    sqrt_d = np.sqrt(1.0 + 4 * xi**2)
     return vs / sqrt_d * ((1.0 + sqrt_d) / 2 + 1j * xi)
 
 
@@ -99,7 +99,10 @@ def calc_tf_elastic_br(h_deposit, vsi_soil, omega, impedance, absolute=False):
     :return:
     """
 
-    h_surface = 1.0 / (np.cos(omega * h_deposit / vsi_soil) + 1j * impedance * np.sin(omega * h_deposit / vsi_soil))
+    h_surface = 1.0 / (
+        np.cos(omega * h_deposit / vsi_soil)
+        + 1j * impedance * np.sin(omega * h_deposit / vsi_soil)
+    )
     if absolute:
         return np.abs(h_surface)
     return h_surface
@@ -140,12 +143,22 @@ def view_all_theoretical(sub_fig):
         a_d_rb_alt = calc_tf_rigid_br(h_deposit, vsi_soil_alt, omega)
         sub_fig.plot(frequencies, a_d_rb_alt, label="theoretical - damp rigid (Alt)")
     a_ud_eb = calc_tf_elastic_br(h_deposit, vs_soil, omega, impedance)
-    sub_fig.plot(frequencies, a_ud_eb, ls="--", label="theoretical - undamped elastic br")
+    sub_fig.plot(
+        frequencies, a_ud_eb, ls="--", label="theoretical - undamped elastic br"
+    )
     a_d_eb = calc_tf_elastic_br(h_deposit, vsi_soil, omega, impedance)
     sub_fig.plot(frequencies, a_d_eb, ls="--", label="theoretical - damped elastic br")
 
 
-def view_theoretical(h_deposit, g_soil, density_soil=1800, xi=0.1, impedance=0.5, sub_fig=None, freqs=(0.1, 30.0)):
+def view_theoretical(
+    h_deposit,
+    g_soil,
+    density_soil=1800,
+    xi=0.1,
+    impedance=0.5,
+    sub_fig=None,
+    freqs=(0.1, 30.0),
+):
     if sub_fig is None:
         fig, sub_fig = plt.subplots()
 
@@ -162,7 +175,7 @@ def view_theoretical(h_deposit, g_soil, density_soil=1800, xi=0.1, impedance=0.5
     sub_fig.plot(frequencies, a_d_eb, ls="--", label="theoretical - damped elastic br")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     fig, sub_fig = plt.subplots()
     # theoretical_transfer_function(sub_fig)
     # theoretical_elastic_bedrock_transfer_function(sub_fig)

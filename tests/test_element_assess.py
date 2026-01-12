@@ -1,9 +1,8 @@
-import numpy as np
 import eqsig
-from liquepy.element.models import ShearTest
-
+import numpy as np
 
 from liquepy.element import assess
+from liquepy.element.models import ShearTest
 
 
 def test_with_one_cycle_no_dissipation():
@@ -24,7 +23,7 @@ def test_with_one_cycle_circle():
     angle = np.linspace(0, 2 * np.pi, 3600)
     strs = 4 * np.sin(angle)
     tau = 4 * np.cos(angle)
-    expected_energy = 4 ** 2 * np.pi
+    expected_energy = 4**2 * np.pi
     assert np.isclose(expected_energy, assess.calc_diss_energy_fd(tau, strs)[-1])
 
 
@@ -32,14 +31,14 @@ def test_with_one_cycle_circle_with_offset():
     angle = np.linspace(0, 2 * np.pi, 3600)
     strs = 4 * np.sin(angle) + 4
     tau = 4 * np.cos(angle) + 10
-    expected_energy = 4 ** 2 * np.pi
+    expected_energy = 4**2 * np.pi
     assert np.isclose(expected_energy, assess.calc_diss_energy_fd(tau, strs)[-1])
 
 
 def test_with_one_cycle_triangles():
     strs = np.array([0, -1, -2, -3, -4, -4, -3, -2, -1, 0, 1, 2, 3, 4, 4, 3, 2, 1, 0])
     tau = np.array([0, -2, -4, -6, -8, 0, 0, 0, 0, 0, 2, 4, 6, 8, 0, 0, 0, 0, 0])
-    expected_energy = 8 * 4.
+    expected_energy = 8 * 4.0
     assert np.isclose(expected_energy, assess.calc_diss_energy_fd(tau, strs)[-1])
 
 
@@ -101,8 +100,8 @@ def test_determine_cum_stored_energy_series_simple_up_down():
     /\
     :return:
     """
-    gamma = np.array([0., 1., 0.5])
-    tau = np.array([0., 1., 0])
+    gamma = np.array([0.0, 1.0, 0.5])
+    tau = np.array([0.0, 1.0, 0])
     expected_delta_e = 0.75  # two triangles (1x1x0.5 + 1x0.5x0.5)
     energy = assess.calc_case_fd(tau, gamma)
     assert energy[-1] == expected_delta_e, energy
@@ -112,8 +111,8 @@ def test_determine_cum_stored_energy_series_simple_up_down():
 
 
 def test_determine_cum_stored_energy_series_simple_up_down_neg():
-    gamma = np.array([0., 1., -1])
-    tau = np.array([0., 1., -1])
+    gamma = np.array([0.0, 1.0, -1])
+    tau = np.array([0.0, 1.0, -1])
     expected_delta_e = 1.5
     et = ShearTest(tau, gamma)
     energy = assess.calc_case_et(et)
@@ -121,8 +120,8 @@ def test_determine_cum_stored_energy_series_simple_up_down_neg():
 
 
 def test_determine_cum_stored_energy_series_simple_close_loop():
-    gamma = np.array([1., -1, 1])
-    tau = np.array([1., -1, 1])
+    gamma = np.array([1.0, -1, 1])
+    tau = np.array([1.0, -1, 1])
 
     expected_delta_e = 2
     et = ShearTest(tau, gamma)
@@ -191,10 +190,64 @@ def test_case_et_simple_6points():
 
 
 def test_get_energy_peaks_for_cyclic_loading():
-    fs = np.array([0, 1., 2., 3., 4., 5., 5.5, 5.5, 4., 3., 2.5, 2.0, 1., 0., -1, -2, -5, 1, 3, 3.5,
-                   2.5, 3.5, 2.5, -1, -3])
-    ds = np.array([0, 0.5, 1., 1.5, 2.5, 3., 4.25, 5.5, 5.5, 5.25, 5.5, 5.25, 4., 3., 1.5, 0.5, -3, -2, -1, -0.5,
-                   -0.75, 1.5, 1., -1.5, -5])
+    fs = np.array(
+        [
+            0,
+            1.0,
+            2.0,
+            3.0,
+            4.0,
+            5.0,
+            5.5,
+            5.5,
+            4.0,
+            3.0,
+            2.5,
+            2.0,
+            1.0,
+            0.0,
+            -1,
+            -2,
+            -5,
+            1,
+            3,
+            3.5,
+            2.5,
+            3.5,
+            2.5,
+            -1,
+            -3,
+        ]
+    )
+    ds = np.array(
+        [
+            0,
+            0.5,
+            1.0,
+            1.5,
+            2.5,
+            3.0,
+            4.25,
+            5.5,
+            5.5,
+            5.25,
+            5.5,
+            5.25,
+            4.0,
+            3.0,
+            1.5,
+            0.5,
+            -3,
+            -2,
+            -1,
+            -0.5,
+            -0.75,
+            1.5,
+            1.0,
+            -1.5,
+            -5,
+        ]
+    )
     inds = assess.get_energy_peaks_for_cyclic_loading(-fs, -ds)
-    expected = np.array([0,  7, 16, 21, 24])
+    expected = np.array([0, 7, 16, 21, 24])
     assert np.sum(abs(inds - expected)) == 0

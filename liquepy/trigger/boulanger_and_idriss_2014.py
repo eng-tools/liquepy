@@ -1,4 +1,5 @@
 import numpy as np
+
 from liquepy.exceptions import deprecation
 from liquepy.field import CPT
 
@@ -34,7 +35,11 @@ def calc_unit_dry_weight(fs, q_t, p_a, unit_water_wt):
     r_f = np.clip((fs / q_t) * 100, 0.1, None)
     min_unit_weight = 1.5 * unit_water_wt  # minimum value obtained in presented results
     max_unit_weight = 4.0 * unit_water_wt  # maximum value obtained in presented results
-    soil_unit_wt = np.clip((0.27 * np.log10(r_f) + 0.36 * np.log10(q_t / p_a) + 1.236) * unit_water_wt, min_unit_weight, max_unit_weight)
+    soil_unit_wt = np.clip(
+        (0.27 * np.log10(r_f) + 0.36 * np.log10(q_t / p_a) + 1.236) * unit_water_wt,
+        min_unit_weight,
+        max_unit_weight,
+    )
     return soil_unit_wt
 
 
@@ -153,7 +158,7 @@ def calc_m(q_c1ncs):
     """
     m parameter from CPT, Eq 2.15b
     """
-    m = 1.338 - 0.249 * q_c1ncs ** 0.264
+    m = 1.338 - 0.249 * q_c1ncs**0.264
     if q_c1ncs >= 254:
         m = 0.263823991466759
     if q_c1ncs <= 21:
@@ -186,8 +191,13 @@ def calc_crr_m7p5_from_qc1ncs(q_c1n_cs, c_0=2.8):
     -------
 
     """
-    return np.exp((q_c1n_cs / 113) + ((q_c1n_cs / 1000) ** 2) -
-                        ((q_c1n_cs / 140) ** 3) + ((q_c1n_cs / 137) ** 4) - c_0)
+    return np.exp(
+        (q_c1n_cs / 113)
+        + ((q_c1n_cs / 1000) ** 2)
+        - ((q_c1n_cs / 140) ** 3)
+        + ((q_c1n_cs / 137) ** 4)
+        - c_0
+    )
 
 
 def calc_crr_n15_from_qc1ncs(q_c1ncs, c_0=2.8):
@@ -208,7 +218,7 @@ def calc_crr_m7p5_from_qc1ncs_capped(q_c1n_cs, gwl, depth, i_c, i_c_limit=2.6, c
     """
     crr_values = calc_crr_m7p5_from_qc1ncs(q_c1n_cs, c_0)
     crr_tent = np.where(depth < gwl, 4, crr_values)
-    return np.where(i_c <= i_c_limit, crr_tent, 4.)
+    return np.where(i_c <= i_c_limit, crr_tent, 4.0)
 
 
 def crr_m(ksigma, msf, crr_m7p5):
@@ -220,7 +230,9 @@ def calc_delta_q_c1n(q_c1n, fc):
     """
     delta q_c1n from CPT, Eq 2.22
     """
-    delta_q_c1n = (11.9 + (q_c1n / 14.6)) * (np.exp(1.63 - (9.7 / (fc + 2)) - ((15.7 / (fc + 2)) ** 2)))
+    delta_q_c1n = (11.9 + (q_c1n / 14.6)) * (
+        np.exp(1.63 - (9.7 / (fc + 2)) - ((15.7 / (fc + 2)) ** 2))
+    )
     return delta_q_c1n
 
 
@@ -246,7 +258,7 @@ def calc_msf(magnitude, q_c1ncs):
         return np.ones_like(q_c1ncs)
     msf_m = 1.09 + (q_c1ncs / 180) ** 3
     msf_max = np.where(msf_m > 2.2, 2.2, msf_m)
-    msf = 1. + (msf_max - 1) * (8.64 * np.exp(-magnitude / 4) - 1.325)
+    msf = 1.0 + (msf_max - 1) * (8.64 * np.exp(-magnitude / 4) - 1.325)
     return msf
 
 
@@ -261,8 +273,8 @@ def calc_k_sigma(sigma_eff, q_c1ncs, pa=100):
     :param pa: atmospheric pressure in kPa
     :return:
     """
-    qvals = np.clip(q_c1ncs, None, 211.)  # pg 11 of BI2014 report
-    c_sigma = 1. / (37.3 - 8.27 * (qvals ** 0.264))
+    qvals = np.clip(q_c1ncs, None, 211.0)  # pg 11 of BI2014 report
+    c_sigma = 1.0 / (37.3 - 8.27 * (qvals**0.264))
     # c_sigma = np.where(c_sigma_unrestricted <= 0.3, c_sigma_unrestricted, 0.3)
     k_sigma_unrestricted = 1 - c_sigma * np.log(sigma_eff / pa)
     k_sigma = np.where(k_sigma_unrestricted <= 1.1, k_sigma_unrestricted, 1.1)
@@ -307,11 +319,15 @@ def _calc_dependent_variables(sigma_v, sigma_veff, q_c, f_s, p_a, q_t, cfc):
         n_val = 1.0
         for j in range(100):
             cn_values[dd] = min((p_a / sigma_veff[dd]) ** m_values[dd], 1.7)  # Eq 2.15a
-            q_c1n[dd] = (cn_values[dd] * q_c[dd] / p_a)  # Eq. 2.4
-            big_q[dd] = calc_big_q_values(q_t[dd], sigma_v[dd], sigma_veff[dd], p_a, n_val=n_val)
+            q_c1n[dd] = cn_values[dd] * q_c[dd] / p_a  # Eq. 2.4
+            big_q[dd] = calc_big_q_values(
+                q_t[dd], sigma_v[dd], sigma_veff[dd], p_a, n_val=n_val
+            )
             ft_values[dd] = calc_f_ic_values(f_s[dd], q_t[dd], sigma_v[dd])
             i_c[dd] = calc_i_c(big_q[dd], ft_values[dd])
-            if i_c[dd] < 2.6 and n_val == 1.0:  # See second half of pg 449 of Robertson and Wride (1997)
+            if (
+                i_c[dd] < 2.6 and n_val == 1.0
+            ):  # See second half of pg 449 of Robertson and Wride (1997)
                 n_val = 0.5
                 n_val_stable = False
             elif i_c[dd] > 2.6 and n_val == 0.5:
@@ -321,7 +337,9 @@ def _calc_dependent_variables(sigma_v, sigma_veff, q_c, f_s, p_a, q_t, cfc):
                 n_val_stable = True
             fines_content[dd] = calc_fc(i_c[dd], cfc)
 
-            delta_q_c1n[dd] = calc_delta_q_c1n(q_c1n=q_c1n[dd], fc=fines_content[dd])  # Eq. 2.22
+            delta_q_c1n[dd] = calc_delta_q_c1n(
+                q_c1n=q_c1n[dd], fc=fines_content[dd]
+            )  # Eq. 2.22
             q_c1n_cs[dd] = q_c1n[dd] + delta_q_c1n[dd]
             m_values[dd] = calc_m(q_c1n_cs[dd])
             if abs(q_c1n[dd] - temp_q_c1n) < 0.00001 and n_val_stable:
@@ -367,7 +385,7 @@ class BoulangerIdriss2014CPT(object):
         i_c_limit = kwargs.get("i_c_limit", 2.6)
         self.s_g = kwargs.get("s_g", 2.65)
         self.s_g_water = kwargs.get("s_g_water", 1.0)
-        self.p_a = kwargs.get("p_a", 101.)  # kPa
+        self.p_a = kwargs.get("p_a", 101.0)  # kPa
         self.c_0 = kwargs.get("c_0", 2.8)
         self.unit_wt_clips = kwargs.get("unit_wt_clips", (None, None))
         saturation = kwargs.get("saturation", None)
@@ -381,7 +399,9 @@ class BoulangerIdriss2014CPT(object):
             if magnitude is None:
                 self.m_w = 7.5
             else:
-                deprecation('Deprecated input "magnitude" in BoulangerIdriss2014(), should use "m_w"')
+                deprecation(
+                    'Deprecated input "magnitude" in BoulangerIdriss2014(), should use "m_w"'
+                )
                 self.m_w = magnitude
         else:
             self.m_w = m_w
@@ -408,15 +428,28 @@ class BoulangerIdriss2014CPT(object):
         else:
             self.saturation = saturation
         if unit_wt_method == "robertson2009":
-            self.unit_wt = calc_unit_dry_weight(self.cpt.f_s, self.q_t, self.p_a, unit_water_wt)
-        elif unit_wt_method == 'void_ratio':
-            uncorr_unit_dry_wt = calc_unit_dry_weight(self.cpt.f_s, self.q_t, self.p_a, unit_water_wt)
-            self.e_curr = calc_void_ratio(uncorr_unit_dry_wt, self.s_g, pw=unit_water_wt)
-            self.unit_wt = calc_unit_weight(self.e_curr, self.s_g, self.saturation, pw=unit_water_wt)
+            self.unit_wt = calc_unit_dry_weight(
+                self.cpt.f_s, self.q_t, self.p_a, unit_water_wt
+            )
+        elif unit_wt_method == "void_ratio":
+            uncorr_unit_dry_wt = calc_unit_dry_weight(
+                self.cpt.f_s, self.q_t, self.p_a, unit_water_wt
+            )
+            self.e_curr = calc_void_ratio(
+                uncorr_unit_dry_wt, self.s_g, pw=unit_water_wt
+            )
+            self.unit_wt = calc_unit_weight(
+                self.e_curr, self.s_g, self.saturation, pw=unit_water_wt
+            )
         else:
-            raise ValueError("unit_wt_method should be either: 'robertson2009' or 'void_ratio' not: %s" % unit_wt_method)
+            raise ValueError(
+                "unit_wt_method should be either: 'robertson2009' or 'void_ratio' not: %s"
+                % unit_wt_method
+            )
         if self.unit_wt_clips[0] is not None or self.unit_wt_clips[1] is not None:
-            self.unit_wt = np.clip(self.unit_wt, self.unit_wt_clips[0], self.unit_wt_clips[1])
+            self.unit_wt = np.clip(
+                self.unit_wt, self.unit_wt_clips[0], self.unit_wt_clips[1]
+            )
         self.sigma_v = calc_sigma_v(self.depth, self.unit_wt, gamma_predrill)
         self.pore_pressure = calc_pore_pressure(self.depth, self.gwl, unit_water_wt)
         self.sigma_veff = calc_sigma_veff(self.sigma_v, self.pore_pressure)
@@ -424,18 +457,29 @@ class BoulangerIdriss2014CPT(object):
             self.sigma_veff[0] = 1.0e-10
         self.rd = calc_rd(self.depth, self.m_w)
 
-        self.q_c1n_cs, self.q_c1n, self.fines_content, self.i_c, self.big_q, self.big_f = _calc_dependent_variables(self.sigma_v,
-                                                                                                        self.sigma_veff,
-                                                                                                        self.cpt.q_c,
-                                                                                            self.cpt.f_s, self.p_a,
-                                                                                            self.q_t,
-                                                                                            self.cfc)
-
+        (
+            self.q_c1n_cs,
+            self.q_c1n,
+            self.fines_content,
+            self.i_c,
+            self.big_q,
+            self.big_f,
+        ) = _calc_dependent_variables(
+            self.sigma_v,
+            self.sigma_veff,
+            self.cpt.q_c,
+            self.cpt.f_s,
+            self.p_a,
+            self.q_t,
+            self.cfc,
+        )
 
         self.k_sigma = calc_k_sigma(self.sigma_veff, self.q_c1n_cs)
         self.msf = calc_msf(self.m_w, self.q_c1n_cs)
         self.csr = calc_csr(self.sigma_veff, self.sigma_v, pga, self.rd)
-        self.crr_m7p5 = calc_crr_m7p5_from_qc1ncs_capped(self.q_c1n_cs, gwl, self.depth, self.i_c, self.i_c_limit, self.c_0)
+        self.crr_m7p5 = calc_crr_m7p5_from_qc1ncs_capped(
+            self.q_c1n_cs, gwl, self.depth, self.i_c, self.i_c_limit, self.c_0
+        )
         self.crr = crr_m(self.k_sigma, self.msf, self.crr_m7p5)  # CRR at set magnitude
         fs_unlimited = self.crr / self.csr
         # fs_fines_limited = np.where(self.fines_content > 71, 2.0, fs_unlimited)  # based on I_c=2.6
@@ -444,18 +488,35 @@ class BoulangerIdriss2014CPT(object):
 
     @property
     def gammas(self):
-        deprecation('Deprecated "BoulangerIdriss2014.gammas", should use "BoulangerIdriss2014.unit_wt"')
+        deprecation(
+            'Deprecated "BoulangerIdriss2014.gammas", should use "BoulangerIdriss2014.unit_wt"'
+        )
         return self.unit_wt
 
     @property
     def magnitude(self):
-        deprecation('Deprecated "BoulangerIdriss2014.magnitude", should use "BoulangerIdriss2014.m_w"')
+        deprecation(
+            'Deprecated "BoulangerIdriss2014.magnitude", should use "BoulangerIdriss2014.m_w"'
+        )
         return self.m_w
 
 
 class BoulangerIdriss2014(BoulangerIdriss2014CPT):
 
-    def __init__(self, depth, q_c, f_s, u_2, cpt_gwl=None, pga=0.25, m_w=None, gwl=None, a_ratio=0.8, cfc=0.0, **kwargs):
+    def __init__(
+        self,
+        depth,
+        q_c,
+        f_s,
+        u_2,
+        cpt_gwl=None,
+        pga=0.25,
+        m_w=None,
+        gwl=None,
+        a_ratio=0.8,
+        cfc=0.0,
+        **kwargs,
+    ):
         """
          depth: array_like m,
             depths measured downwards from surface
@@ -479,11 +540,27 @@ class BoulangerIdriss2014(BoulangerIdriss2014CPT):
         if gwl is None:
             gwl = cpt_gwl
         cpt = CPT(depth, q_c, f_s, u_2, gwl, a_ratio=a_ratio)
-        super(BoulangerIdriss2014CPT, self).__init__(cpt, gwl=gwl, pga=pga, m_w=m_w, cfc=cfc, **kwargs)
+        super(BoulangerIdriss2014CPT, self).__init__(
+            cpt, gwl=gwl, pga=pga, m_w=m_w, cfc=cfc, **kwargs
+        )
 
 
-def run_bi2014(cpt, pga, m_w, gwl=None, p_a=101., cfc=0.0, i_c_limit=2.6, gamma_predrill=17.0, c_0=2.8,
-               unit_wt_method='robertson2009', s_g=2.65, s_g_water=1.0, saturation=None, **kwargs):
+def run_bi2014(
+    cpt,
+    pga,
+    m_w,
+    gwl=None,
+    p_a=101.0,
+    cfc=0.0,
+    i_c_limit=2.6,
+    gamma_predrill=17.0,
+    c_0=2.8,
+    unit_wt_method="robertson2009",
+    s_g=2.65,
+    s_g_water=1.0,
+    saturation=None,
+    **kwargs,
+):
     """
     Runs the Boulanger and Idriss (2014) triggering method.
 
@@ -521,34 +598,49 @@ def run_bi2014(cpt, pga, m_w, gwl=None, p_a=101., cfc=0.0, i_c_limit=2.6, gamma_
     BoulangerIdriss2014CPT()
     """
 
-    return BoulangerIdriss2014CPT(cpt, gwl=gwl, pga=pga, m_w=m_w, cfc=cfc, i_c_limit=i_c_limit, s_g=s_g,
-                                  s_g_water=s_g_water, p_a=p_a,
-                                  saturation=saturation, unit_wt_method=unit_wt_method, gamma_predrill=gamma_predrill,
-                                  c_0=c_0, **kwargs)
+    return BoulangerIdriss2014CPT(
+        cpt,
+        gwl=gwl,
+        pga=pga,
+        m_w=m_w,
+        cfc=cfc,
+        i_c_limit=i_c_limit,
+        s_g=s_g,
+        s_g_water=s_g_water,
+        p_a=p_a,
+        saturation=saturation,
+        unit_wt_method=unit_wt_method,
+        gamma_predrill=gamma_predrill,
+        c_0=c_0,
+        **kwargs,
+    )
 
 
 def _invert_crr_formula(a, b, c, d, e):
 
-    p = (8 * a * c - 3 * b ** 2) / (8 * a ** 2)
-    q = (b ** 3 - 4 * a * b * c + 8 * d * (a ** 2)) / (8 * a ** 3)
-    delta_zero = c ** 2 - 3 * b * d + 12 * a * e
-    delta_one = 2 * c ** 3 - 9 * b * c * d + 27 * e * (b ** 2) + 27 * a * (d ** 2) - 72 * a * c * e
-    big_q = ((delta_one + (delta_one ** 2 - 4 * delta_zero ** 3) ** 0.5) / 2) ** (1/3)
-    big_s = 0.5 * (- 2/3 * p + 1/(3 * a) * (big_q + (delta_zero / big_q))) ** 0.5
-    big_a = (- 4 * big_s ** 2 - 2 * p + q/big_s)
-    big_b = (- 4 * big_s ** 2 - 2 * p - q/big_s)
-    big_c = - b/(4 * a)
+    p = (8 * a * c - 3 * b**2) / (8 * a**2)
+    q = (b**3 - 4 * a * b * c + 8 * d * (a**2)) / (8 * a**3)
+    delta_zero = c**2 - 3 * b * d + 12 * a * e
+    delta_one = (
+        2 * c**3 - 9 * b * c * d + 27 * e * (b**2) + 27 * a * (d**2) - 72 * a * c * e
+    )
+    big_q = ((delta_one + (delta_one**2 - 4 * delta_zero**3) ** 0.5) / 2) ** (1 / 3)
+    big_s = 0.5 * (-2 / 3 * p + 1 / (3 * a) * (big_q + (delta_zero / big_q))) ** 0.5
+    big_a = -4 * big_s**2 - 2 * p + q / big_s
+    big_b = -4 * big_s**2 - 2 * p - q / big_s
+    big_c = -b / (4 * a)
 
     # Solutions
-    x1 = big_c - big_s + 0.5 * big_a ** 0.5
+    x1 = big_c - big_s + 0.5 * big_a**0.5
     # x2 = C - big_s - 0.5 * big_a ** 0.5
     x2 = -1  # q_c1ncs would be less than zero
 
     import warnings  # These solutions are complex for negative
+
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        x3 = big_c + big_s + 0.5 * big_b ** 0.5
-        x4 = big_c + big_s - 0.5 * big_b ** 0.5
+        x3 = big_c + big_s + 0.5 * big_b**0.5
+        x4 = big_c + big_s - 0.5 * big_b**0.5
 
         return np.where(big_b < 0, np.where(x1 < 0, x2, x1), np.where(x3 < 0, x4, x3))
 
@@ -571,10 +663,10 @@ def calc_q_c1n_cs_from_crr_m7p5(crr_7p5, c_0=2.8):
         value of normalised cone tip resistance corrected to clean sand behaviour
     """
     a = (1 / 137) ** 4
-    b = - (1 / 140) ** 3
+    b = -((1 / 140) ** 3)
     c = (1 / 1000) ** 2
-    d = (1 / 113)
-    e = - (np.log(crr_7p5) + c_0)
+    d = 1 / 113
+    e = -(np.log(crr_7p5) + c_0)
     return _invert_crr_formula(a, b, c, d, e)
 
 
@@ -596,10 +688,10 @@ def calc_n1_60cs_from_crr_m7p5(crr_7p5, c_0=2.8):
         value of normalised blow-count corrected to clean sand behaviour
     """
     a = (1 / 25.4) ** 4
-    b = - (1 / 23.6) ** 3
+    b = -((1 / 23.6) ** 3)
     c = (1 / 126) ** 2
-    d = (1 / 14.1)
-    e = - (np.log(crr_7p5) + c_0)
+    d = 1 / 14.1
+    e = -(np.log(crr_7p5) + c_0)
     return _invert_crr_formula(a, b, c, d, e)
 
 
@@ -620,10 +712,50 @@ def calc_n_cycles_at_m7p5_bi2014(b):
     :param b:
     :return:
     """
-    b_vals = [0.060, 0.063, 0.068, 0.072, 0.078, 0.086, 0.095, 0.110, 0.129, 0.148,
-              0.168, 0.189, 0.213, 0.235, 0.253, 0.273, 0.310, 0.333, 0.372, 0.400]
-    n_cyc = [950.789, 628.731, 405.756, 278.274, 197.931, 121.658, 77.552, 47.081, 30.742, 22.947,
-             18.878, 16.503, 15.519, 14.593, 14.235, 14.054, 14.384, 14.374, 14.710, 15.060]
+    b_vals = [
+        0.060,
+        0.063,
+        0.068,
+        0.072,
+        0.078,
+        0.086,
+        0.095,
+        0.110,
+        0.129,
+        0.148,
+        0.168,
+        0.189,
+        0.213,
+        0.235,
+        0.253,
+        0.273,
+        0.310,
+        0.333,
+        0.372,
+        0.400,
+    ]
+    n_cyc = [
+        950.789,
+        628.731,
+        405.756,
+        278.274,
+        197.931,
+        121.658,
+        77.552,
+        47.081,
+        30.742,
+        22.947,
+        18.878,
+        16.503,
+        15.519,
+        14.593,
+        14.235,
+        14.054,
+        14.384,
+        14.374,
+        14.710,
+        15.060,
+    ]
     return np.interp(b, b_vals, n_cyc)
 
 
@@ -638,8 +770,38 @@ def calc_b_from_msf_max_bi2014(msf_max):
     :param msf_max:
     :return:
     """
-    b_vals = [0.080, 0.101, 0.121, 0.147, 0.170, 0.191, 0.211, 0.250, 0.290, 0.312, 0.333, 0.353, 0.374, 0.399]
-    msf_max_vals = [1.000, 1.019, 1.045, 1.084, 1.130, 1.184, 1.242, 1.373, 1.540, 1.651, 1.768, 1.891, 2.025, 2.215]
+    b_vals = [
+        0.080,
+        0.101,
+        0.121,
+        0.147,
+        0.170,
+        0.191,
+        0.211,
+        0.250,
+        0.290,
+        0.312,
+        0.333,
+        0.353,
+        0.374,
+        0.399,
+    ]
+    msf_max_vals = [
+        1.000,
+        1.019,
+        1.045,
+        1.084,
+        1.130,
+        1.184,
+        1.242,
+        1.373,
+        1.540,
+        1.651,
+        1.768,
+        1.891,
+        2.025,
+        2.215,
+    ]
     return np.interp(msf_max, msf_max_vals, b_vals)
 
 
@@ -675,7 +837,7 @@ def calc_k_sigma_w_n1_60cs(sigma_eff, n1_60cs, pa=100):
         Atmospheric pressure in kPa
 
     """
-    c_sigma = 1. / (18.9 - 2.55 * np.sqrt(n1_60cs))
+    c_sigma = 1.0 / (18.9 - 2.55 * np.sqrt(n1_60cs))
     c_sigma = np.clip(c_sigma, None, 0.3)
     return np.clip(1 - c_sigma * np.log(sigma_eff / pa), None, 1.1)
 
@@ -697,7 +859,13 @@ def calc_crr_m7p5_from_n1_60cs(n1_60cs, c_0=2.8):
     -------
 
     """
-    return np.exp((n1_60cs / 14.1) + ((n1_60cs / 126) ** 2) - ((n1_60cs / 23.6) ** 3) + ((n1_60cs / 25.4) ** 4) - c_0)
+    return np.exp(
+        (n1_60cs / 14.1)
+        + ((n1_60cs / 126) ** 2)
+        - ((n1_60cs / 23.6) ** 3)
+        + ((n1_60cs / 25.4) ** 4)
+        - c_0
+    )
 
 
 def calc_crr_n15_from_n1_60cs(n1_60cs, c_0=2.8):
@@ -710,8 +878,9 @@ def calc_crr_n15_from_n1_60cs(n1_60cs, c_0=2.8):
     msf = (n_m7p5 / n_cyc_bi2014) ** b
     return msf * crr_m7p5
 
-if __name__ == '__main__':
-    n1_60_cs_values = 3.
+
+if __name__ == "__main__":
+    n1_60_cs_values = 3.0
     crr_values = calc_crr_m7p5_from_n1_60cs(n1_60_cs_values, c_0=2.6)
     n1_60_cs_back = calc_n1_60cs_from_crr_m7p5(crr_values, c_0=2.6)
     print(n1_60_cs_back)
